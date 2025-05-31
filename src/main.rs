@@ -46,7 +46,7 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
-
+        #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
         // Add other plugins.
         app.add_plugins((
@@ -108,6 +108,7 @@ fn spawn_camera(mut commands: Commands) {
 #[derive(Component)]
 struct Setup;
 
+#[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::{hot, prelude::*};
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
