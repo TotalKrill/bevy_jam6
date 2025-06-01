@@ -20,6 +20,8 @@ tracing = { version = "0.1", features = [
 
 bevy_simple_subsecond_system = { git = "https://github.com/TheBevyFlock/bevy_simple_subsecond_system", optional = true }
 bevy_mod_lookat = "0.4.2"
+bevy_enhanced_input = "0.12.0"
+avian3d = "0.3"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
 # To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.
