@@ -20,7 +20,7 @@ pub mod level {
                 base_color: GRAY_100.into(),
                 ..Default::default()
             })),
-            RigidBody::Static,
+            RigidBody::Kinematic,
             Collider::cuboid(LEVEL_WIDHT, 0.1, LEVEL_WIDHT),
         )
     }

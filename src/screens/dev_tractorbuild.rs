@@ -4,8 +4,7 @@ use crate::gameplay::{
     tractor::{self, LeftWheels, RightWheels, TractorAssets},
 };
 
-use avian3d::prelude::ExternalTorque;
-use bevy::input::keyboard::KeyboardInput;
+use avian3d::prelude::*;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -16,31 +15,28 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_debug_camera);
 
-    app.add_systems(Update, forward);
+    // app.add_systems(Update, forward);
 }
 
-use avian3d::prelude::*;
 #[cfg_attr(feature = "dev_native", hot)]
 fn forward(
     key: Res<ButtonInput<KeyCode>>,
     mut wheels: Query<&mut ExternalTorque>,
     tractor: Query<(Entity, &LeftWheels, &RightWheels)>,
 ) {
-    let Ok((tractor_id, lws, rws)) = tractor.single() else {
+    let Ok((_tractor_id, lws, rws)) = tractor.single() else {
         return;
     };
 
-    const SPEED: f32 = 10.0;
+    const SPEED: f32 = 20.0;
 
     if key.pressed(KeyCode::KeyW) {
-        let mut i = 0;
         for lw in lws.iter() {
             if let Ok(mut lw) = wheels.get_mut(lw) {
                 let torque = Vec3::new(0., 0., SPEED);
                 lw.set_torque(torque);
             }
         }
-        let mut i = 0;
         for rw in rws.iter() {
             if let Ok(mut rw) = wheels.get_mut(rw) {
                 let torque = Vec3::new(0., 0., SPEED);

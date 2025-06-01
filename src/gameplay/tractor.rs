@@ -147,6 +147,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
             .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + OFFSET))
+            .with_angular_velocity_damping(0.0)
             .with_aligned_axis(Vec3::Z),
         extra_components.clone(),
     ));
@@ -173,6 +174,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
             .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + 0.1))
+            .with_angular_velocity_damping(0.0)
             .with_aligned_axis(Vec3::Z),
         extra_components.clone(),
     ));
@@ -187,11 +189,12 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
             // SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
-        // Mass(200.),
+        // Mass(20.),
         // AngularInertia {
         //     principal: Vec3::splat(0.1),
         //     local_frame: Quat::IDENTITY,
         // },
+        // CenterOfMass::new(TRACTOR_LENGTH / 2.0, -TRACTOR_HEIGHT / 2., 0.),
         Collider::cuboid(TRACTOR_LENGTH, TRACTOR_HEIGHT, TRACTOR_WIDTH),
     )
 }
