@@ -2,7 +2,12 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
-use crate::{Pause, gameplay::tractor, menus::Menu, screens::Screen};
+use crate::{
+    Pause,
+    gameplay::tractor::{self, TractorAssets},
+    menus::Menu,
+    screens::Screen,
+};
 
 pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
@@ -35,6 +40,7 @@ use super::*;
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn spawn_tractor(
     mut commands: Commands,
+    assets: Res<TractorAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
@@ -49,7 +55,7 @@ fn spawn_tractor(
     commands.spawn((
         ReplaceOnHotreload,
         Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
-        tractor::spawn_tractor(&mut meshes, &mut materials),
+        tractor::spawn_tractor(&assets),
     ));
     commands.spawn((
         ReplaceOnHotreload,
