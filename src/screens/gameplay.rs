@@ -30,11 +30,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_tractor);
 }
 
-#[cfg(feature = "dev_native")]
-use bevy_simple_subsecond_system::hot;
-
-#[derive(Component)]
-pub struct ReplaceOnHotreload;
+use super::*;
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn spawn_tractor(
