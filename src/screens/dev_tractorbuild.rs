@@ -64,9 +64,10 @@ fn spawn_tractor(
         (StateScoped(Screen::TractorBuild), ReplaceOnHotreload),
     );
 
-    // commands.spawn((
-    //     ReplaceOnHotreload,
-    //     StateScoped(Screen::TractorBuild),
-    //     level::level(&mut meshes, &mut materials),
-    // ));
+    commands.spawn((
+        ReplaceOnHotreload,
+        StateScoped(Screen::TractorBuild),
+        level::level(&mut meshes, &mut materials),
+        Transform::from_translation(Vec3::Y * -4.),
+    ));
 }
