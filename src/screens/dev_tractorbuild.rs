@@ -24,6 +24,7 @@ fn spawn_tractor(
     log::info!("spawning tractor");
     commands.spawn((
         ReplaceOnHotreload,
+        StateScoped(Screen::TractorBuild),
         Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
         tractor::spawn_tractor(&mut meshes, &mut materials),
         // MovementController,
@@ -31,6 +32,15 @@ fn spawn_tractor(
 
     commands.spawn((
         ReplaceOnHotreload,
+        StateScoped(Screen::TractorBuild),
+        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 10., 0.0).rotate_y(90_f32.to_radians()),
+        tractor::spawn_tractor(&mut meshes, &mut materials),
+        // MovementController,
+    ));
+
+    commands.spawn((
+        ReplaceOnHotreload,
+        StateScoped(Screen::TractorBuild),
         level::level(&mut meshes, &mut materials),
     ));
 }
