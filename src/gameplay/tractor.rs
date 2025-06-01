@@ -1,5 +1,7 @@
 use avian3d::prelude::*;
 
+use crate::asset_tracking::LoadResource;
+
 use super::*;
 
 pub const TRACTOR_WIDTH: f32 = 2.0;
@@ -13,90 +15,31 @@ pub const WHEEL_WIDTH: f32 = 0.25;
 #[derive(Component)]
 pub struct Tractor;
 
-pub fn spawn_tractor(
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-) -> impl Bundle {
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct TractorAssets {
+    tractor: Handle<Scene>,
+}
+
+impl FromWorld for TractorAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            tractor: assets
+                .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
+        }
+    }
+}
+
+pub fn tractor_plugin(app: &mut App) {
+    app.load_resource::<TractorAssets>();
+}
+
+pub fn spawn_tractor(assets: &TractorAssets) -> impl Bundle {
     (
-        Mesh3d(meshes.add(Cuboid::from_size(Vec3::new(
-            TRACTOR_WIDTH,
-            TRACTOR_HEIGHT,
-            TRACTOR_LENGTH,
-        )))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: GREEN.into(),
-            ..Default::default()
-        })),
+        SceneRoot(assets.tractor.clone()),
         RigidBody::Dynamic,
         Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
         Tractor,
-        children![
-            (
-                Mesh3d(meshes.add(Cylinder::new(FRONT_WHEEL_DIAMETER, WHEEL_WIDTH))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: BLACK.into(),
-                    ..Default::default()
-                })),
-                Transform {
-                    translation: Vec3::new(
-                        TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0,
-                        TRACTOR_LENGTH / 2.0,
-                    ),
-                    rotation: Quat::from_rotation_z(90_f32.to_radians()),
-                    ..Default::default()
-                },
-            ),
-            (
-                Mesh3d(meshes.add(Cylinder::new(FRONT_WHEEL_DIAMETER, WHEEL_WIDTH))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: BLACK.into(),
-                    ..Default::default()
-                })),
-                Transform {
-                    translation: Vec3::new(
-                        -TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0,
-                        TRACTOR_LENGTH / 2.0
-                    ),
-                    rotation: Quat::from_rotation_z(90_f32.to_radians()),
-                    ..Default::default()
-                }
-            ),
-            (
-                Mesh3d(meshes.add(Cylinder::new(BACK_WHEEL_DIAMETER, WHEEL_WIDTH))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: BLACK.into(),
-                    ..Default::default()
-                })),
-                Transform {
-                    translation: Vec3::new(
-                        TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0 + BACK_WHEEL_DIAMETER / 2.,
-                        -TRACTOR_LENGTH / 2.0
-                    ),
-                    rotation: Quat::from_rotation_z(90_f32.to_radians()),
-                    ..Default::default()
-                }
-            ),
-            (
-                Mesh3d(meshes.add(Cylinder::new(BACK_WHEEL_DIAMETER, WHEEL_WIDTH))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: BLACK.into(),
-                    ..Default::default()
-                })),
-                RigidBody::Static,
-                Collider::cylinder(BACK_WHEEL_DIAMETER, WHEEL_WIDTH),
-                Transform {
-                    translation: Vec3::new(
-                        -TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0 + BACK_WHEEL_DIAMETER / 2.,
-                        -TRACTOR_LENGTH / 2.0
-                    ),
-                    rotation: Quat::from_rotation_z(90_f32.to_radians()),
-                    ..Default::default()
-                }
-            )
-        ],
     )
 }

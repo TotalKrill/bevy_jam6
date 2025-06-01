@@ -112,7 +112,7 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
-        Transform::from_translation(Vec3::splat(15.)).looking_at(Vec3::splat(0.), Vec3::Y),
+        Transform::from_translation(Vec3::splat(20.)).looking_at(Vec3::splat(0.), Vec3::Y),
     ));
 }
 
