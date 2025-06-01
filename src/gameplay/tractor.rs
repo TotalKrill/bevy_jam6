@@ -1,3 +1,5 @@
+use avian3d::prelude::*;
+
 use super::*;
 
 use avian3d::prelude::*;
@@ -29,6 +31,7 @@ pub fn spawn_tractor(
         })),
         RigidBody::Dynamic,
         Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
+        Tractor,
         children![
             (
                 Mesh3d(meshes.add(Cylinder::new(FRONT_WHEEL_DIAMETER, WHEEL_WIDTH))),

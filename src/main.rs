@@ -9,15 +9,16 @@ mod asset_tracking;
 mod audio;
 
 //all the gameplay stuff
-pub mod gameplay;
 
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod gameplay;
 mod menus;
 mod screens;
 mod theme;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy_enhanced_input::prelude::*;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -47,6 +48,7 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
 
@@ -60,6 +62,7 @@ impl Plugin for AppPlugin {
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            gameplay::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

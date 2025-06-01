@@ -13,3 +13,8 @@ pub mod turrent {
 }
 
 pub mod movementcontrols;
+
+pub(super) fn plugin(app: &mut App) {
+    println!("Adding gameplay plugin");
+    app.add_plugins(movementcontrols::plugin);
+}
