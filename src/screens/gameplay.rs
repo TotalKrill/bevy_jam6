@@ -2,7 +2,7 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
-use crate::{Pause, menus::Menu, screens::Screen};
+use crate::{Pause, gameplay::tractor, menus::Menu, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
@@ -26,6 +26,32 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),
     );
+
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_tractor);
+}
+
+#[cfg(feature = "dev_native")]
+use bevy_simple_subsecond_system::hot;
+
+#[derive(Component)]
+pub struct ReplaceOnHotreload;
+
+#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_reload = true))]
+fn spawn_tractor(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<Entity, With<ReplaceOnHotreload>>,
+) {
+    for e in query.iter() {
+        commands.entity(e).despawn();
+    }
+
+    log::info!("spawning tractor");
+    commands.spawn((
+        ReplaceOnHotreload,
+        tractor::spawn_tractor(&mut meshes, &mut materials),
+    ));
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
