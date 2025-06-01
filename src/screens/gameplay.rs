@@ -52,11 +52,14 @@ fn spawn_tractor(
     }
 
     log::info!("spawning tractor");
-    commands.spawn((
-        ReplaceOnHotreload,
-        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
-        tractor::spawn_tractor(&assets),
-    ));
+    tractor::spawn_tractor(&mut commands, &assets, ReplaceOnHotreload);
+
+    // commands.spawn((
+    //     ReplaceOnHotreload,
+    //     Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
+    //     tractor::tractor_body(&assets),
+    // ));
+
     commands.spawn((
         ReplaceOnHotreload,
         level::level(&mut meshes, &mut materials),

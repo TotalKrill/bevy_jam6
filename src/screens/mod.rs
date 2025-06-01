@@ -2,7 +2,7 @@
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct ReplaceOnHotreload;
 
 mod gameplay;

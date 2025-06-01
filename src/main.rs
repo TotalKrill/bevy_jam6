@@ -53,6 +53,8 @@ impl Plugin for AppPlugin {
         app.add_plugins(SimpleSubsecondPlugin::default());
 
         app.add_plugins(PhysicsPlugins::default());
+        #[cfg(feature = "dev_native")]
+        app.add_plugins(PhysicsDebugPlugin::default());
         // Add other plugins.
         app.add_plugins((
             asset_tracking::plugin,
