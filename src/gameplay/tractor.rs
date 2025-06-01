@@ -186,7 +186,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         Name::new("Tractor"),
         children![(
             Transform::from_xyz(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
-            // SceneRoot(assets.tractor.clone()),
+            SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
         // Mass(20.),
