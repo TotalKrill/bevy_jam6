@@ -100,7 +100,7 @@ struct Pause(pub bool);
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
 
-#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
+// #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
