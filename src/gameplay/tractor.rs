@@ -34,6 +34,7 @@ pub fn spawn_tractor(
                         -TRACTOR_HEIGHT / 2.0,
                         TRACTOR_LENGTH / 2.0
                     ),
+                    rotation: Quat::from_rotation_x(90_f32.to_radians()),
                     ..Default::default()
                 }
             ),
@@ -49,6 +50,7 @@ pub fn spawn_tractor(
                         -TRACTOR_HEIGHT / 2.0,
                         TRACTOR_LENGTH / 2.0
                     ),
+                    rotation: Quat::from_rotation_x(90_f32.to_radians()),
                     ..Default::default()
                 }
             )

@@ -1,3 +1,5 @@
+use crate::gameplay::tractor::Tractor;
+
 use super::*;
 use bevy_enhanced_input::prelude::*;
 
@@ -5,4 +7,4 @@ use bevy_enhanced_input::prelude::*;
 #[input_action(output = Vec2)]
 struct Move;
 
-fn tractor_move(mut tractor: Single<&mut Transform, &Tractor>, time: Res<Time>) {}
+fn tractor_move(mut tractor: Single<(&mut Transform, &Tractor)>, time: Res<Time>) {}
