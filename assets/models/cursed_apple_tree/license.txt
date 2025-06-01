@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cursed Apple Tree
+* source:	https://sketchfab.com/3d-models/cursed-apple-tree-692fbd057f7b479da31b76bf866cbb3d
+* author:	Platrium (https://sketchfab.com/Platrium)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cursed Apple Tree" (https://sketchfab.com/3d-models/cursed-apple-tree-692fbd057f7b479da31b76bf866cbb3d) by Platrium (https://sketchfab.com/Platrium) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
