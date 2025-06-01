@@ -2,8 +2,6 @@ use avian3d::prelude::*;
 
 use super::*;
 
-use avian3d::prelude::*;
-
 pub const TRACTOR_WIDTH: f32 = 2.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
 pub const TRACTOR_LENGTH: f32 = 4.0;
@@ -74,7 +72,7 @@ pub fn spawn_tractor(
                 Transform {
                     translation: Vec3::new(
                         TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0,
+                        -TRACTOR_HEIGHT / 2.0 + BACK_WHEEL_DIAMETER / 2.,
                         -TRACTOR_LENGTH / 2.0
                     ),
                     rotation: Quat::from_rotation_z(90_f32.to_radians()),
@@ -87,10 +85,12 @@ pub fn spawn_tractor(
                     base_color: BLACK.into(),
                     ..Default::default()
                 })),
+                RigidBody::Static,
+                Collider::cylinder(BACK_WHEEL_DIAMETER, WHEEL_WIDTH),
                 Transform {
                     translation: Vec3::new(
                         -TRACTOR_WIDTH / 2.,
-                        -TRACTOR_HEIGHT / 2.0,
+                        -TRACTOR_HEIGHT / 2.0 + BACK_WHEEL_DIAMETER / 2.,
                         -TRACTOR_LENGTH / 2.0
                     ),
                     rotation: Quat::from_rotation_z(90_f32.to_radians()),

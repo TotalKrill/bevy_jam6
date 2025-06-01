@@ -43,6 +43,8 @@ fn spawn_tractor(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
+    use crate::gameplay::level;
+
     for e in query.iter() {
         commands.entity(e).despawn();
     }
@@ -50,7 +52,12 @@ fn spawn_tractor(
     log::info!("spawning tractor");
     commands.spawn((
         ReplaceOnHotreload,
+        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
         tractor::spawn_tractor(&mut meshes, &mut materials),
+    ));
+    commands.spawn((
+        ReplaceOnHotreload,
+        level::level(&mut meshes, &mut materials),
     ));
 }
 
