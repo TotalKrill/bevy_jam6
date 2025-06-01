@@ -1,9 +1,11 @@
 use super::*;
 use crate::gameplay::{
     level,
-    tractor::{self, TractorAssets},
+    tractor::{self, LeftWheels, RightWheels, TractorAssets},
 };
 
+use avian3d::prelude::ExternalTorque;
+use bevy::input::keyboard::KeyboardInput;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -13,6 +15,52 @@ pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_debug_camera);
+
+    app.add_systems(Update, forward);
+}
+
+use avian3d::prelude::*;
+#[cfg_attr(feature = "dev_native", hot)]
+fn forward(
+    key: Res<ButtonInput<KeyCode>>,
+    mut wheels: Query<&mut ExternalTorque>,
+    tractor: Query<(Entity, &LeftWheels, &RightWheels)>,
+) {
+    let Ok((tractor_id, lws, rws)) = tractor.single() else {
+        return;
+    };
+
+    const SPEED: f32 = 10.0;
+
+    if key.pressed(KeyCode::KeyW) {
+        let mut i = 0;
+        for lw in lws.iter() {
+            if let Ok(mut lw) = wheels.get_mut(lw) {
+                let torque = Vec3::new(0., 0., SPEED);
+                lw.set_torque(torque);
+            }
+        }
+        let mut i = 0;
+        for rw in rws.iter() {
+            if let Ok(mut rw) = wheels.get_mut(rw) {
+                let torque = Vec3::new(0., 0., SPEED);
+                rw.set_torque(torque);
+            }
+        }
+    } else {
+        for lw in lws.iter() {
+            if let Ok(mut lw) = wheels.get_mut(lw) {
+                let torque = Vec3::new(0., 0., 0.);
+                lw.set_torque(torque);
+            }
+        }
+        for rw in rws.iter() {
+            if let Ok(mut rw) = wheels.get_mut(rw) {
+                let torque = Vec3::new(0., 0., 0.);
+                rw.set_torque(torque);
+            }
+        }
+    }
 }
 
 fn spawn_debug_camera(mut commands: Commands, query: Query<Entity, With<Camera3d>>) {

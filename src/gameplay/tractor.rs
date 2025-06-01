@@ -9,14 +9,11 @@ pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
 pub const TRACTOR_LENGTH: f32 = 4.0;
 
-pub const WHEEL_RADIE: f32 = 0.6;
-pub const BACK_WHEEL_DIAMETER: f32 = 1.2;
+pub const WHEEL_RADIE: f32 = 0.9;
 pub const WHEEL_WIDTH: f32 = 0.25;
 
 #[derive(Component)]
-pub struct Tractor {
-    pub left_wheels: Entity,
-}
+pub struct Tractor;
 
 #[derive(Component, Debug)]
 #[relationship(relationship_target = LeftWheels)]
@@ -78,28 +75,52 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
     );
 
-    left_wheel_with_joint(commands, extra_components.clone(), tractor_id, wheel_pos);
+    left_wheel_with_joint(
+        commands,
+        // (extra_components.clone(), Mass(2.)),
+        extra_components.clone(),
+        tractor_id,
+        wheel_pos,
+    );
 
     let wheel_pos = Vec3::new(
         (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
     );
-    left_wheel_with_joint(commands, extra_components.clone(), tractor_id, wheel_pos);
+    left_wheel_with_joint(
+        commands,
+        // (extra_components.clone(), Mass(2.)),
+        extra_components.clone(),
+        tractor_id,
+        wheel_pos,
+    );
 
     let wheel_pos = Vec3::new(
         (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
     );
-    right_wheel_with_joint(commands, extra_components.clone(), tractor_id, wheel_pos);
+    right_wheel_with_joint(
+        commands,
+        extra_components.clone(),
+        // (extra_components.clone(), Mass(2.)),
+        tractor_id,
+        wheel_pos,
+    );
 
     let wheel_pos = Vec3::new(
         -(TRACTOR_LENGTH / 2. - WHEEL_RADIE),
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
     );
-    right_wheel_with_joint(commands, extra_components.clone(), tractor_id, wheel_pos);
+    right_wheel_with_joint(
+        commands,
+        // (extra_components.clone(), Mass(2.)),
+        extra_components.clone(),
+        tractor_id,
+        wheel_pos,
+    );
 
     tractor_id
 }
@@ -125,7 +146,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
-            .with_local_anchor_2(-Vec3::Z * (BACK_WHEEL_DIAMETER / 2. + 0.1))
+            .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + OFFSET))
             .with_aligned_axis(Vec3::Z),
         extra_components.clone(),
     ));
@@ -151,7 +172,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
-            .with_local_anchor_2(-Vec3::Z * (BACK_WHEEL_DIAMETER / 2. + 0.1))
+            .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + 0.1))
             .with_aligned_axis(Vec3::Z),
         extra_components.clone(),
     ));
@@ -159,12 +180,18 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
 
 pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     (
+        Tractor,
         Name::new("Tractor"),
         children![(
             Transform::from_xyz(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
             // SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
+        // Mass(200.),
+        // AngularInertia {
+        //     principal: Vec3::splat(0.1),
+        //     local_frame: Quat::IDENTITY,
+        // },
         Collider::cuboid(TRACTOR_LENGTH, TRACTOR_HEIGHT, TRACTOR_WIDTH),
     )
 }
@@ -174,6 +201,7 @@ pub fn wheel<T: Component>(radius: f32, pos: Vec3, vehicle: Entity, marker: T) -
         Name::new("LeftWheel"),
         RigidBody::Dynamic,
         Collider::sphere(radius),
+        // Mass(1.),
         // Collider::cylinder(radius, radius), //TODO: create a new collider with the axises correctly initiated
         Transform {
             translation: pos,

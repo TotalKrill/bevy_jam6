@@ -24,6 +24,7 @@ bevy_enhanced_input = "0.12.0"
 avian3d = "0.3"
 
 bevy_editor_cam = { git = "https://github.com/m-edlund/bevy_editor_cam.git", version = "0.6.0" , branch = "bevy-0.16"}
+bevy-inspector-egui = "0.31.0"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
 # To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.
