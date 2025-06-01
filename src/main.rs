@@ -3,6 +3,8 @@
 // Disable console on Windows for non-dev builds.
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
+use avian3d::prelude::*;
+
 mod asset_tracking;
 mod audio;
 
@@ -47,6 +49,8 @@ impl Plugin for AppPlugin {
         );
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
+
+        app.add_plugins(PhysicsPlugins::default());
         // Add other plugins.
         app.add_plugins((
             asset_tracking::plugin,
@@ -105,8 +109,7 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
-        PointLight::default(),
-        Transform::from_translation(Vec3::splat(4.)).looking_at(Vec3::splat(0.), Vec3::Y),
+        Transform::from_translation(Vec3::splat(15.)).looking_at(Vec3::splat(0.), Vec3::Y),
     ));
 }
 

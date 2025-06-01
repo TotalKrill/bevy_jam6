@@ -3,6 +3,11 @@ pub use bevy::{color::palettes::css::*, prelude::*};
 
 pub mod tractor;
 
+pub mod level {
+    use super::*;
+    pub fn level() -> impl Bundle {}
+}
+
 pub mod turrent {
     use super::*;
 }
