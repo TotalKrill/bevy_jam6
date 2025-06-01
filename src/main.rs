@@ -7,24 +7,7 @@ mod asset_tracking;
 mod audio;
 
 //all the gameplay stuff
-pub mod gameplay {
-    //all the gameplay stuff
-    pub mod tractor {
-        use bevy::{color::palettes::css::*, prelude::*};
-        pub fn spawn_tractor(
-            meshes: &mut Assets<Mesh>,
-            materials: &mut Assets<StandardMaterial>,
-        ) -> impl Bundle {
-            (
-                Mesh3d(meshes.add(Capsule3d::default())),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: GREEN.into(),
-                    ..Default::default()
-                })),
-            )
-        }
-    }
-}
+pub mod gameplay;
 
 #[cfg(feature = "dev")]
 mod dev_tools;
@@ -117,17 +100,15 @@ struct Pause(pub bool);
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
 
-#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_reload = true))]
+#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
+        PointLight::default(),
         Transform::from_translation(Vec3::splat(4.)).looking_at(Vec3::splat(0.), Vec3::Y),
     ));
 }
-
-#[derive(Component)]
-struct Setup;
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::{hot, prelude::*};

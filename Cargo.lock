@@ -911,6 +911,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_lookat"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db9ec14887b47da9e3bca519a838b96e81e2ab60eda966458186602405c12414"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_pbr"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -992,6 +1001,7 @@ name = "bevy_practice"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_mod_lookat",
  "bevy_simple_subsecond_system",
  "log",
  "rand 0.8.5",

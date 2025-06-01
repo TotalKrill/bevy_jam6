@@ -36,7 +36,7 @@ use bevy_simple_subsecond_system::hot;
 #[derive(Component)]
 pub struct ReplaceOnHotreload;
 
-#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_reload = true))]
+#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn spawn_tractor(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
