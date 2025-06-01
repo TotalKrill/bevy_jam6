@@ -25,7 +25,7 @@ fn spawn_tractor(
     commands.spawn((
         ReplaceOnHotreload,
         StateScoped(Screen::TractorBuild),
-        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
+        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT / 2.0, 0.0),
         tractor::spawn_tractor(&mut meshes, &mut materials),
         // MovementController,
     ));
@@ -33,7 +33,11 @@ fn spawn_tractor(
     commands.spawn((
         ReplaceOnHotreload,
         StateScoped(Screen::TractorBuild),
-        Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 10., 0.0).rotate_y(90_f32.to_radians()),
+        Transform {
+            translation: Vec3::new(5.0, tractor::TRACTOR_HEIGHT / 2.0, 0.0),
+            rotation: Quat::from_rotation_y(90_f32.to_radians()),
+            ..default()
+        },
         tractor::spawn_tractor(&mut meshes, &mut materials),
         // MovementController,
     ));
