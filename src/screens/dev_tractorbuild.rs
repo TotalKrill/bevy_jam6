@@ -1,10 +1,14 @@
+use std::time::Duration;
+
 use super::*;
 use crate::gameplay::{
-    level,
-    tractor::{self, LeftWheels, RightWheels, TractorAssets},
+    bullet, level,
+    tractor::{self, TractorAssets},
+    turret::FireEvent,
+    turret_aiming,
 };
 
-use avian3d::prelude::*;
+use bevy::time::common_conditions::on_timer;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -15,47 +19,20 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_debug_camera);
 
-    // app.add_systems(Update, forward);
+    app.add_systems(
+        Update,
+        fire_bullets
+            .run_if(in_state(Screen::TractorBuild))
+            .run_if(on_timer(Duration::from_secs(1))),
+    );
 }
 
-#[cfg_attr(feature = "dev_native", hot)]
-fn forward(
-    key: Res<ButtonInput<KeyCode>>,
-    mut wheels: Query<&mut ExternalTorque>,
-    tractor: Query<(Entity, &LeftWheels, &RightWheels)>,
+fn fire_bullets(
+    mut commands: Commands,
+    turrets: Query<Entity, With<crate::gameplay::turret::Turret>>,
 ) {
-    let Ok((_tractor_id, lws, rws)) = tractor.single() else {
-        return;
-    };
-
-    const SPEED: f32 = 20.0;
-
-    if key.pressed(KeyCode::KeyW) {
-        for lw in lws.iter() {
-            if let Ok(mut lw) = wheels.get_mut(lw) {
-                let torque = Vec3::new(0., 0., SPEED);
-                lw.set_torque(torque);
-            }
-        }
-        for rw in rws.iter() {
-            if let Ok(mut rw) = wheels.get_mut(rw) {
-                let torque = Vec3::new(0., 0., SPEED);
-                rw.set_torque(torque);
-            }
-        }
-    } else {
-        for lw in lws.iter() {
-            if let Ok(mut lw) = wheels.get_mut(lw) {
-                let torque = Vec3::new(0., 0., 0.);
-                lw.set_torque(torque);
-            }
-        }
-        for rw in rws.iter() {
-            if let Ok(mut rw) = wheels.get_mut(rw) {
-                let torque = Vec3::new(0., 0., 0.);
-                rw.set_torque(torque);
-            }
-        }
+    for turret in turrets {
+        commands.trigger_targets(FireEvent, turret);
     }
 }
 
@@ -97,16 +74,30 @@ fn spawn_tractor(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
+    use crate::gameplay::turret;
+
     for e in query.iter() {
         commands.entity(e).despawn();
     }
 
+    commands.spawn(turret_aiming::sight());
+
     log::info!("spawning tractor");
-    tractor::spawn_tractor(
+    let id = tractor::spawn_tractor(
         &mut commands,
         &assets,
         (StateScoped(Screen::TractorBuild), ReplaceOnHotreload),
     );
+
+    commands.entity(id).with_child(turret::turret(
+        &mut meshes,
+        &mut materials,
+        Vec3::new(
+            0.5,
+            (tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE),
+            0.0,
+        ),
+    ));
 
     commands.spawn((
         ReplaceOnHotreload,

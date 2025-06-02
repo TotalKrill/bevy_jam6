@@ -53,6 +53,7 @@ impl Plugin for AppPlugin {
         app.add_plugins(SimpleSubsecondPlugin::default());
 
         app.add_plugins(PhysicsPlugins::default());
+        app.add_plugins(bevy_mod_lookat::RotateTowardsPlugin::default());
         // Add other plugins.
         app.add_plugins((
             asset_tracking::plugin,
