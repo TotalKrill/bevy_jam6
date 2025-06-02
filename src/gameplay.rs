@@ -28,6 +28,7 @@ pub mod level {
                 ..Default::default()
             })),
             RigidBody::Kinematic,
+            Friction::new(1.0),
             Collider::cuboid(LEVEL_WIDHT, 0.1, LEVEL_WIDHT),
             Ground,
         )
@@ -42,7 +43,7 @@ pub mod movementcontrols;
 
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding gameplay plugins");
-    // app.add_plugins(movementcontrols::plugin);
+    app.add_plugins(movementcontrols::plugin);
     app.add_plugins(tractor::tractor_plugin);
     app.add_plugins(bullet::bullet_plugin);
     app.add_plugins(turret_aiming::plugin);

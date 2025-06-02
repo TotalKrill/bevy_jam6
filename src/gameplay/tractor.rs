@@ -9,6 +9,8 @@ pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
 pub const TRACTOR_LENGTH: f32 = 4.0;
 
+pub const TRACTOR_MAX_SPEED: f32 = 30.0; // rev/s
+
 pub const WHEEL_RADIE: f32 = 0.9;
 pub const WHEEL_WIDTH: f32 = 0.25;
 
@@ -202,8 +204,10 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
 pub fn wheel<T: Component>(radius: f32, pos: Vec3, vehicle: Entity, marker: T) -> impl Bundle {
     (
         Name::new("LeftWheel"),
+        Friction::new(1.0),
         RigidBody::Dynamic,
         Collider::sphere(radius),
+        MaxAngularSpeed(TRACTOR_MAX_SPEED),
         // Mass(1.),
         // Collider::cylinder(radius, radius), //TODO: create a new collider with the axises correctly initiated
         Transform {
