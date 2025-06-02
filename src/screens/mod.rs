@@ -10,7 +10,7 @@ mod loading;
 mod splash;
 mod title;
 
-#[cfg(feature = "dev_native")]
+// #[cfg(feature = "dev_native")]
 mod dev_tractorbuild;
 
 use bevy::prelude::*;
@@ -24,7 +24,7 @@ pub(super) fn plugin(app: &mut App) {
         splash::plugin,
         title::plugin,
     ));
-    #[cfg(feature = "dev_native")]
+    // #[cfg(feature = "dev_native")]
     app.add_plugins(dev_tractorbuild::plugin);
 }
 
