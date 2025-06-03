@@ -1,8 +1,6 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
 
-use rand::Rng;
-
 use crate::screens::*;
 
 #[derive(Component)]
@@ -41,13 +39,8 @@ fn spawn_apple(
     }
 }
 
-fn setup_apple(mut commands: Commands) {
-    log::info!("Setting up apple spawn event");
-}
-
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding apple plugin");
     app.add_event::<AppleSpawnEvent>();
-    app.add_systems(OnEnter(Screen::Gameplay), setup_apple);
     app.add_systems(Update, (spawn_apple.run_if(in_state(Screen::Gameplay)),));
 }

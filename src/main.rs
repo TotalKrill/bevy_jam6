@@ -20,7 +20,6 @@ mod theme;
 mod camera;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use bevy_enhanced_input::prelude::*;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -109,4 +108,4 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 #[cfg(feature = "dev_native")]
-use bevy_simple_subsecond_system::{hot, prelude::*};
+use bevy_simple_subsecond_system::prelude::*;

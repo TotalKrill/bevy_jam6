@@ -1,5 +1,4 @@
 use avian3d::prelude::*;
-use bevy::ecs::relationship;
 
 use crate::asset_tracking::LoadResource;
 
@@ -73,11 +72,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         .with_child(turret::turret(
             meshes,
             materials,
-            Vec3::new(
-                0.5,
-                (tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE),
-                0.0,
-            ),
+            Vec3::new(0.5, tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE, 0.0),
         ))
         .id();
 
@@ -97,7 +92,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     );
 
     let wheel_pos = Vec3::new(
-        (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
+        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
     );
@@ -111,7 +106,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     );
 
     let wheel_pos = Vec3::new(
-        (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
+        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
     );
@@ -151,7 +146,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), tractor_id, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos.clone(), Wheel),
             LeftWheel {
                 vehicle: tractor_id,
             },
@@ -180,7 +175,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), tractor_id, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos.clone(), Wheel),
             RightWheel {
                 vehicle: tractor_id,
             },
@@ -219,7 +214,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
-pub fn wheel<T: Component>(radius: f32, pos: Vec3, vehicle: Entity, marker: T) -> impl Bundle {
+pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
     (
         Name::new("LeftWheel"),
         RigidBody::Dynamic,
