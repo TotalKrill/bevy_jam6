@@ -10,6 +10,7 @@ use crate::gameplay::{
 
 use bevy::time::common_conditions::on_timer;
 use bevy_editor_cam::prelude::*;
+use crate::camera::activate_debug_camera;
 
 pub(super) fn plugin(app: &mut App) {
     if !app.is_plugin_added::<MinimalEditorCamPlugin>() {
@@ -17,7 +18,8 @@ pub(super) fn plugin(app: &mut App) {
     }
     // Toggle pause on key press.
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
-    app.add_systems(OnEnter(Screen::TractorBuild), spawn_debug_camera);
+    app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
+    // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
     app.add_systems(
         Update,
@@ -34,36 +36,6 @@ fn fire_bullets(
     for turret in turrets {
         commands.trigger_targets(FireEvent, turret);
     }
-}
-
-fn spawn_debug_camera(mut commands: Commands, query: Query<Entity, With<Camera3d>>) {
-    for camera in query.iter() {
-        commands.entity(camera).despawn();
-    }
-
-    let cam_trans = Transform::from_xyz(2.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y);
-    commands.spawn((
-        Camera3d::default(),
-        Camera {
-            hdr: true,
-            ..Default::default()
-        },
-        cam_trans,
-        // Tonemapping::AcesFitted,
-        // Bloom::default(),
-        EditorCam {
-            orbit_constraint: OrbitConstraint::Free,
-            last_anchor_depth: -cam_trans.translation.length() as f64,
-            orthographic: projections::OrthographicSettings {
-                scale_to_near_clip: 1_000_f32, // Needed for SSAO to work in ortho
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        // ScreenSpaceAmbientOcclusion::default(),
-        // Smaa::default(),
-        Msaa::Off,
-    ));
 }
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
