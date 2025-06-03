@@ -9,7 +9,7 @@ pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
 pub const TRACTOR_LENGTH: f32 = 4.0;
 
-pub const TRACTOR_MAX_SPEED: f32 = 30.0; // rev/s
+pub const TRACTOR_MAX_SPEED: f32 = 10.0;
 
 pub const WHEEL_RADIE: f32 = 0.9;
 pub const WHEEL_WIDTH: f32 = 0.25;
@@ -83,6 +83,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         extra_components.clone(),
         tractor_id,
         wheel_pos,
+        0.0,
     );
 
     let wheel_pos = Vec3::new(
@@ -96,6 +97,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         extra_components.clone(),
         tractor_id,
         wheel_pos,
+        1.0,
     );
 
     let wheel_pos = Vec3::new(
@@ -109,6 +111,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         // (extra_components.clone(), Mass(2.)),
         tractor_id,
         wheel_pos,
+        1.0,
     );
 
     let wheel_pos = Vec3::new(
@@ -122,6 +125,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         extra_components.clone(),
         tractor_id,
         wheel_pos,
+        0.0,
     );
 
     tractor_id
@@ -132,6 +136,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     extra_components: T,
     tractor_id: Entity,
     mut wheel_pos: Vec3,
+    friction: f32,
 ) {
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
@@ -140,6 +145,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
             LeftWheel {
                 vehicle: tractor_id,
             },
+            Friction::new(friction),
             extra_components.clone(),
         ))
         .id();
@@ -159,6 +165,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     extra_components: T,
     tractor_id: Entity,
     mut wheel_pos: Vec3,
+    friction: f32,
 ) {
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
@@ -167,6 +174,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
             RightWheel {
                 vehicle: tractor_id,
             },
+            Friction::new(friction),
             extra_components.clone(),
         ))
         .id();
@@ -191,7 +199,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
             SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
-        // Mass(20.),
+        Mass(200.),
         // AngularInertia {
         //     principal: Vec3::splat(0.1),
         //     local_frame: Quat::IDENTITY,
@@ -204,8 +212,8 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
 pub fn wheel<T: Component>(radius: f32, pos: Vec3, vehicle: Entity, marker: T) -> impl Bundle {
     (
         Name::new("LeftWheel"),
-        Friction::new(1.0),
         RigidBody::Dynamic,
+        Mass(20.),
         Collider::sphere(radius),
         MaxAngularSpeed(TRACTOR_MAX_SPEED),
         // Mass(1.),

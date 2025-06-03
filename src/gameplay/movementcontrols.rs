@@ -9,7 +9,7 @@ use bevy::{
 use bevy_enhanced_input::prelude::*;
 use tractor::{LeftWheel, LeftWheels, RightWheel, RightWheels, Wheel};
 
-const TRACTOR_ACCELERATION: f32 = 10.0;
+const TRACTOR_ACCELERATION: f32 = 100.0;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = Vec3)]
@@ -59,46 +59,39 @@ fn tractor_break(
 
 fn tractor_move(
     trigger: Trigger<Fired<Move>>,
-    mut angular_velocity: Query<&mut AngularVelocity>,
     mut torque: Query<&mut ExternalTorque>,
     query: Query<(&Transform, &Tractor, &LeftWheels, &RightWheels)>,
     time: Res<Time>,
 ) {
-    let Ok((transform, tractor, left_wheels, right_wheels)) = query.single() else {
+    let Ok((transform, _, left_wheels, right_wheels)) = query.single() else {
         debug!("No tractor found, skipping break application");
         return;
     };
 
-    let side = transform.local_z();
+    let side = transform.local_z().normalize();
 
-    // let mut right_torque = trigger.value.x +
-
-    let mut left_torque = -side
-        * (trigger.value.z - trigger.value.x * 10.)
+    let left_torque = side
+        * (-trigger.value.z + trigger.value.x * 5.)
         * time.elapsed_secs()
         * TRACTOR_ACCELERATION;
-    let mut right_torque = -side
-        * (trigger.value.z + trigger.value.x * 10.)
+    let right_torque = side
+        * (-trigger.value.z - trigger.value.x * 5.)
         * time.elapsed_secs()
         * TRACTOR_ACCELERATION;
 
-    debug!(
-        "Applying torque: left={:?} right={:?} (trigger={:?})",
-        left_torque, right_torque, trigger.value
-    );
+    debug!("Applying torque: (trigger={:?})", trigger.value);
 
-    // if trigger.value.x < 0.0 {
-    //     left_torque = -left_torque;
-    // } else if trigger.value.x > 0.0 {
-    //     right_torque = -right_torque;
-    // }
-
+    // TODO: break; is used to make the tractor back wheel driven right now. Fix it later.
     for wheel in right_wheels.iter() {
+        torque.get_mut(wheel).unwrap().clear();
         torque.get_mut(wheel).unwrap().set_torque(right_torque);
+        // break;
     }
 
-    for wheel in left_wheels.iter() {
+    for wheel in left_wheels.iter().rev() {
+        torque.get_mut(wheel).unwrap().clear();
         torque.get_mut(wheel).unwrap().set_torque(left_torque);
+        // break;
     }
 }
 
