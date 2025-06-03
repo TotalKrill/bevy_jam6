@@ -1,13 +1,8 @@
-use crate::{gameplay::tractor::Tractor, screens::Screen};
+use crate::gameplay::tractor::Tractor;
 
 use super::*;
-use bevy::{
-    input::keyboard::{self, Key},
-    log::{self, tracing_subscriber::field::debug},
-    math::VectorSpace,
-};
 use bevy_enhanced_input::prelude::*;
-use tractor::{LeftWheel, LeftWheels, RightWheel, RightWheels, Wheel};
+use tractor::{LeftWheels, RightWheels};
 
 const TRACTOR_ACCELERATION: f32 = 100.0;
 
@@ -74,6 +69,7 @@ fn tractor_move(
         * (-trigger.value.z + trigger.value.x * 5.)
         * time.elapsed_secs()
         * TRACTOR_ACCELERATION;
+
     let right_torque = side
         * (-trigger.value.z - trigger.value.x * 5.)
         * time.elapsed_secs()
@@ -81,17 +77,12 @@ fn tractor_move(
 
     debug!("Applying torque: (trigger={:?})", trigger.value);
 
-    // TODO: break; is used to make the tractor back wheel driven right now. Fix it later.
     for wheel in right_wheels.iter() {
-        torque.get_mut(wheel).unwrap().clear();
         torque.get_mut(wheel).unwrap().set_torque(right_torque);
-        // break;
     }
 
-    for wheel in left_wheels.iter().rev() {
-        torque.get_mut(wheel).unwrap().clear();
+    for wheel in left_wheels.iter() {
         torque.get_mut(wheel).unwrap().set_torque(left_torque);
-        // break;
     }
 }
 

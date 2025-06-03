@@ -1,5 +1,4 @@
 use avian3d::prelude::*;
-use bevy::ecs::relationship;
 
 use crate::asset_tracking::LoadResource;
 
@@ -12,10 +11,6 @@ pub const TRACTOR_LENGTH: f32 = 4.0;
 pub const TRACTOR_MAX_SPEED: f32 = 10.0;
 
 pub const WHEEL_RADIE: f32 = 0.9;
-pub const WHEEL_WIDTH: f32 = 0.25;
-
-#[derive(Component)]
-pub struct Tractor;
 
 #[derive(Component, Debug)]
 #[relationship(relationship_target = LeftWheels)]
@@ -62,6 +57,9 @@ pub fn tractor_plugin(app: &mut App) {
 #[derive(Component)]
 pub struct Wheel;
 
+#[derive(Component)]
+pub struct Tractor;
+
 pub fn spawn_tractor<T: Bundle + Clone>(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
@@ -74,11 +72,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
         .with_child(turret::turret(
             meshes,
             materials,
-            Vec3::new(
-                0.5,
-                (tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE),
-                0.0,
-            ),
+            Vec3::new(0.5, tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE, 0.0),
         ))
         .id();
 
@@ -98,7 +92,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     );
 
     let wheel_pos = Vec3::new(
-        (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
+        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
     );
@@ -112,7 +106,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     );
 
     let wheel_pos = Vec3::new(
-        (TRACTOR_LENGTH / 2. - WHEEL_RADIE),
+        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
         -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
         -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
     );
@@ -152,7 +146,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), tractor_id, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos, Wheel),
             LeftWheel {
                 vehicle: tractor_id,
             },
@@ -161,7 +155,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z = wheel_pos.z - (WHEEL_RADIE + OFFSET);
+    wheel_pos.z -= WHEEL_RADIE + OFFSET;
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
@@ -181,7 +175,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), tractor_id, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos, Wheel),
             RightWheel {
                 vehicle: tractor_id,
             },
@@ -190,7 +184,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z = wheel_pos.z - (WHEEL_RADIE + OFFSET);
+    wheel_pos.z -= WHEEL_RADIE + OFFSET;
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
@@ -220,7 +214,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
-pub fn wheel<T: Component>(radius: f32, pos: Vec3, vehicle: Entity, marker: T) -> impl Bundle {
+pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
     (
         Name::new("LeftWheel"),
         RigidBody::Dynamic,
