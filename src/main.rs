@@ -17,6 +17,8 @@ mod menus;
 mod screens;
 mod theme;
 
+mod camera;
+
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::*;
 
@@ -56,6 +58,7 @@ impl Plugin for AppPlugin {
         app.add_plugins(bevy_mod_lookat::RotateTowardsPlugin::default());
         // Add other plugins.
         app.add_plugins((
+            camera::plugin,
             asset_tracking::plugin,
             audio::plugin,
             #[cfg(feature = "dev")]
@@ -80,9 +83,6 @@ impl Plugin for AppPlugin {
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
-
-        // Spawn the main camera.
-        app.add_systems(Startup, spawn_camera);
     }
 }
 
@@ -107,15 +107,6 @@ struct Pause(pub bool);
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
-
-// #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Camera"),
-        Camera3d::default(),
-        Transform::from_translation(Vec3::splat(20.)).looking_at(Vec3::splat(0.), Vec3::Y),
-    ));
-}
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::{hot, prelude::*};
