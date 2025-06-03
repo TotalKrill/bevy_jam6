@@ -2,10 +2,10 @@ use avian3d::prelude::*;
 pub use bevy::{color::palettes::css::*, prelude::*};
 //all the gameplay stuff
 
+pub mod apple;
 pub mod bullet;
 pub mod tractor;
 pub mod turret;
-
 pub mod turret_aiming;
 
 pub mod level {
@@ -43,4 +43,5 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(tractor::tractor_plugin);
     app.add_plugins(bullet::bullet_plugin);
     app.add_plugins(turret_aiming::plugin);
+    app.add_plugins(apple::plugin);
 }
