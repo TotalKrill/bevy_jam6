@@ -19,6 +19,8 @@ mod theme;
 
 mod camera;
 
+mod leaderboard;
+
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_enhanced_input::prelude::*;
 
@@ -59,6 +61,7 @@ impl Plugin for AppPlugin {
         // Add other plugins.
         app.add_plugins((
             camera::plugin,
+            leaderboard::plugin,
             asset_tracking::plugin,
             audio::plugin,
             #[cfg(feature = "dev")]

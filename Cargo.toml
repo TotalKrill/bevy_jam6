@@ -18,6 +18,10 @@ tracing = { version = "0.1", features = [
     "release_max_level_warn",
 ] }
 
+bevy_jornet = "0.10.1"
+bevy-persistent = { version = "0.8.0", features = ["toml"] }
+serde = "1.0.219"
+
 bevy_simple_subsecond_system = { git = "https://github.com/TheBevyFlock/bevy_simple_subsecond_system", optional = true }
 bevy_mod_lookat = "0.4.2"
 bevy_enhanced_input = "0.12.0"
@@ -25,6 +29,7 @@ avian3d = "0.3"
 
 bevy_editor_cam = { git = "https://github.com/m-edlund/bevy_editor_cam.git", version = "0.6.0", branch = "bevy-0.16" }
 bevy-inspector-egui = "0.31.0"
+dirs = "6.0.0"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
 # To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.
