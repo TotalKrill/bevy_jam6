@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use super::*;
 use crate::gameplay::{
-    bullet, level,
+    level,
     tractor::{self, TractorAssets},
     turret::FireEvent,
     turret_aiming,
@@ -10,7 +10,6 @@ use crate::gameplay::{
 
 use bevy::time::common_conditions::on_timer;
 use bevy_editor_cam::prelude::*;
-use crate::camera::activate_debug_camera;
 
 pub(super) fn plugin(app: &mut App) {
     if !app.is_plugin_added::<MinimalEditorCamPlugin>() {
@@ -18,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
     }
     // Toggle pause on key press.
     app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
-    app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
+    // app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
     app.add_systems(
@@ -46,8 +45,6 @@ fn spawn_tractor(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
-    use crate::gameplay::turret;
-
     for e in query.iter() {
         commands.entity(e).despawn();
     }
@@ -55,21 +52,13 @@ fn spawn_tractor(
     commands.spawn(turret_aiming::sight());
 
     log::info!("spawning tractor");
-    let id = tractor::spawn_tractor(
+    tractor::spawn_tractor(
         &mut commands,
+        &mut meshes,
+        &mut materials,
         &assets,
         (StateScoped(Screen::TractorBuild), ReplaceOnHotreload),
     );
-
-    commands.entity(id).with_child(turret::turret(
-        &mut meshes,
-        &mut materials,
-        Vec3::new(
-            0.5,
-            (tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE),
-            0.0,
-        ),
-    ));
 
     commands.spawn((
         ReplaceOnHotreload,

@@ -64,11 +64,22 @@ pub struct Wheel;
 
 pub fn spawn_tractor<T: Bundle + Clone>(
     commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
     assets: &TractorAssets,
     extra_components: T,
 ) -> Entity {
     let tractor_id = commands
         .spawn((tractor_body(assets), extra_components.clone()))
+        .with_child(turret::turret(
+            meshes,
+            materials,
+            Vec3::new(
+                0.5,
+                (tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE),
+                0.0,
+            ),
+        ))
         .id();
 
     let wheel_pos = Vec3::new(
