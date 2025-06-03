@@ -12,10 +12,6 @@ pub const TRACTOR_LENGTH: f32 = 4.0;
 pub const TRACTOR_MAX_SPEED: f32 = 10.0;
 
 pub const WHEEL_RADIE: f32 = 0.9;
-pub const WHEEL_WIDTH: f32 = 0.25;
-
-#[derive(Component)]
-pub struct Tractor;
 
 #[derive(Component, Debug)]
 #[relationship(relationship_target = LeftWheels)]
@@ -61,6 +57,9 @@ pub fn tractor_plugin(app: &mut App) {
 
 #[derive(Component)]
 pub struct Wheel;
+
+#[derive(Component)]
+pub struct Tractor;
 
 pub fn spawn_tractor<T: Bundle + Clone>(
     commands: &mut Commands,

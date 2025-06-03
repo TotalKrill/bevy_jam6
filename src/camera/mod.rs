@@ -4,14 +4,14 @@ use bevy_editor_cam::controller::projections;
 use bevy_editor_cam::prelude::{EditorCam, OrbitConstraint};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Startup, (spawn_gameplay_camera));
+    app.add_systems(Startup, spawn_camera);
     app.add_systems(Update, (move_gameplay_camera, toggle_camera));
 }
 
 #[derive(Component)]
 pub struct GameplayCamera;
 
-pub fn spawn_gameplay_camera(mut commands: Commands) {
+pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         GameplayCamera,
         Camera3d::default(),
