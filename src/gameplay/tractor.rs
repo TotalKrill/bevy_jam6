@@ -146,7 +146,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), Wheel),
+            wheel(WHEEL_RADIE, wheel_pos, Wheel),
             LeftWheel {
                 vehicle: tractor_id,
             },
@@ -155,7 +155,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z = wheel_pos.z - (WHEEL_RADIE + OFFSET);
+    wheel_pos.z -= (WHEEL_RADIE + OFFSET);
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
@@ -175,7 +175,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos.clone(), Wheel),
+            wheel(WHEEL_RADIE, wheel_pos, Wheel),
             RightWheel {
                 vehicle: tractor_id,
             },
@@ -184,7 +184,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z = wheel_pos.z - (WHEEL_RADIE + OFFSET);
+    wheel_pos.z -= (WHEEL_RADIE + OFFSET);
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
