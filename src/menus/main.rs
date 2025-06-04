@@ -17,6 +17,7 @@ fn spawn_main_menu(mut commands: Commands) {
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Dev", enter_loading_or_dev_screen),
+            widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
             widget::button("Exit", exit_app),
@@ -57,6 +58,9 @@ fn enter_loading_or_dev_screen(
 
 fn open_settings_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::Settings);
+}
+fn open_leaderboard_screen(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
+    next_menu.set(Menu::Leaderboard);
 }
 
 fn open_credits_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {

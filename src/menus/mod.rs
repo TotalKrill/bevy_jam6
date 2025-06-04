@@ -26,5 +26,6 @@ pub enum Menu {
     Main,
     Credits,
     Settings,
+    Leaderboard,
     Pause,
 }

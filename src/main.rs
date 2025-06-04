@@ -18,7 +18,6 @@ mod screens;
 mod theme;
 
 mod camera;
-
 mod leaderboard;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
