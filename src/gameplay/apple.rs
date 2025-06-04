@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
 
-use crate::screens::*;
+use crate::{gameplay::tree::Tree, screens::*};
 
 #[derive(Component)]
 pub struct Apple;
@@ -10,11 +10,13 @@ pub struct Apple;
 pub struct AppleSpawnEvent {
     pub position: Vec3,
     pub max_radius: f32,
+    pub radius: f32,
 }
 
 const APPLE_RADIUS: f32 = 1.0;
+const APPLE_SPAWN_RADIUS: f32 = 10.0;
 
-fn spawn_apple(
+fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -30,7 +32,7 @@ fn spawn_apple(
             Apple,
             Name::new("Apple"),
             ReplaceOnHotreload,
-            Mesh3d(meshes.add(Sphere::new(APPLE_RADIUS))),
+            Mesh3d(meshes.add(Sphere::new(event.radius))),
             MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
             RigidBody::Dynamic,
             Collider::sphere(APPLE_RADIUS),
@@ -39,8 +41,32 @@ fn spawn_apple(
     }
 }
 
+fn spawn_apples(
+    mut commands: Commands,
+    mut query: Query<(&Transform, &mut Tree)>,
+    time: Res<Time>,
+) {
+    let elapsed_time = time.elapsed_secs();
+    for (&transform, mut tree) in query.iter_mut() {
+        if elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
+            tree.last_apple_spawn = elapsed_time;
+            commands.send_event(AppleSpawnEvent {
+                position: transform.translation,
+                max_radius: APPLE_SPAWN_RADIUS,
+                radius: APPLE_RADIUS,
+            });
+        }
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding apple plugin");
     app.add_event::<AppleSpawnEvent>();
-    app.add_systems(Update, (spawn_apple.run_if(in_state(Screen::Gameplay)),));
+    app.add_systems(
+        Update,
+        (
+            spawn_apple_event_handler.run_if(in_state(Screen::Gameplay)),
+            spawn_apples.run_if(in_state(Screen::Gameplay)),
+        ),
+    );
 }
