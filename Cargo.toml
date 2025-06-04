@@ -1,5 +1,5 @@
 [package]
-name = "bevy_practice"
+name = "newton_survivor"
 authors = ["Kristoffer Ödmark <kristoffer.odmark90@gmail.com>"]
 version = "0.1.0"
 edition = "2024"

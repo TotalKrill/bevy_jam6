@@ -28,7 +28,7 @@ pub(crate) fn plugin(app: &mut App) {
 }
 
 fn spawn_leaderboard(mut commands: Commands, leaderboard: Res<Leaderboard>) {
-    let mut scores: Vec<_> = leaderboard.get_leaderboard().iter().cloned().collect();
+    let mut scores: Vec<_> = leaderboard.get_leaderboard().to_vec();
 
     scores.sort_by(|a, b| {
         b.score
@@ -99,10 +99,6 @@ fn go_back_on_click(
     });
 }
 
-fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
-}
-
 #[derive(Event)]
 struct AddUserScore {
     value: f32,
@@ -128,7 +124,11 @@ impl User {
 }
 
 fn setup_local_storage(mut commands: Commands) {
-    let config_dir = dirs::config_dir().unwrap().join(GAME_NAME);
+    let config_dir = if let Some(config_dir) = dirs::config_dir() {
+        config_dir.join(GAME_NAME)
+    } else {
+        std::path::PathBuf::from("local").join(GAME_NAME)
+    };
 
     commands.insert_resource(
         Persistent::<User>::builder()
@@ -187,8 +187,7 @@ fn save_local_user(
                         .expect("failed to update user score");
                     }
                     // TODO did we fail to create the user?
-                    _ => {
-                    }
+                    _ => {}
                 }
 
                 leaderboard.refresh_leaderboard();
