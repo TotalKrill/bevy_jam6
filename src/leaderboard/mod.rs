@@ -128,7 +128,11 @@ impl User {
 }
 
 fn setup_local_storage(mut commands: Commands) {
-    let config_dir = dirs::config_dir().unwrap().join(GAME_NAME);
+    let config_dir = if let Some(config_dir) = dirs::config_dir() {
+        config_dir.join(GAME_NAME)
+    } else {
+        std::path::PathBuf::from("local").join(GAME_NAME)
+    };
 
     commands.insert_resource(
         Persistent::<User>::builder()
@@ -187,8 +191,7 @@ fn save_local_user(
                         .expect("failed to update user score");
                     }
                     // TODO did we fail to create the user?
-                    _ => {
-                    }
+                    _ => {}
                 }
 
                 leaderboard.refresh_leaderboard();
