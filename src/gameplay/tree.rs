@@ -1,10 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::BROWN, prelude::*};
 
-use crate::{
-    gameplay::{LEVEL_WIDHT, tractor::Tractor},
-    screens::*,
-};
+use crate::{gameplay::tractor::Tractor, screens::*};
 
 #[derive(Component)]
 pub struct Tree {
@@ -19,7 +16,6 @@ pub struct TreeSpawnEvent {
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
 const TREE_STARTING_HEIGHT: f32 = 3.0;
-const MIN_DISTANCE_FROM_ANOTHER_OBJECT: f32 = 2.0;
 const DEFAULT_APPLE_SPAWN_TIME_SEC: f32 = 5.0; // Time between apple spawns
 
 fn spawn_tree(
@@ -27,7 +23,6 @@ fn spawn_tree(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<&Transform, (With<Tree>, With<Tractor>)>,
 ) {
     for event in events.read() {
         println!("Spawning tree");
