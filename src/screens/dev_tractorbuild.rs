@@ -49,7 +49,7 @@ fn spawn_tractor(
         commands.entity(e).despawn();
     }
 
-    commands.spawn(turret_aiming::sight());
+    commands.spawn((ReplaceOnHotreload, turret_aiming::sight()));
 
     log::info!("spawning tractor");
     tractor::spawn_tractor(
