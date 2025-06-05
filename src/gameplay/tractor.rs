@@ -199,6 +199,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     (
         Tractor,
         Name::new("Tractor"),
+        CollisionEventsEnabled,
         children![(
             Transform::from_xyz(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
             SceneRoot(assets.tractor.clone()),
@@ -211,12 +212,15 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         // },
         // CenterOfMass::new(TRACTOR_LENGTH / 2.0, -TRACTOR_HEIGHT / 2., 0.),
         Collider::cuboid(TRACTOR_LENGTH, TRACTOR_HEIGHT, TRACTOR_WIDTH),
+        CollidingEntities::default(),
     )
 }
 
 pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
     (
-        Name::new("LeftWheel"),
+        Name::new("Wheel"),
+        CollisionEventsEnabled,
+        CollidingEntities::default(),
         RigidBody::Dynamic,
         Mass(20.),
         Collider::sphere(radius),

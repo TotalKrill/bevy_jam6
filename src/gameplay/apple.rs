@@ -1,10 +1,10 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, input::touch::ForceTouch, prelude::*};
-
 use crate::{
     gameplay::{tractor::Tractor, tree::Tree},
     screens::*,
 };
+use crate::gameplay::health::{Death, Health};
 
 #[derive(Component)]
 pub struct Apple;
@@ -35,13 +35,16 @@ fn spawn_apple_event_handler(
         commands.spawn((
             Apple,
             Name::new("Apple"),
+            Health::new(1.0),
             ReplaceOnHotreload,
             Mesh3d(meshes.add(Sphere::new(event.radius))),
             MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
             RigidBody::Dynamic,
             Collider::sphere(APPLE_RADIUS),
             Transform::from_translation(position),
-        ));
+        )).observe(|trigger: Trigger<Death>, mut commands: Commands| {
+            commands.get_entity(trigger.target().entity()).unwrap().despawn();
+        });
     }
 }
 
@@ -86,3 +89,4 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
 }
+
