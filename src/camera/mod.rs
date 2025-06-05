@@ -3,6 +3,7 @@ use avian3d::prelude::RayCaster;
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
+use bevy_editor_cam::prelude::zoom::ZoomLimits;
 use bevy_editor_cam::prelude::{EditorCam, OrbitConstraint};
 
 pub(super) fn plugin(app: &mut App) {
@@ -85,6 +86,11 @@ fn toggle_camera(
             }
             CamState::Debug => {
                 ec.insert(EditorCam {
+                    zoom_limits: ZoomLimits {
+                        min_size_per_pixel: 1e-6, // Any smaller and floating point rendering artifacts appear.
+                        max_size_per_pixel: 1e27, // The diameter of the observable universe is probably a good upper limit.
+                        zoom_through_objects: true,
+                    },
                     orbit_constraint: OrbitConstraint::Free,
                     last_anchor_depth: -cam_trans.translation.length() as f64,
                     orthographic: projections::OrthographicSettings {

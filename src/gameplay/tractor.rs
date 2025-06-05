@@ -84,15 +84,15 @@ pub fn spawn_tractor<T: Bundle>(
         .with_child(turret::turret(
             meshes,
             materials,
-            Vec3::new(0.5, tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE, 0.0),
+            Vec3::new(0.0, tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE, 0.5),
         ))
         .id();
 
-    let wheel_pos = Vec3::new(
-        -(TRACTOR_LENGTH / 2. - WHEEL_RADIE),
-        -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
-        TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
-    );
+    let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE;
+    let wheel_offset_z = TRACTOR_LENGTH / 2.0 + WHEEL_RADIE;
+    let wheel_offset_y = -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.;
+
+    let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, wheel_offset_z);
 
     left_wheel_with_joint(
         commands,
@@ -104,11 +104,7 @@ pub fn spawn_tractor<T: Bundle>(
         0.0,
     );
 
-    let wheel_pos = Vec3::new(
-        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
-        -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
-        TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE,
-    );
+    let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, wheel_offset_z);
     left_wheel_with_joint(
         commands,
         // (extra_components.clone(), Mass(2.)),
@@ -119,11 +115,7 @@ pub fn spawn_tractor<T: Bundle>(
         1.0,
     );
 
-    let wheel_pos = Vec3::new(
-        TRACTOR_LENGTH / 2. - WHEEL_RADIE,
-        -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
-        -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
-    );
+    let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, -wheel_offset_z);
     right_wheel_with_joint(
         commands,
         // extra_components.clone(),
@@ -134,11 +126,7 @@ pub fn spawn_tractor<T: Bundle>(
         1.0,
     );
 
-    let wheel_pos = Vec3::new(
-        -(TRACTOR_LENGTH / 2. - WHEEL_RADIE),
-        -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.,
-        -(TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE),
-    );
+    let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, -wheel_offset_z);
     right_wheel_with_joint(
         commands,
         // (extra_components.clone(), Mass(2.)),
@@ -156,10 +144,9 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
     commands: &mut Commands<'_, '_>,
     extra_components: T,
     tractor_id: Entity,
-    mut wheel_pos: Vec3,
+    wheel_pos: Vec3,
     friction: f32,
 ) {
-    const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
             wheel(WHEEL_RADIE, wheel_pos, Wheel),
@@ -171,13 +158,12 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z -= WHEEL_RADIE + OFFSET;
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
-            .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + OFFSET))
+            .with_local_anchor_2(Vec3::ZERO)
             .with_angular_velocity_damping(0.0)
-            .with_aligned_axis(Vec3::Z),
+            .with_aligned_axis(-Vec3::X),
         extra_components.clone(),
     ));
 }
@@ -185,10 +171,9 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
     commands: &mut Commands<'_, '_>,
     extra_components: T,
     tractor_id: Entity,
-    mut wheel_pos: Vec3,
+    wheel_pos: Vec3,
     friction: f32,
 ) {
-    const OFFSET: f32 = 0.1;
     let front_left_wheel = commands
         .spawn((
             wheel(WHEEL_RADIE, wheel_pos, Wheel),
@@ -200,13 +185,12 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
         ))
         .id();
 
-    wheel_pos.z -= WHEEL_RADIE + OFFSET;
     commands.spawn((
         RevoluteJoint::new(tractor_id, front_left_wheel)
             .with_local_anchor_1(wheel_pos)
-            .with_local_anchor_2(-Vec3::Z * (WHEEL_RADIE + 0.1))
+            .with_local_anchor_2(Vec3::ZERO)
             .with_angular_velocity_damping(0.0)
-            .with_aligned_axis(Vec3::Z),
+            .with_aligned_axis(Vec3::X),
         extra_components.clone(),
     ));
 }
@@ -217,18 +201,22 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         Name::new("Tractor"),
         CollisionEventsEnabled,
         children![(
-            Transform::from_xyz(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
+            Transform {
+                translation: vec3(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
+                rotation: Quat::from_rotation_y(-90_f32.to_radians()),
+                ..default()
+            },
             SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
-        Mass(200.),
+        // Mass(200.),
         Health::new(5.),
         // AngularInertia {
         //     principal: Vec3::splat(0.1),
         //     local_frame: Quat::IDENTITY,
         // },
         // CenterOfMass::new(TRACTOR_LENGTH / 2.0, -TRACTOR_HEIGHT / 2., 0.),
-        Collider::cuboid(TRACTOR_LENGTH, TRACTOR_HEIGHT, TRACTOR_WIDTH),
+        Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
         CollidingEntities::default(),
     )
 }
@@ -239,14 +227,14 @@ pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
         CollisionEventsEnabled,
         CollidingEntities::default(),
         RigidBody::Dynamic,
-        Mass(20.),
+        // Mass(20.),
         Collider::sphere(radius),
         MaxAngularSpeed(TRACTOR_MAX_SPEED),
         // Mass(1.),
         // Collider::cylinder(radius, radius), //TODO: create a new collider with the axises correctly initiated
         Transform {
             translation: pos,
-            rotation: Quat::from_rotation_z(90_f32.to_radians()),
+            // rotation: Quat::from_rotation_z(90_f32.to_radians()),
             ..default()
         },
         marker,

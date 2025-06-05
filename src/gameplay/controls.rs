@@ -1,5 +1,5 @@
 use crate::gameplay::{
-    tractor::Tractor,
+    tractor::{TRACTOR_LENGTH, Tractor},
     turret::{BARREL_LEN, Turret},
 };
 
@@ -7,7 +7,8 @@ use super::*;
 use bevy_enhanced_input::prelude::*;
 use tractor::{LeftWheels, RightWheels};
 
-const TRACTOR_ACCELERATION: f32 = 10000.0;
+const TRACTOR_ACCELERATION: f32 = 5000.0;
+const TRACTOR_TURN_RATE: f32 = 130.0;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = Vec3)]
@@ -114,32 +115,24 @@ fn tractor_break(
 
 fn tractor_move(
     trigger: Trigger<Fired<MoveEvent>>,
-    mut torque: Query<&mut ExternalTorque>,
-    query: Query<(&Transform, &Tractor, &LeftWheels, &RightWheels)>,
+    tractor: Single<(&mut ExternalForce, &mut AngularVelocity, &Transform), With<Tractor>>,
     time: Res<Time>,
 ) {
-    // let force = trigger.value.x * time.delta_secs();
+    let (mut force, mut angular_velocity, transform) = tractor.into_inner();
 
-    let Ok((transform, _, left_wheels, right_wheels)) = query.single() else {
-        debug!("No tractor found, skipping brake application");
-        return;
-    };
+    let apply_force = -trigger.value.z * time.delta_secs() * TRACTOR_ACCELERATION;
+    let forward = transform.forward().normalize();
+    info!(
+        "Applying force: (trigger={:?}, forward={:?}, apply_force={:?})",
+        trigger.value, forward, apply_force
+    );
 
-    let side = transform.local_z().normalize();
+    force.set_force(forward * apply_force);
 
-    let left_torque =
-        side * (-trigger.value.z + trigger.value.x * 5.) * time.delta_secs() * TRACTOR_ACCELERATION;
-
-    let right_torque =
-        side * (-trigger.value.z - trigger.value.x * 5.) * time.delta_secs() * TRACTOR_ACCELERATION;
-
-    debug!("Applying torque: (trigger={:?})", trigger.value);
-
-    for wheel in right_wheels.iter() {
-        torque.get_mut(wheel).unwrap().set_torque(right_torque);
-    }
-
-    for wheel in left_wheels.iter() {
-        torque.get_mut(wheel).unwrap().set_torque(left_torque);
-    }
+    angular_velocity.x =
+        -transform.up().x * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
+    angular_velocity.y =
+        -transform.up().y * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
+    angular_velocity.z =
+        -transform.up().z * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
 }
