@@ -52,7 +52,7 @@ fn move_sight(
     };
 
     // Calculate if and where the ray is hitting the ground plane.
-    let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
+    let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default().always_early_exit());
 
     let Some((_e, hit)) = hits.first() else {
         return;
