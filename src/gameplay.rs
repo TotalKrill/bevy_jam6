@@ -6,6 +6,7 @@ pub mod apple;
 pub mod bullet;
 pub mod controls;
 pub mod health;
+pub mod score;
 pub mod tractor;
 pub mod tree;
 pub mod turret;
@@ -55,4 +56,5 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(apple::plugin);
     app.add_plugins(health::plugin);
     app.add_plugins(tree::plugin);
+    app.add_plugins(score::plugin);
 }

@@ -71,6 +71,8 @@ fn setup_gamescreen(
         ),
     );
     commands.spawn(hud::healthbar());
+    commands.spawn(hud::points_node());
+
     commands.spawn((
         ReplaceOnHotreload,
         level::level(&mut meshes, &mut materials),

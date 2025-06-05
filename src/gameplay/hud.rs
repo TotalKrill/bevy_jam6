@@ -2,7 +2,7 @@ use bevy::color::palettes::tailwind::*;
 
 use crate::{
     ReplaceOnHotreload,
-    gameplay::{health::Health, tractor::Tractor},
+    gameplay::{health::Health, score::ScoreCounter, tractor::Tractor},
 };
 
 use super::*;
@@ -17,7 +17,12 @@ pub fn hud_plugin(app: &mut App) {
     app.add_systems(Update, (update_points, update_healthbar));
 }
 
-pub fn update_points() {}
+pub fn update_points(
+    score: Res<ScoreCounter>,
+    mut hud_score: Single<&mut TextSpan, With<PointCounter>>,
+) {
+    hud_score.0 = format!("{}", score.points);
+}
 pub fn update_healthbar(
     tractor: Single<&Health, With<Tractor>>,
     mut healthbar: Single<&mut Node, With<Healthbar>>,
@@ -28,7 +33,6 @@ pub fn update_healthbar(
 pub fn points_node() -> impl Bundle {
     (
         ReplaceOnHotreload,
-        PointCounter,
         Name::new("points"),
         Text::new(""),
         Node {
