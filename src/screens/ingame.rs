@@ -1,6 +1,6 @@
 //! The screen state for the main gameplay.
 
-use crate::gameplay::WorldAssets;
+use crate::gameplay::{WorldAssets, tree::TreeSpawnEvent};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{
@@ -38,12 +38,25 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::InGame), setup_gamescreen);
 }
 
+pub fn spawn_startup_trees(commands: &mut Commands) {
+    commands.send_event(TreeSpawnEvent {
+        position: vec2(22.0, 20.0),
+    });
+    commands.send_event(TreeSpawnEvent {
+        position: vec2(-15.0, -10.0),
+    });
+    commands.send_event(TreeSpawnEvent {
+        position: vec2(34.0, -20.0),
+    });
+}
+
 use super::*;
 
 use crate::{
     ReplaceOnHotreload,
     gameplay::{controls::InTractor, level, turret_aiming},
 };
+
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 pub fn setup_gamescreen(
     mut commands: Commands,
@@ -74,8 +87,9 @@ pub fn setup_gamescreen(
             Actions::<InTractor>::default(),
         ),
     );
-    commands.spawn(hud::healthbar());
-    commands.spawn(hud::points_node());
+
+    hud::spawn_hud(&mut commands);
+    spawn_startup_trees(&mut commands);
 
     commands.spawn((ReplaceOnHotreload, level::level(&world_assets)));
 }

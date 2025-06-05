@@ -1,8 +1,10 @@
+use core::fmt;
+
 use bevy::color::palettes::tailwind::*;
 
 use crate::{
     ReplaceOnHotreload,
-    gameplay::{health::Health, score::ScoreCounter, tractor::Tractor},
+    gameplay::{apple::Apple, health::Health, score::ScoreCounter, tractor::Tractor, tree::Tree},
 };
 
 use super::*;
@@ -11,10 +13,38 @@ use super::*;
 pub struct PointCounter;
 
 #[derive(Component)]
+pub struct AppleCounter;
+
+#[derive(Component)]
+pub struct TreeCounter;
+
+#[derive(Component)]
 struct Healthbar;
 
 pub fn hud_plugin(app: &mut App) {
-    app.add_systems(Update, (update_points, update_healthbar));
+    app.add_systems(
+        Update,
+        (
+            update_points,
+            update_healthbar,
+            update_apple_counter,
+            update_tree_counter,
+        ),
+    );
+}
+
+fn update_tree_counter(
+    apples: Query<&Tree>,
+    mut counter: Single<&mut TextSpan, With<TreeCounter>>,
+) {
+    counter.0 = format!("{}", apples.iter().count());
+}
+
+fn update_apple_counter(
+    apples: Query<&Apple>,
+    mut counter: Single<&mut TextSpan, With<AppleCounter>>,
+) {
+    counter.0 = format!("{}", apples.iter().count());
 }
 
 fn update_points(
@@ -23,6 +53,7 @@ fn update_points(
 ) {
     hud_score.0 = format!("{}", score.points);
 }
+
 fn update_healthbar(
     tractor: Query<&Health, With<Tractor>>,
     mut healthbar: Single<&mut Node, With<Healthbar>>,
@@ -34,29 +65,42 @@ fn update_healthbar(
     }
 }
 
-pub fn points_node() -> impl Bundle {
+pub fn spawn_hud(commands: &mut Commands) {
+    commands.spawn(stat_tracker());
+    commands.spawn(healthbar());
+}
+
+fn stat_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
-        Name::new("points"),
-        Text::new(""),
         Node {
-            left: Val::Px(5.),
-            top: Val::Px(5.0),
-            width: Val::Px(200.),
-            height: Val::Px(40.),
+            right: Val::Percent(5.),
+            top: Val::Percent(3.0),
             border: UiRect::all(Val::Px(4.)),
+            position_type: PositionType::Absolute,
+            flex_direction: FlexDirection::Column,
             ..Default::default()
         },
         BorderRadius::all(Val::Px(4.)),
-        BorderColor(WHITE_SMOKE.into()),
+        Outline::new(Val::Px(2.), Val::Px(3.), WHITE.into()),
         Children::spawn((
-            Spawn(TextSpan::new("Points: ")),
-            Spawn((TextSpan::new("100"), PointCounter)),
+            Spawn(value_counter("Points", PointCounter)),
+            Spawn(value_counter("Apples Alive", AppleCounter)),
+            Spawn(value_counter("Trees Alive", TreeCounter)),
         )),
     )
 }
 
-pub fn healthbar() -> impl Bundle {
+fn value_counter(key: impl fmt::Display, marker: impl Component) -> impl Bundle {
+    (
+        ReplaceOnHotreload,
+        Name::new("points"),
+        Text::new(format!("{key}: ")),
+        Children::spawn((Spawn((TextSpan::new("--"), marker)),)),
+    )
+}
+
+fn healthbar() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Name::new("healthbar"),

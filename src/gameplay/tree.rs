@@ -1,11 +1,9 @@
 use avian3d::prelude::*;
-use bevy::asset::LoadState;
-use bevy::{color::palettes::css::BROWN, prelude::*};
+use bevy::prelude::*;
 use std::time::Duration;
 
 use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
-use crate::gameplay::level::Ground;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 
@@ -110,18 +108,6 @@ fn spawn_tree(
     }
 }
 
-fn startup_tree(mut commands: Commands) {
-    commands.send_event(TreeSpawnEvent {
-        position: vec2(22.0, 20.0),
-    });
-    commands.send_event(TreeSpawnEvent {
-        position: vec2(-15.0, -10.0),
-    });
-    commands.send_event(TreeSpawnEvent {
-        position: vec2(34.0, -20.0),
-    });
-}
-
 fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
     config.timer.tick(time.delta());
 
@@ -158,9 +144,5 @@ pub(super) fn plugin(app: &mut App) {
             spawn_tree_timer.run_if(in_state(Screen::InGame)),
         )
             .in_set(PausableSystems),
-    );
-    app.add_systems(
-        OnEnter(Screen::InGame),
-        startup_tree.after(setup_gamescreen),
     );
 }

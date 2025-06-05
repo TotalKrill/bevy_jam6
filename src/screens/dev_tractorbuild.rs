@@ -59,8 +59,7 @@ fn setup_devscreen(
 
     /// ui
     use crate::gameplay::hud::*;
-    commands.spawn(points_node());
-    commands.spawn(healthbar());
+    spawn_hud(&mut commands);
 
     commands.spawn((
         ReplaceOnHotreload,
