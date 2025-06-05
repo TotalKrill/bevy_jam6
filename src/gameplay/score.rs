@@ -1,9 +1,9 @@
+use super::*;
+use crate::leaderboard::AddUserScore;
 use crate::{
     gameplay::{apple::Apple, health::Death, tractor::Tractor},
     screens::Screen,
 };
-use crate::leaderboard::AddUserScore;
-use super::*;
 
 #[derive(Resource, Default)]
 pub struct ScoreCounter {
@@ -22,7 +22,7 @@ pub fn plugin(app: &mut App) {
 
     app.add_observer(
         |trigger: Trigger<Death>,
-         mut event_writer: EventWriter<AddUserScore>,
+         mut commands: Commands,
          mut score: ResMut<ScoreCounter>,
          apples: Query<&Apple>,
          tractor: Query<&Tractor>| {
@@ -30,9 +30,12 @@ pub fn plugin(app: &mut App) {
                 score.points += 1;
             }
             if let Ok(_tractor) = tractor.get(trigger.target()) {
-                event_writer.write(AddUserScore {
+                commands.trigger(AddUserScore {
                     value: score.points as f32,
                 });
+                // event_writer.write(AddUserScore {
+                //     value: score.points as f32,
+                // });
             }
         },
     );

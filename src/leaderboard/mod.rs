@@ -4,6 +4,7 @@ use crate::screens::Screen;
 use crate::theme::widget;
 use bevy::asset::uuid::Uuid;
 use bevy::ecs::spawn::SpawnIter;
+use bevy::ecs::system::command::trigger;
 use bevy::prelude::*;
 use bevy_jornet::{JornetEvent, JornetPlugin, Leaderboard, Player};
 use bevy_persistent::prelude::*;
@@ -13,17 +14,20 @@ const GAME_NAME: &str = "newton-survivor";
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_plugins(JornetPlugin::with_leaderboard(
-        "0bd81632-0349-40e2-84cf-99d4084b4263", "f3564368-60b1-4377-be5e-1162d3e3d61c",
+        "0bd81632-0349-40e2-84cf-99d4084b4263",
+        "f3564368-60b1-4377-be5e-1162d3e3d61c",
     ))
     .add_event::<AddUserScore>()
     .add_systems(Startup, setup_local_storage)
     .add_systems(Startup, load_local_user.after(setup_local_storage))
     .add_systems(
         Update,
-        (test_create_score, save_local_user, add_score_to_leaderboard),
+        (test_create_score, save_local_user),
     );
 
     app.add_systems(OnEnter(Menu::Leaderboard), spawn_leaderboard);
+
+    app.add_observer(add_score_to_leaderboard);
 }
 
 fn spawn_leaderboard(mut commands: Commands, leaderboard: Res<Leaderboard>) {
@@ -199,28 +203,28 @@ fn save_local_user(
 }
 
 fn add_score_to_leaderboard(
-    mut event_reader: EventReader<AddUserScore>,
+    trigger: Trigger<AddUserScore>,
     leaderboard: Res<Leaderboard>,
     mut user: ResMut<Persistent<User>>,
 ) {
-    for user_score in event_reader.read() {
-        println!("user score: {:#?}", user_score.value);
+    let user_score = trigger.event();
 
-        // Send score to the leaderboard
-        leaderboard.send_score(user_score.value);
+    println!("user score: {:#?}", user_score.value);
 
-        // Update user high score
-        if user_score.value > user.high_score {
-            user.update(|user| {
-                user.high_score = user_score.value;
-            })
-            .expect("failed to update user score");
-        }
+    // Send score to the leaderboard
+    leaderboard.send_score(user_score.value);
 
-        // Update user last score
+    // Update user high score
+    if user_score.value > user.high_score {
         user.update(|user| {
-            user.last_score = user_score.value;
+            user.high_score = user_score.value;
         })
-        .expect("failed to update user score");
+            .expect("failed to update user score");
     }
+
+    // Update user last score
+    user.update(|user| {
+        user.last_score = user_score.value;
+    })
+        .expect("failed to update user score");
 }
