@@ -33,24 +33,15 @@ pub fn hud_plugin(app: &mut App) {
     );
 }
 
-fn update_tree_counter(
-    apples: Query<&Tree>,
-    mut counter: Single<&mut TextSpan, With<TreeCounter>>,
-) {
+fn update_tree_counter(tree: Query<&Tree>, mut counter: Single<&mut Text, With<TreeCounter>>) {
+    counter.0 = format!("{}", tree.iter().count());
+}
+
+fn update_apple_counter(apples: Query<&Apple>, mut counter: Single<&mut Text, With<AppleCounter>>) {
     counter.0 = format!("{}", apples.iter().count());
 }
 
-fn update_apple_counter(
-    apples: Query<&Apple>,
-    mut counter: Single<&mut TextSpan, With<AppleCounter>>,
-) {
-    counter.0 = format!("{}", apples.iter().count());
-}
-
-fn update_points(
-    score: Res<ScoreCounter>,
-    mut hud_score: Single<&mut TextSpan, With<PointCounter>>,
-) {
+fn update_points(score: Res<ScoreCounter>, mut hud_score: Single<&mut Text, With<PointCounter>>) {
     hud_score.0 = format!("{}", score.points);
 }
 
@@ -76,27 +67,62 @@ fn stat_tracker() -> impl Bundle {
         Node {
             right: Val::Percent(5.),
             top: Val::Percent(3.0),
-            border: UiRect::all(Val::Px(4.)),
+            padding: UiRect::all(Val::Px(4.)),
             position_type: PositionType::Absolute,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
+        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
         BorderRadius::all(Val::Px(4.)),
-        Outline::new(Val::Px(2.), Val::Px(3.), WHITE.into()),
+        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
         Children::spawn((
-            Spawn(value_counter("Points", PointCounter)),
-            Spawn(value_counter("Apples Alive", AppleCounter)),
-            Spawn(value_counter("Trees Alive", TreeCounter)),
+            Spawn(value_counter("Points", 32., PointCounter)),
+            Spawn((
+                Node {
+                    width: Val::Auto,
+                    ..Default::default()
+                },
+                Outline::new(Val::Px(1.), Val::Px(0.0), WHITE.into()),
+            )),
+            Spawn(value_counter("Apples Alive", 18., AppleCounter)),
+            Spawn(value_counter("Trees Alive", 18., TreeCounter)),
         )),
     )
 }
 
-fn value_counter(key: impl fmt::Display, marker: impl Component) -> impl Bundle {
+fn value_counter(key: impl fmt::Display, size: f32, marker: impl Component) -> impl Bundle {
     (
         ReplaceOnHotreload,
-        Name::new("points"),
-        Text::new(format!("{key}: ")),
-        Children::spawn((Spawn((TextSpan::new("--"), marker)),)),
+        Name::new("value counter"),
+        Node {
+            // display: Display::Grid,
+            row_gap: Val::Px(10.0),
+            flex_direction: FlexDirection::Row,
+            // justify_content: JustifyContent::Stretch,
+            align_content: AlignContent::Stretch,
+            ..Default::default()
+        },
+        children![
+            (
+                Name::new("points"),
+                TextFont::from_font_size(size),
+                Node {
+                    justify_self: JustifySelf::Start,
+                    ..default()
+                },
+                Text::new(format!("{key}: "))
+            ),
+            (
+                Name::new("value"),
+                TextFont::from_font_size(size),
+                Node {
+                    justify_self: JustifySelf::End,
+                    ..default()
+                },
+                Text::new(format!("--")),
+                marker
+            )
+        ],
     )
 }
 
