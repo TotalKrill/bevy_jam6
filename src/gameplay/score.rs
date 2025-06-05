@@ -33,9 +33,6 @@ pub fn plugin(app: &mut App) {
                 commands.trigger(AddUserScore {
                     value: score.points as f32,
                 });
-                // event_writer.write(AddUserScore {
-                //     value: score.points as f32,
-                // });
             }
         },
     );
