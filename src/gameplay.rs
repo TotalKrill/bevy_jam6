@@ -1,8 +1,16 @@
 use avian3d::prelude::*;
 pub use bevy::{color::palettes::css::*, prelude::*};
 
-use crate::asset_tracking::LoadResource;
+use crate::{
+    asset_tracking::LoadResource,
+    gameplay::{health::Death, tractor::Tractor},
+    menus::Menu,
+};
 //all the gameplay stuff
+
+/// Event that is triggered when the game is over!
+#[derive(Event)]
+pub struct GameOver;
 
 pub mod apple;
 pub mod bullet;
@@ -20,8 +28,6 @@ pub mod hud;
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
 
-pub const LEVEL_WIDHT: f32 = 200.0;
-
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct WorldAssets {
@@ -38,7 +44,6 @@ impl FromWorld for WorldAssets {
 }
 
 pub mod level {
-    use bevy::color::palettes::tailwind::GRAY_100;
 
     #[derive(Component)]
     pub struct Ground;
@@ -46,11 +51,6 @@ pub mod level {
     use super::*;
     pub fn level(assets: &WorldAssets) -> impl Bundle {
         (
-            // Mesh3d(meshes.add(Cuboid::from_size(Vec3::new(LEVEL_WIDHT, 0.1, LEVEL_WIDHT)))),
-            // MeshMaterial3d(materials.add(StandardMaterial {
-            //     base_color: GRAY_100.into(),
-            //     ..Default::default()
-            // })),
             RigidBody::Static,
             Friction::new(1.0),
             Transform::from_translation(Vec3::new(0.0, -1., 0.0)),
@@ -61,10 +61,18 @@ pub mod level {
     }
 }
 
+fn to_gameover(mut next_menu: ResMut<NextState<Menu>>) {
+    next_menu.set(Menu::GameOver);
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding gameplay plugins");
 
     app.load_resource::<WorldAssets>();
+
+    app.add_event::<GameOver>();
+
+    app.add_systems(Update, to_gameover.run_if(on_event::<GameOver>));
 
     app.add_plugins(controls::plugin);
     app.add_plugins(hud::hud_plugin);

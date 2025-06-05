@@ -1,6 +1,7 @@
 //! The game's menus and transitions between them.
 
 mod credits;
+mod gameover;
 mod main;
 mod pause;
 mod settings;
@@ -15,6 +16,7 @@ pub(super) fn plugin(app: &mut App) {
         main::plugin,
         settings::plugin,
         pause::plugin,
+        gameover::plugin,
     ));
 }
 
@@ -27,5 +29,6 @@ pub enum Menu {
     Credits,
     Settings,
     Leaderboard,
+    GameOver,
     Pause,
 }

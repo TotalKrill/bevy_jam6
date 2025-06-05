@@ -70,12 +70,17 @@ pub fn spawn_tractor<T: Bundle>(
 ) -> Entity {
     let tractor_id = commands
         .spawn((tractor_body(assets), extra_components))
-        .observe(|trigger: Trigger<Death>, mut commands: Commands| {
-            commands
-                .get_entity(trigger.target().entity())
-                .unwrap()
-                .despawn();
-        })
+        .observe(
+            |trigger: Trigger<Death>, mut commands: Commands, mut writer: EventWriter<GameOver>| {
+                // gameover when tractor dies
+                writer.write(GameOver);
+
+                commands
+                    .get_entity(trigger.target().entity())
+                    .unwrap()
+                    .despawn();
+            },
+        )
         .with_child(turret::turret(
             meshes,
             materials,
