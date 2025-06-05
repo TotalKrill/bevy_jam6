@@ -1,17 +1,17 @@
 use crate::gameplay::apple::Apple;
+use crate::gameplay::bullet::Bullet;
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use crate::screens::Screen;
 use avian3d::prelude::{CollidingEntities, CollisionStarted};
 use bevy::prelude::*;
 use std::collections::HashSet;
-use crate::gameplay::bullet::Bullet;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<Damage>().add_event::<Death>().add_systems(
         Update,
         (
             damage_health.run_if(in_state(Screen::Gameplay)),
-            create_collision_damage.run_if(in_state(Screen::Gameplay)),
+            damage_tractor.run_if(in_state(Screen::Gameplay)),
             shoot_apples.run_if(in_state(Screen::Gameplay)),
         ),
     );
@@ -57,7 +57,7 @@ fn damage_health(
     }
 }
 
-fn create_collision_damage(
+fn damage_tractor(
     mut collision_event_reader: EventReader<CollisionStarted>,
     tractor: Single<(Entity, &LeftWheels, &RightWheels), With<Tractor>>,
     apples: Query<Entity, With<Apple>>,
@@ -71,36 +71,23 @@ fn create_collision_damage(
     tractor_entities.extend(right.collection());
 
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
-        // println!(
-        //     "{entity1} and {entity2} started colliding, hi1 = {}, hi2 = {}",
-        //     tractor_entities.contains(entity1),
-        //     tractor_entities.contains(entity2)
-        // );
+        for (apple_candidate, tractor_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
+            if tractor_entities.contains(&tractor_candidate) {
+                if let Ok(apple) = apples.get(apple_candidate) {
+                    event_writer.write(Damage {
+                        value: 100.0,
+                        entity: apple,
+                    });
 
-        let apple_entity = if tractor_entities.contains(entity1) {
-            *entity2
-        } else if tractor_entities.contains(entity2) {
-            *entity1
-        } else {
-            continue;
-        };
-
-        if let Ok(apple) = apples.get(apple_entity) {
-            println!("I am the apple {apple:?}");
-
-            event_writer.write(Damage {
-                value: 100.0,
-                entity: apple,
-            });
-
-            event_writer.write(Damage {
-                value: 1.0,
-                entity: tractor,
-            });
+                    event_writer.write(Damage {
+                        value: 1.0,
+                        entity: tractor,
+                    });
+                }
+            }
         }
     }
 }
-
 
 fn shoot_apples(
     mut collision_event_reader: EventReader<CollisionStarted>,
@@ -109,17 +96,16 @@ fn shoot_apples(
     mut event_writer: EventWriter<Damage>,
 ) {
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
-        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity1), bullets.get(*entity2)) {
-            event_writer.write(Damage {
-                value: 100.0,
-                entity: apple,
-            });
-        }
-        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity2), bullets.get(*entity1)) {
-            event_writer.write(Damage {
-                value: 100.0,
-                entity: apple,
-            });
+        for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
+            if let (Ok(apple), Ok(_bullet)) =
+                (apples.get(apple_candidate), bullets.get(bullet_candidate))
+            {
+                event_writer.write(Damage {
+                    value: 100.0,
+                    entity: apple,
+                });
+                break; // Only need to damage once per collision
+            }
         }
     }
 }
