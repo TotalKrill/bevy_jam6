@@ -7,7 +7,7 @@ use super::*;
 use bevy_enhanced_input::prelude::*;
 use tractor::{LeftWheels, RightWheels};
 
-const TRACTOR_ACCELERATION: f32 = 100.0;
+const TRACTOR_ACCELERATION: f32 = 10000.0;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = Vec3)]
@@ -118,6 +118,8 @@ fn tractor_move(
     query: Query<(&Transform, &Tractor, &LeftWheels, &RightWheels)>,
     time: Res<Time>,
 ) {
+    // let force = trigger.value.x * time.delta_secs();
+
     let Ok((transform, _, left_wheels, right_wheels)) = query.single() else {
         debug!("No tractor found, skipping brake application");
         return;
@@ -125,15 +127,11 @@ fn tractor_move(
 
     let side = transform.local_z().normalize();
 
-    let left_torque = side
-        * (-trigger.value.z + trigger.value.x * 5.)
-        * time.elapsed_secs()
-        * TRACTOR_ACCELERATION;
+    let left_torque =
+        side * (-trigger.value.z + trigger.value.x * 5.) * time.delta_secs() * TRACTOR_ACCELERATION;
 
-    let right_torque = side
-        * (-trigger.value.z - trigger.value.x * 5.)
-        * time.elapsed_secs()
-        * TRACTOR_ACCELERATION;
+    let right_torque =
+        side * (-trigger.value.z - trigger.value.x * 5.) * time.delta_secs() * TRACTOR_ACCELERATION;
 
     debug!("Applying torque: (trigger={:?})", trigger.value);
 
