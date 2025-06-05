@@ -1,10 +1,12 @@
 use crate::gameplay::{
-    tractor::{TRACTOR_LENGTH, Tractor},
+    level::Ground,
+    tractor::{TRACTOR_LENGTH, Tractor, Wheel},
     turret::{BARREL_LEN, Turret},
 };
 
 use super::*;
 use bevy_enhanced_input::prelude::*;
+use std::collections::HashSet;
 use tractor::{LeftWheels, RightWheels};
 
 const TRACTOR_ACCELERATION: f32 = 5000.0;
@@ -115,10 +117,49 @@ fn tractor_break(
 
 fn tractor_move(
     trigger: Trigger<Fired<MoveEvent>>,
-    tractor: Single<(&mut ExternalForce, &mut AngularVelocity, &Transform), With<Tractor>>,
+    tractor: Single<
+        (
+            &mut ExternalForce,
+            &mut AngularVelocity,
+            &Transform,
+            &LeftWheels,
+            &RightWheels,
+        ),
+        With<Tractor>,
+    >,
+    wheels: Query<Entity, With<Wheel>>,
+    ground_entity: Single<Entity, With<Ground>>,
     time: Res<Time>,
+    contact_graph: Collisions,
 ) {
-    let (mut force, mut angular_velocity, transform) = tractor.into_inner();
+    let (mut force, mut angular_velocity, transform, left, right) = tractor.into_inner();
+
+    let mut wheels_on_ground = 0;
+
+    for wheel in wheels.iter() {
+        println!("Checking wheel: {wheel:?}");
+
+        // TODO: check why contact_graph.get is not working here
+        for contact in contact_graph.iter() {
+            if contact.body1.unwrap() != wheel && contact.body2.unwrap() != wheel {
+                continue;
+            }
+            if contact.body1.unwrap() != *ground_entity && contact.body2.unwrap() != *ground_entity
+            {
+                continue;
+            }
+            wheels_on_ground += 1;
+        }
+
+        if wheels_on_ground >= 2 {
+            break;
+        }
+    }
+    println!("on ground: {wheels_on_ground}");
+
+    if wheels_on_ground < 2 {
+        return;
+    }
 
     let apply_force = -trigger.value.z * time.delta_secs() * TRACTOR_ACCELERATION;
     let forward = transform.forward().normalize();
