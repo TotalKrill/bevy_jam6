@@ -49,7 +49,7 @@ pub fn bullet(
         },
         PointLight {
             color: ORANGE_RED.into(),
-            intensity: 10_000.,
+            intensity: 50_000.,
             ..Default::default()
         },
         CollisionEventsEnabled,

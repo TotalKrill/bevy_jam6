@@ -1,5 +1,5 @@
 //! The screen state for the main gameplay.
-
+use crate::gameplay::hud::{self, setup_hud};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{
@@ -27,6 +27,7 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
     app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
+    app.add_systems(OnEnter(Screen::Gameplay), setup_hud);
     app.add_systems(
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),

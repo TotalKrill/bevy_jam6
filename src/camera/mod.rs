@@ -1,5 +1,6 @@
 use crate::gameplay::tractor::Tractor;
 use bevy::prelude::*;
+use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
 use bevy_editor_cam::prelude::{EditorCam, OrbitConstraint};
 
@@ -16,6 +17,7 @@ pub fn spawn_camera(mut commands: Commands) {
         GameplayCamera,
         Camera3d::default(),
         Name::new("GameplayCamera"),
+        AtmosphereCamera::default(),
         Camera {
             hdr: true,
             is_active: true,
