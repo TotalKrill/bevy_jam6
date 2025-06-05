@@ -43,7 +43,7 @@ pub struct TractorAssets {
 
 impl FromWorld for TractorAssets {
     fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
+        let assets: &AssetServer = world.resource::<AssetServer>();
         Self {
             tractor: assets
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),

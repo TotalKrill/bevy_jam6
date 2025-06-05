@@ -1,4 +1,6 @@
 //! The screen state for the main gameplay.
+
+use crate::gameplay::WorldAssets;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{
@@ -44,7 +46,8 @@ use crate::{
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn setup_gamescreen(
     mut commands: Commands,
-    assets: Res<TractorAssets>,
+    tractor_assets: Res<TractorAssets>,
+    world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
@@ -63,20 +66,13 @@ fn setup_gamescreen(
         &mut commands,
         &mut meshes,
         &mut materials,
-        &assets,
-        (
-            StateScoped(Screen::Gameplay),
-            ReplaceOnHotreload,
-            Actions::<InTractor>::default(),
-        ),
+        &tractor_assets,
+        ReplaceOnHotreload,
     );
     commands.spawn(hud::healthbar());
     commands.spawn(hud::points_node());
 
-    commands.spawn((
-        ReplaceOnHotreload,
-        level::level(&mut meshes, &mut materials),
-    ));
+    commands.spawn((ReplaceOnHotreload, level::level(&world_assets)));
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {

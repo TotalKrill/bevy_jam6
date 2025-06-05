@@ -58,6 +58,7 @@ impl Plugin for AppPlugin {
         app.add_plugins(AtmospherePlugin);
 
         app.add_plugins(PhysicsPlugins::default());
+        app.add_plugins(PhysicsDebugPlugin::default());
         app.add_systems(
             OnEnter(Pause(true)),
             |mut physics: ResMut<Time<Physics>>| {

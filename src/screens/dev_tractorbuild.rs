@@ -5,6 +5,7 @@ use crate::gameplay::{
     turret_aiming,
 };
 
+use crate::gameplay::WorldAssets;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -29,7 +30,8 @@ use crate::{ReplaceOnHotreload, gameplay::controls::InTractor};
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn setup_devscreen(
     mut commands: Commands,
-    assets: Res<TractorAssets>,
+    tractor_assets: Res<TractorAssets>,
+    world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
@@ -47,7 +49,7 @@ fn setup_devscreen(
         &mut commands,
         &mut meshes,
         &mut materials,
-        &assets,
+        &tractor_assets,
         (
             StateScoped(Screen::TractorBuild),
             ReplaceOnHotreload,
@@ -63,7 +65,6 @@ fn setup_devscreen(
     commands.spawn((
         ReplaceOnHotreload,
         StateScoped(Screen::TractorBuild),
-        level::level(&mut meshes, &mut materials),
-        Transform::from_translation(Vec3::Y * -4.),
+        level::level(&world_assets),
     ));
 }
