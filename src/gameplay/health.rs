@@ -69,11 +69,11 @@ fn create_collision_damage(
     tractor_entities.extend(right.collection());
 
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
-        println!(
-            "{entity1} and {entity2} started colliding, hi1 = {}, hi2 = {}",
-            tractor_entities.contains(entity1),
-            tractor_entities.contains(entity2)
-        );
+        // println!(
+        //     "{entity1} and {entity2} started colliding, hi1 = {}, hi2 = {}",
+        //     tractor_entities.contains(entity1),
+        //     tractor_entities.contains(entity2)
+        // );
 
         let apple_entity = if tractor_entities.contains(entity1) {
             *entity2

@@ -1,11 +1,15 @@
+use std::collections::HashSet;
 use std::time::Duration;
 
 use bevy::color::palettes::css::*;
-
+use bevy::ecs::observer::TriggerTargets;
+use crate::gameplay::apple::Apple;
+use crate::gameplay::health::Damage;
+use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use super::*;
 
 pub fn bullet_plugin(app: &mut App) {
-    app.add_systems(Update, despawn_bullets);
+    app.add_systems(Update, (despawn_bullets, shoot_apples));
 }
 
 fn despawn_bullets(
@@ -46,5 +50,27 @@ pub fn bullet(
             intensity: 10_000.,
             ..Default::default()
         },
+        CollisionEventsEnabled,
+        CollidingEntities::default(),
     )
+}
+
+fn shoot_apples(
+    mut collision_event_reader: EventReader<CollisionStarted>,
+    bullets: Query<Entity, With<Bullet>>,
+    apples: Query<Entity, With<Apple>>,
+    mut event_writer: EventWriter<Damage>,
+) {
+
+    for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
+
+        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity1), apples.get(*entity1)) {
+            if let Ok(bullet) = bullets.get(*entity2) {
+                event_writer.write(Damage {
+                    value: 100.0,
+                    entity: apple,
+                });
+            }
+        }
+    }
 }
