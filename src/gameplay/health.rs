@@ -2,7 +2,7 @@ use crate::gameplay::apple::Apple;
 use crate::gameplay::bullet::Bullet;
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use crate::screens::Screen;
-use avian3d::prelude::{CollidingEntities, CollisionStarted};
+use avian3d::prelude::CollisionStarted;
 use bevy::prelude::*;
 use std::collections::HashSet;
 
@@ -20,11 +20,18 @@ pub fn plugin(app: &mut App) {
 #[derive(Component, Debug)]
 pub struct Health {
     pub current: f32,
+    pub max: f32,
 }
 
 impl Health {
+    pub fn percentage(&self) -> f32 {
+        (self.current / self.max) * 100.
+    }
     pub fn new(health: f32) -> Self {
-        Self { current: health }
+        Self {
+            current: health,
+            max: health,
+        }
     }
 }
 
@@ -83,7 +90,7 @@ fn damage_tractor(
                         value: 1.0,
                         entity: tractor,
                     });
-                    
+
                     break;
                 }
             }

@@ -39,7 +39,7 @@ pub fn bullet(
         Mesh3d(meshes.add(Sphere::new(0.1))),
         MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
         RigidBody::Dynamic,
-        Mass(200.),
+        Mass(20.),
         Collider::sphere(0.1),
         LinearVelocity(direction * speed),
         Transform::from_rotation(Quat::from_rotation_x(90f32.to_radians())).with_translation(at), // .rotate_local_x(90f32.to_radians()),
@@ -49,11 +49,10 @@ pub fn bullet(
         },
         PointLight {
             color: ORANGE_RED.into(),
-            intensity: 10_000.,
+            intensity: 50_000.,
             ..Default::default()
         },
         CollisionEventsEnabled,
         CollidingEntities::default(),
     )
 }
-
