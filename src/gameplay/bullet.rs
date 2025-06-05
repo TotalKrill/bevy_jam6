@@ -5,7 +5,7 @@ use crate::gameplay::apple::Apple;
 use crate::gameplay::health::Damage;
 
 pub fn bullet_plugin(app: &mut App) {
-    app.add_systems(Update, (despawn_bullets, shoot_apples));
+    app.add_systems(Update, despawn_bullets);
 }
 
 fn despawn_bullets(
@@ -57,24 +57,3 @@ pub fn bullet(
     )
 }
 
-fn shoot_apples(
-    mut collision_event_reader: EventReader<CollisionStarted>,
-    bullets: Query<Entity, With<Bullet>>,
-    apples: Query<Entity, With<Apple>>,
-    mut event_writer: EventWriter<Damage>,
-) {
-    for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
-        if let (Ok(apple), Ok(bullet)) = (apples.get_many(*entity1), apples.get_many(*entity2)) {
-            event_writer.write(Damage {
-                value: 100.0,
-                entity: apple,
-            });
-        }
-        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity2), apples.get(*entity1)) {
-            event_writer.write(Damage {
-                value: 100.0,
-                entity: apple,
-            });
-        }
-    }
-}

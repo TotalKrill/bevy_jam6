@@ -4,6 +4,7 @@ use crate::screens::Screen;
 use avian3d::prelude::{CollidingEntities, CollisionStarted};
 use bevy::prelude::*;
 use std::collections::HashSet;
+use crate::gameplay::bullet::Bullet;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<Damage>().add_event::<Death>().add_systems(
@@ -11,6 +12,7 @@ pub fn plugin(app: &mut App) {
         (
             damage_health.run_if(in_state(Screen::Gameplay)),
             create_collision_damage.run_if(in_state(Screen::Gameplay)),
+            shoot_apples.run_if(in_state(Screen::Gameplay)),
         ),
     );
 }
@@ -94,6 +96,29 @@ fn create_collision_damage(
             event_writer.write(Damage {
                 value: 1.0,
                 entity: tractor,
+            });
+        }
+    }
+}
+
+
+fn shoot_apples(
+    mut collision_event_reader: EventReader<CollisionStarted>,
+    bullets: Query<Entity, With<Bullet>>,
+    apples: Query<Entity, With<Apple>>,
+    mut event_writer: EventWriter<Damage>,
+) {
+    for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
+        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity1), bullets.get(*entity2)) {
+            event_writer.write(Damage {
+                value: 100.0,
+                entity: apple,
+            });
+        }
+        if let (Ok(apple), Ok(bullet)) = (apples.get(*entity2), bullets.get(*entity1)) {
+            event_writer.write(Damage {
+                value: 100.0,
+                entity: apple,
             });
         }
     }
