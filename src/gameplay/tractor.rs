@@ -16,6 +16,7 @@ pub const WHEEL_RADIE: f32 = 0.9;
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
 
+    // add meshes to wheels
     app.add_observer(
         |trigger: Trigger<OnAdd, Wheel>,
          mut commands: Commands,

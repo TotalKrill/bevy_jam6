@@ -27,6 +27,7 @@ pub struct Bullet {
     pub damage: f32,
 }
 
+#[cfg_attr(feature = "dev_native", hot)]
 pub fn bullet(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -34,13 +35,18 @@ pub fn bullet(
     speed: f32,
     at: Vec3,
 ) -> impl Bundle {
+    let mut material = StandardMaterial::from_color(RED);
+    material.emissive = LinearRgba::rgb(100.0, 10.0, 10.0);
+
+    let size = 0.15;
+
     (
         Name::new("Bullet"),
-        Mesh3d(meshes.add(Sphere::new(0.1))),
-        MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
+        Mesh3d(meshes.add(Sphere::new(size))),
+        MeshMaterial3d(materials.add(material)),
         RigidBody::Dynamic,
         Mass(20.),
-        Collider::sphere(0.1),
+        Collider::sphere(size),
         LinearVelocity(direction * speed),
         Transform::from_rotation(Quat::from_rotation_x(90f32.to_radians())).with_translation(at), // .rotate_local_x(90f32.to_radians()),
         Bullet {

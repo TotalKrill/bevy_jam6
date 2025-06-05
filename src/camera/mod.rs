@@ -1,5 +1,6 @@
 use crate::gameplay::tractor::Tractor;
 use avian3d::prelude::RayCaster;
+use bevy::core_pipeline::bloom::Bloom;
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
@@ -20,6 +21,7 @@ pub fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         Name::new("GameplayCamera"),
         AtmosphereCamera::default(),
+        Bloom::NATURAL,
         Camera {
             hdr: true,
             is_active: true,
