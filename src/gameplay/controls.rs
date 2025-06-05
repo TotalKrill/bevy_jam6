@@ -8,11 +8,11 @@ const TRACTOR_ACCELERATION: f32 = 100.0;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = Vec3)]
-struct Move;
+struct MoveEvent;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = bool)]
-struct Break;
+struct BreakEvent;
 
 #[derive(InputContext)]
 struct InTractor;
@@ -21,9 +21,9 @@ fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Ac
     debug!("Binding actions");
     let mut actions = actions.get_mut(trigger.target()).unwrap();
     actions
-        .bind::<Move>()
+        .bind::<MoveEvent>()
         .to(Spatial::wasd_and(KeyCode::ArrowUp, KeyCode::ArrowDown));
-    actions.bind::<Break>().to(KeyCode::Space);
+    actions.bind::<BreakEvent>().to(KeyCode::Space);
 }
 
 fn tractor_break(
@@ -53,7 +53,7 @@ fn tractor_break(
 }
 
 fn tractor_move(
-    trigger: Trigger<Fired<Move>>,
+    trigger: Trigger<Fired<MoveEvent>>,
     mut torque: Query<&mut ExternalTorque>,
     query: Query<(&Transform, &Tractor, &LeftWheels, &RightWheels)>,
     time: Res<Time>,
