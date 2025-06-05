@@ -1,7 +1,10 @@
 use avian3d::prelude::*;
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::{color::palettes::css::RED, input::touch::ForceTouch, prelude::*};
 
-use crate::{gameplay::tree::Tree, screens::*};
+use crate::{
+    gameplay::{tractor::Tractor, tree::Tree},
+    screens::*,
+};
 
 #[derive(Component)]
 pub struct Apple;
@@ -15,6 +18,7 @@ pub struct AppleSpawnEvent {
 
 const APPLE_RADIUS: f32 = 1.0;
 const APPLE_SPAWN_RADIUS: f32 = 10.0;
+const APPLE_FORCE_SCALAR: f32 = 10.0; // Rate at which the apple want to get to the player
 
 fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
@@ -41,6 +45,17 @@ fn spawn_apple_event_handler(
     }
 }
 
+fn apply_apple_force(
+    mut query: Query<(&mut ExternalForce, &Transform), With<Apple>>,
+    tractor: Single<&Transform, With<Tractor>>,
+) {
+    for (mut apple_force, apple_transform) in query.iter_mut() {
+        let force =
+            (tractor.translation - apple_transform.translation).normalize() * APPLE_FORCE_SCALAR;
+
+        apple_force.set_force(force);
+    }
+}
 fn spawn_apples(
     mut commands: Commands,
     mut query: Query<(&Transform, &mut Tree)>,
@@ -67,6 +82,7 @@ pub(super) fn plugin(app: &mut App) {
         (
             spawn_apple_event_handler.run_if(in_state(Screen::Gameplay)),
             spawn_apples.run_if(in_state(Screen::Gameplay)),
+            apply_apple_force.run_if(in_state(Screen::Gameplay)),
         ),
     );
 }
