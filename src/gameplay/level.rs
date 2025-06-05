@@ -9,6 +9,7 @@ pub fn level(assets: &WorldAssets) -> impl Bundle {
         // Transform::from_translation(Vec3::new(0.0, -1., 0.0)),
         ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
         Ground,
+        Name::new("Ground"),
         SceneRoot(assets.ground.clone()),
     )
 }
