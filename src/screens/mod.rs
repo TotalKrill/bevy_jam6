@@ -2,7 +2,7 @@
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
 
-mod gameplay;
+pub(crate) mod gameplay;
 mod loading;
 mod splash;
 mod title;

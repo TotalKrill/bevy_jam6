@@ -45,7 +45,7 @@ use crate::{
     gameplay::{controls::InTractor, level, turret_aiming},
 };
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
-fn setup_gamescreen(
+pub fn setup_gamescreen(
     mut commands: Commands,
     tractor_assets: Res<TractorAssets>,
     world_assets: Res<WorldAssets>,
