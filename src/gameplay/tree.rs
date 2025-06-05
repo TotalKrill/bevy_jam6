@@ -1,7 +1,9 @@
 use avian3d::prelude::*;
 use bevy::asset::LoadState;
 use bevy::{color::palettes::css::BROWN, prelude::*};
+use std::time::Duration;
 
+use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
 use crate::gameplay::level::Ground;
 use crate::screens::ingame::setup_gamescreen;
@@ -11,6 +13,12 @@ const TREE_STARTING_RADIUS: f32 = 0.5;
 const TREE_STARTING_HEIGHT: f32 = 3.0;
 const DEFAULT_APPLE_SPAWN_TIME_SEC: f32 = 5.0; // Time between apple spawns
 
+const RANDOM_SPAWN_X_MIN: f32 = -90.0;
+const RANDOM_SPAWN_X_MAX: f32 = 90.0;
+const RANDOM_SPAWN_Z_MIN: f32 = -90.0;
+const RANDOM_SPAWN_Z_MAX: f32 = 90.0;
+const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
+
 #[derive(Component)]
 pub struct Tree {
     pub apple_spawn_time_sec: f32,
@@ -19,7 +27,7 @@ pub struct Tree {
 
 #[derive(Event)]
 pub struct TreeSpawnEvent {
-    position: Vec2,
+    pub(crate) position: Vec2,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -36,6 +44,10 @@ impl FromWorld for TreeAssets {
         }
     }
 }
+#[derive(Resource, Debug)]
+pub struct TreeSpawnConfig {
+    pub timer: Timer,
+}
 
 fn spawn_tree(
     mut events: EventReader<TreeSpawnEvent>,
@@ -51,8 +63,6 @@ fn spawn_tree(
     }
 
     for event in events.read() {
-        log::info!("Spawning tree");
-
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
         let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
 
@@ -110,20 +120,44 @@ fn startup_tree(mut commands: Commands) {
     commands.send_event(TreeSpawnEvent {
         position: vec2(34.0, -20.0),
     });
+}
 
-    println!("Tree setup");
+fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
+    config.timer.tick(time.delta());
+
+    if config.timer.finished() {
+        let x =
+            rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
+        let z =
+            rand::random::<f32>() * (RANDOM_SPAWN_Z_MAX - RANDOM_SPAWN_Z_MIN) + RANDOM_SPAWN_Z_MIN;
+
+        commands.send_event(TreeSpawnEvent {
+            position: Vec2::new(x, z),
+        });
+    }
 }
 
 pub(super) fn plugin(app: &mut App) {
-    log::info!("Adding tree plugin");
     app.load_resource::<TreeAssets>();
 
     app.add_event::<TreeSpawnEvent>();
+
+    app.insert_resource(TreeSpawnConfig {
+        timer: Timer::new(
+            Duration::from_secs(RANDOM_SPAWN_REPEAT_TIME_SEC),
+            TimerMode::Repeating,
+        ),
+    });
+
     app.add_systems(
-        PostUpdate,
-        (spawn_tree
-            .run_if(in_state(Screen::InGame))
-            .after(setup_gamescreen),),
+        Update,
+        (
+            spawn_tree
+                .run_if(in_state(Screen::InGame))
+                .after(setup_gamescreen),
+            spawn_tree_timer.run_if(in_state(Screen::InGame)),
+        )
+            .in_set(PausableSystems),
     );
     app.add_systems(
         OnEnter(Screen::InGame),

@@ -28,6 +28,8 @@ fn spawn_credits_menu(mut commands: Commands) {
             created_by(),
             widget::header("Assets"),
             assets(),
+            widget::header("Special Thanks"),
+            special_thanks(),
             widget::button("Back", go_back_on_click),
         ],
     ));
@@ -35,15 +37,29 @@ fn spawn_credits_menu(mut commands: Commands) {
 
 fn created_by() -> impl Bundle {
     grid(vec![
-        ["Joe Shmoe", "Implemented alligator wrestling AI"],
-        ["Jane Doe", "Made the music for the alien invasion"],
+        ["Kristoffer Ödmark", "Practiced his patience"],
+        ["Philip Lindblad", "Introduced bugs"],
+        ["Christoffer Zakrisson", "Got picture proof he did stuff"],
+    ])
+}
+fn special_thanks() -> impl Bundle {
+    grid(vec![
+        [
+            "Kristoffers wonderful wife",
+            "For allowing us to occupy the kitchen with beer and computers for a weekend!",
+        ],
+        ["Whoever read this far", "For being awesome <3"],
     ])
 }
 
 fn assets() -> impl Bundle {
     grid(vec![
-        ["Ducky sprite", "CC0 by Caz Creates Games"],
+        [
+            "Tractor - game asset",
+            "Igor Bistritski (https://sketchfab.com/discodancer)",
+        ],
         ["Button SFX", "CC0 by Jaszunio15"],
+        ["Textures", "Tiny Textures by Screamin Braing Studios"],
         ["Music", "CC BY 3.0 by Kevin MacLeod"],
         [
             "Bevy logo",

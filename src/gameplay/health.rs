@@ -1,3 +1,4 @@
+use crate::PausableSystems;
 use crate::gameplay::apple::Apple;
 use crate::gameplay::bullet::Bullet;
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
@@ -13,7 +14,8 @@ pub fn plugin(app: &mut App) {
             damage_health.run_if(in_state(Screen::InGame)),
             damage_tractor.run_if(in_state(Screen::InGame)),
             shoot_apples.run_if(in_state(Screen::InGame)),
-        ),
+        )
+            .in_set(PausableSystems),
     );
 }
 
