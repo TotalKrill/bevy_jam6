@@ -12,6 +12,7 @@ pub(super) fn plugin(app: &mut App) {
     if !app.is_plugin_added::<MinimalEditorCamPlugin>() {
         app.add_plugins(DefaultEditorCamPlugins);
     }
+
     // Toggle pause on key press.
     app.add_systems(OnEnter(Screen::TractorBuild), setup_devscreen);
 
