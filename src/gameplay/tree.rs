@@ -3,6 +3,7 @@ use bevy::asset::LoadState;
 use bevy::{color::palettes::css::BROWN, prelude::*};
 use std::time::Duration;
 
+use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
 use crate::gameplay::level::Ground;
 use crate::screens::ingame::setup_gamescreen;
@@ -62,7 +63,6 @@ fn spawn_tree(
     }
 
     for event in events.read() {
-
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
         let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
 
@@ -123,11 +123,9 @@ fn startup_tree(mut commands: Commands) {
 }
 
 fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
-
     config.timer.tick(time.delta());
 
     if config.timer.finished() {
-
         let x =
             rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
         let z =
@@ -140,13 +138,15 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
 }
 
 pub(super) fn plugin(app: &mut App) {
-
     app.load_resource::<TreeAssets>();
 
     app.add_event::<TreeSpawnEvent>();
 
     app.insert_resource(TreeSpawnConfig {
-        timer: Timer::new(Duration::from_secs(RANDOM_SPAWN_REPEAT_TIME_SEC), TimerMode::Repeating),
+        timer: Timer::new(
+            Duration::from_secs(RANDOM_SPAWN_REPEAT_TIME_SEC),
+            TimerMode::Repeating,
+        ),
     });
 
     app.add_systems(
@@ -156,7 +156,8 @@ pub(super) fn plugin(app: &mut App) {
                 .run_if(in_state(Screen::InGame))
                 .after(setup_gamescreen),
             spawn_tree_timer.run_if(in_state(Screen::InGame)),
-        ),
+        )
+            .in_set(PausableSystems),
     );
     app.add_systems(
         OnEnter(Screen::InGame),

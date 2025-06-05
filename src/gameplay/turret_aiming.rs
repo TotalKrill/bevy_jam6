@@ -1,11 +1,14 @@
 use bevy_mod_lookat::RotateTo;
 
-use crate::gameplay::turret::Turret;
+use crate::{PausableSystems, gameplay::turret::Turret};
 
 use super::*;
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Update, (move_sight, aim_all_turrets_to_sight));
+    app.add_systems(
+        Update,
+        (move_sight, aim_all_turrets_to_sight).in_set(PausableSystems),
+    );
 }
 
 #[derive(Component, Debug)]

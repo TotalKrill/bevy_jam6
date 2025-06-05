@@ -1,11 +1,11 @@
 use std::time::Duration;
 
+use crate::PausableSystems;
+
 use super::*;
-use crate::gameplay::apple::Apple;
-use crate::gameplay::health::Damage;
 
 pub fn bullet_plugin(app: &mut App) {
-    app.add_systems(Update, despawn_bullets);
+    app.add_systems(Update, despawn_bullets.in_set(PausableSystems));
 }
 
 fn despawn_bullets(
