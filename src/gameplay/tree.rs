@@ -1,5 +1,6 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::BROWN, prelude::*};
+use std::time::Duration;
 
 use crate::gameplay::level::Ground;
 use crate::screens::ingame::setup_gamescreen;
@@ -8,6 +9,12 @@ use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 const TREE_STARTING_RADIUS: f32 = 0.5;
 const TREE_STARTING_HEIGHT: f32 = 3.0;
 const DEFAULT_APPLE_SPAWN_TIME_SEC: f32 = 5.0; // Time between apple spawns
+
+const RANDOM_SPAWN_X_MIN: f32 = -90.0;
+const RANDOM_SPAWN_X_MAX: f32 = 90.0;
+const RANDOM_SPAWN_Z_MIN: f32 = -90.0;
+const RANDOM_SPAWN_Z_MAX: f32 = 90.0;
+const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
 
 #[derive(Component)]
 pub struct Tree {
@@ -33,6 +40,10 @@ impl FromWorld for TreeAssets {
             tree: assets.load(GltfAssetLabel::Scene(0).from_asset("models/tree/tree.glb")),
         }
     }
+}
+#[derive(Resource, Debug)]
+pub struct TreeSpawnConfig {
+    pub timer: Timer,
 }
 
 fn spawn_tree(
@@ -99,16 +110,43 @@ fn startup_tree(mut commands: Commands) {
     println!("Tree setup");
 }
 
+fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
+    println!("spawn_tree_timer");
+
+    config.timer.tick(time.delta());
+
+    if config.timer.finished() {
+        println!("spawn_tree_timer 2222");
+
+        let x =
+            rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
+        let z =
+            rand::random::<f32>() * (RANDOM_SPAWN_Z_MAX - RANDOM_SPAWN_Z_MIN) + RANDOM_SPAWN_Z_MIN;
+
+        commands.send_event(TreeSpawnEvent {
+            position: Vec2::new(x, z),
+        });
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding tree plugin");
     app.load_resource::<TreeAssets>();
 
     app.add_event::<TreeSpawnEvent>();
+
+    app.insert_resource(TreeSpawnConfig {
+        timer: Timer::new(Duration::from_secs(RANDOM_SPAWN_REPEAT_TIME_SEC), TimerMode::Repeating),
+    });
+
     app.add_systems(
         Update,
-        (spawn_tree
-            .run_if(in_state(Screen::InGame))
-            .after(setup_gamescreen),),
+        (
+            spawn_tree
+                .run_if(in_state(Screen::InGame))
+                .after(setup_gamescreen),
+            spawn_tree_timer.run_if(in_state(Screen::InGame)),
+        ),
     );
     app.add_systems(OnEnter(Screen::InGame), startup_tree);
 }
