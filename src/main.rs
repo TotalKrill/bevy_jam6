@@ -20,7 +20,7 @@ mod theme;
 mod camera;
 mod leaderboard;
 
-use bevy::{asset::AssetMetaCheck, ecs::schedule::ScheduleGraph, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -53,6 +53,9 @@ impl Plugin for AppPlugin {
 
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
+
+        use bevy_atmosphere::prelude::*;
+        app.add_plugins(AtmospherePlugin);
 
         app.add_plugins(PhysicsPlugins::default());
         app.add_plugins(PhysicsDebugPlugin::default());
@@ -100,6 +103,16 @@ impl Plugin for AppPlugin {
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
+    }
+}
+
+#[derive(Component, Clone)]
+pub struct ReplaceOnHotreload;
+
+#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch))]
+pub fn cleanup(mut commands: Commands, to_replace: Query<Entity, With<ReplaceOnHotreload>>) {
+    for entity in to_replace.iter() {
+        commands.entity(entity).despawn();
     }
 }
 

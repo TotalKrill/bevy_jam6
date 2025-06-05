@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::BROWN, prelude::*};
 
-use crate::screens::*;
+use crate::{ReplaceOnHotreload, screens::*};
 
 #[derive(Component)]
 pub struct Tree {
