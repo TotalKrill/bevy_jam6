@@ -2,7 +2,7 @@
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
 
-pub(crate) mod gameplay;
+pub(crate) mod ingame;
 mod loading;
 mod splash;
 mod title;
@@ -16,7 +16,7 @@ pub(super) fn plugin(app: &mut App) {
     app.init_state::<Screen>();
 
     app.add_plugins((
-        gameplay::plugin,
+        ingame::plugin,
         loading::plugin,
         splash::plugin,
         title::plugin,
@@ -32,6 +32,6 @@ pub enum Screen {
     Splash,
     Title,
     Loading,
-    Gameplay,
+    InGame,
     TractorBuild,
 }

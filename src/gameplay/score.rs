@@ -14,7 +14,7 @@ pub fn plugin(app: &mut App) {
     app.init_resource::<ScoreCounter>();
 
     app.add_systems(
-        OnEnter(Screen::Gameplay),
+        OnEnter(Screen::InGame),
         |mut score: ResMut<ScoreCounter>| {
             score.points = 0;
         },

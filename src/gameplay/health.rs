@@ -10,9 +10,9 @@ pub fn plugin(app: &mut App) {
     app.add_event::<Damage>().add_event::<Death>().add_systems(
         Update,
         (
-            damage_health.run_if(in_state(Screen::Gameplay)),
-            damage_tractor.run_if(in_state(Screen::Gameplay)),
-            shoot_apples.run_if(in_state(Screen::Gameplay)),
+            damage_health.run_if(in_state(Screen::InGame)),
+            damage_tractor.run_if(in_state(Screen::InGame)),
+            shoot_apples.run_if(in_state(Screen::InGame)),
         ),
     );
 }
@@ -104,7 +104,6 @@ fn shoot_apples(
     apples: Query<Entity, With<Apple>>,
     mut event_writer: EventWriter<Damage>,
 ) {
-
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
             if let (Ok(apple), Ok(bullet)) =

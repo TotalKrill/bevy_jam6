@@ -16,26 +16,26 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             (pause, spawn_pause_overlay, open_pause_menu).run_if(
-                in_state(Screen::Gameplay)
+                in_state(Screen::InGame)
                     .and(in_state(Menu::None))
                     .and(input_just_pressed(KeyCode::KeyP).or(input_just_pressed(KeyCode::Escape))),
             ),
             close_menu.run_if(
-                in_state(Screen::Gameplay)
+                in_state(Screen::InGame)
                     .and(not(in_state(Menu::None)))
                     .and(input_just_pressed(KeyCode::KeyP)),
             ),
         ),
     );
 
-    app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
+    app.add_systems(OnExit(Screen::InGame), (close_menu, unpause));
 
     app.add_systems(
         OnEnter(Menu::None),
-        unpause.run_if(in_state(Screen::Gameplay)),
+        unpause.run_if(in_state(Screen::InGame)),
     );
 
-    app.add_systems(OnEnter(Screen::Gameplay), setup_gamescreen);
+    app.add_systems(OnEnter(Screen::InGame), setup_gamescreen);
 }
 
 use super::*;
@@ -70,7 +70,7 @@ pub fn setup_gamescreen(
         &tractor_assets,
         (
             ReplaceOnHotreload,
-            StateScoped(Screen::Gameplay),
+            StateScoped(Screen::InGame),
             Actions::<InTractor>::default(),
         ),
     );

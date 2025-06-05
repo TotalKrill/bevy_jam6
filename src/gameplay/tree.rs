@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::{color::palettes::css::BROWN, prelude::*};
 
 use crate::gameplay::level::Ground;
-use crate::screens::gameplay::setup_gamescreen;
+use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
@@ -73,7 +73,7 @@ fn spawn_tree(
                 apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
                 last_apple_spawn: 0.0,
             },
-            StateScoped(Screen::Gameplay),
+            StateScoped(Screen::InGame),
             Name::new("Apple"),
             ReplaceOnHotreload,
             SceneRoot(tree_assets.tree.clone()),
@@ -107,8 +107,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (spawn_tree
-            .run_if(in_state(Screen::Gameplay))
+            .run_if(in_state(Screen::InGame))
             .after(setup_gamescreen),),
     );
-    app.add_systems(OnEnter(Screen::Gameplay), startup_tree);
+    app.add_systems(OnEnter(Screen::InGame), startup_tree);
 }

@@ -99,9 +99,9 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            spawn_apple_event_handler.run_if(in_state(Screen::Gameplay)),
-            spawn_apples.run_if(in_state(Screen::Gameplay)),
-            apply_apple_force.run_if(in_state(Screen::Gameplay)),
+            spawn_apple_event_handler.run_if(in_state(Screen::InGame)),
+            spawn_apples.run_if(in_state(Screen::InGame)),
+            apply_apple_force.run_if(in_state(Screen::InGame)),
         ),
     );
 }
