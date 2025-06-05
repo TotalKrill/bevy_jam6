@@ -1,9 +1,11 @@
 use crate::gameplay::health::{Death, Health};
+use crate::gameplay::seed::SeedSpawnEvent;
 use crate::{
     ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
     screens::*,
 };
+use avian3d::parry::na::Translation;
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
 
@@ -45,12 +47,20 @@ fn spawn_apple_event_handler(
                 Collider::sphere(APPLE_RADIUS),
                 Transform::from_translation(position),
             ))
-            .observe(|trigger: Trigger<Death>, mut commands: Commands| {
-                commands
-                    .get_entity(trigger.target().entity())
-                    .unwrap()
-                    .despawn();
-            });
+            .observe(
+                |trigger: Trigger<Death>,
+                 mut commands: Commands,
+                 query: Query<(Entity, &Transform), With<Apple>>| {
+                    if let Ok(apple) = query.get(trigger.target()) {
+                        commands.trigger(SeedSpawnEvent::new(apple.1.translation));
+                    }
+
+                    commands
+                        .get_entity(trigger.target().entity())
+                        .unwrap()
+                        .despawn();
+                },
+            );
     }
 }
 

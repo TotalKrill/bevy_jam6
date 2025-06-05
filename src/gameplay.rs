@@ -16,6 +16,7 @@ pub mod turret_aiming;
 
 /// contains the heads up display during game;
 pub mod hud;
+mod seed;
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
@@ -70,6 +71,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(hud::hud_plugin);
     app.add_plugins(tractor::tractor_plugin);
     app.add_plugins(bullet::bullet_plugin);
+    app.add_plugins(seed::plugin);
     app.add_plugins(turret_aiming::plugin);
     app.add_plugins(turret::turret_plugin);
     app.add_plugins(apple::plugin);
