@@ -26,7 +26,7 @@ pub struct Tree {
 
 #[derive(Event)]
 pub struct TreeSpawnEvent {
-    position: Vec2,
+    pub(crate) position: Vec2,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -62,7 +62,6 @@ fn spawn_tree(
     }
 
     for event in events.read() {
-        log::info!("Spawning tree");
 
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
         let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
@@ -121,17 +120,13 @@ fn startup_tree(mut commands: Commands) {
     commands.send_event(TreeSpawnEvent {
         position: vec2(34.0, -20.0),
     });
-
-    println!("Tree setup");
 }
 
 fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
-    println!("spawn_tree_timer");
 
     config.timer.tick(time.delta());
 
     if config.timer.finished() {
-        println!("spawn_tree_timer 2222");
 
         let x =
             rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
@@ -145,7 +140,7 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
 }
 
 pub(super) fn plugin(app: &mut App) {
-    log::info!("Adding tree plugin");
+
     app.load_resource::<TreeAssets>();
 
     app.add_event::<TreeSpawnEvent>();
