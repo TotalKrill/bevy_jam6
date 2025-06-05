@@ -54,8 +54,11 @@ impl Plugin for AppPlugin {
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
 
-        use bevy_atmosphere::prelude::*;
-        app.add_plugins(AtmospherePlugin);
+        #[cfg(not(target_family = "wasm"))]
+        {
+            use bevy_atmosphere::prelude::*;
+            app.add_plugins(AtmospherePlugin);
+        }
 
         app.add_plugins(PhysicsPlugins::default());
         app.add_plugins(PhysicsDebugPlugin::default());
