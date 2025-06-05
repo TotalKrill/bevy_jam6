@@ -56,4 +56,3 @@ pub fn bullet(
         CollidingEntities::default(),
     )
 }
-

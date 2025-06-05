@@ -1,10 +1,11 @@
-use avian3d::prelude::*;
-use bevy::{color::palettes::css::RED, prelude::*};
+use crate::gameplay::health::{Death, Health};
 use crate::{
+    ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
     screens::*,
 };
-use crate::gameplay::health::{Death, Health};
+use avian3d::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
 
 #[derive(Component)]
 pub struct Apple;
@@ -32,19 +33,24 @@ fn spawn_apple_event_handler(
 
         let position = event.position
             + Vec3::new(radii * angle.cos(), APPLE_RADIUS * 2.0, radii * angle.sin());
-        commands.spawn((
-            Apple,
-            Name::new("Apple"),
-            Health::new(1.0),
-            ReplaceOnHotreload,
-            Mesh3d(meshes.add(Sphere::new(event.radius))),
-            MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
-            RigidBody::Dynamic,
-            Collider::sphere(APPLE_RADIUS),
-            Transform::from_translation(position),
-        )).observe(|trigger: Trigger<Death>, mut commands: Commands| {
-            commands.get_entity(trigger.target().entity()).unwrap().despawn();
-        });
+        commands
+            .spawn((
+                Apple,
+                Name::new("Apple"),
+                Health::new(1.0),
+                ReplaceOnHotreload,
+                Mesh3d(meshes.add(Sphere::new(event.radius))),
+                MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
+                RigidBody::Dynamic,
+                Collider::sphere(APPLE_RADIUS),
+                Transform::from_translation(position),
+            ))
+            .observe(|trigger: Trigger<Death>, mut commands: Commands| {
+                commands
+                    .get_entity(trigger.target().entity())
+                    .unwrap()
+                    .despawn();
+            });
     }
 }
 
@@ -89,4 +95,3 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
 }
-

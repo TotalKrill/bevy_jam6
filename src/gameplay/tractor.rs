@@ -1,7 +1,8 @@
 use avian3d::prelude::*;
 
-use crate::{asset_tracking::LoadResource, screens::ReplaceOnHotreload};
 use crate::gameplay::health::{Death, Health};
+use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
+
 use super::*;
 
 pub const TRACTOR_WIDTH: f32 = 1.0;
@@ -68,9 +69,12 @@ pub fn spawn_tractor<T: Bundle>(
     extra_components: T,
 ) -> Entity {
     let tractor_id = commands
-        .spawn((tractor_body(assets), extra_components)).observe(
-        |trigger: Trigger<Death>, mut commands: Commands| {
-            commands.get_entity(trigger.target().entity()).unwrap().despawn();
+        .spawn((tractor_body(assets), extra_components))
+        .observe(|trigger: Trigger<Death>, mut commands: Commands| {
+            commands
+                .get_entity(trigger.target().entity())
+                .unwrap()
+                .despawn();
         })
         .with_child(turret::turret(
             meshes,

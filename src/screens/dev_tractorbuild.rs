@@ -12,7 +12,8 @@ pub(super) fn plugin(app: &mut App) {
         app.add_plugins(DefaultEditorCamPlugins);
     }
     // Toggle pause on key press.
-    app.add_systems(OnEnter(Screen::TractorBuild), spawn_tractor);
+    app.add_systems(OnEnter(Screen::TractorBuild), setup_devscreen);
+
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
@@ -24,8 +25,9 @@ pub(super) fn plugin(app: &mut App) {
     // );
 }
 
+use crate::{ReplaceOnHotreload, gameplay::controls::InTractor};
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
-fn spawn_tractor(
+fn setup_devscreen(
     mut commands: Commands,
     assets: Res<TractorAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -33,8 +35,6 @@ fn spawn_tractor(
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
-
-    use crate::gameplay::controls::InTractor;
 
     for e in query.iter() {
         commands.entity(e).despawn();
@@ -54,6 +54,11 @@ fn spawn_tractor(
             Actions::<InTractor>::default(),
         ),
     );
+
+    /// ui
+    use crate::gameplay::hud::*;
+    commands.spawn(points_node());
+    commands.spawn(healthbar());
 
     commands.spawn((
         ReplaceOnHotreload,

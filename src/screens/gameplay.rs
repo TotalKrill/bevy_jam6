@@ -1,5 +1,4 @@
 //! The screen state for the main gameplay.
-use crate::gameplay::hud::{self, setup_hud};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{
@@ -27,19 +26,23 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
     app.add_systems(OnExit(Screen::Gameplay), (close_menu, unpause));
-    app.add_systems(OnEnter(Screen::Gameplay), setup_hud);
+
     app.add_systems(
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),
     );
 
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_tractor);
+    app.add_systems(OnEnter(Screen::Gameplay), setup_gamescreen);
 }
 
 use super::*;
 
+use crate::{
+    ReplaceOnHotreload,
+    gameplay::{controls::InTractor, level, turret_aiming},
+};
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
-fn spawn_tractor(
+fn setup_gamescreen(
     mut commands: Commands,
     assets: Res<TractorAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -47,8 +50,6 @@ fn spawn_tractor(
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
-
-    use crate::gameplay::{controls::InTractor, level, turret_aiming};
 
     for e in query.iter() {
         commands.entity(e).despawn();
@@ -67,12 +68,6 @@ fn spawn_tractor(
             Actions::<InTractor>::default(),
         ),
     );
-
-    // commands.spawn((
-    //     ReplaceOnHotreload,
-    //     Transform::from_xyz(0.0, tractor::TRACTOR_HEIGHT * 2., 0.0),
-    //     tractor::tractor_body(&assets),
-    // ));
 
     commands.spawn((
         ReplaceOnHotreload,
