@@ -1,4 +1,5 @@
 use crate::gameplay::tractor::Tractor;
+use avian3d::prelude::RayCaster;
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
@@ -24,6 +25,7 @@ pub fn spawn_camera(mut commands: Commands) {
             ..Default::default()
         },
         Transform::from_xyz(0.0, 10.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
+        RayCaster::default(),
     ));
 }
 

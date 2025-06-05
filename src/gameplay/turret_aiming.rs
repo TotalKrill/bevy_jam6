@@ -30,6 +30,7 @@ fn aim_all_turrets_to_sight(
 
 fn move_sight(
     camera_query: Single<(&Camera, &GlobalTransform)>,
+    mut raycast: MeshRayCast,
     ground: Single<&GlobalTransform, With<level::Ground>>,
     mut sight: Single<&mut Transform, With<Sight>>,
     windows: Query<&Window>,
@@ -51,13 +52,12 @@ fn move_sight(
     };
 
     // Calculate if and where the ray is hitting the ground plane.
-    let Some(distance) =
-        ray.intersect_plane(ground.translation(), InfinitePlane3d::new(ground.up()))
-    else {
+    let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
+
+    let Some((_e, hit)) = hits.first() else {
         return;
     };
-    let point = ray.get_point(distance);
-    let above_ground = point + ground.up() * 0.4;
+    let above_ground = hit.point + ground.up() * 0.4;
 
     sight.translation = above_ground;
 
