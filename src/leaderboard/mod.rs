@@ -28,7 +28,7 @@ pub(crate) fn plugin(app: &mut App) {
 }
 
 fn spawn_leaderboard(mut commands: Commands, leaderboard: Res<Leaderboard>) {
-    let mut scores: Vec<_> = leaderboard.get_leaderboard().iter().cloned().collect();
+    let mut scores: Vec<_> = leaderboard.get_leaderboard().to_vec();
 
     scores.sort_by(|a, b| {
         b.score
@@ -97,10 +97,6 @@ fn go_back_on_click(
     } else {
         Menu::Pause
     });
-}
-
-fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
 }
 
 #[derive(Event)]

@@ -37,7 +37,7 @@ env:
 
   # The itch.io project to upload to in the format `user-name/project-name`.
   # There will be no upload to itch.io if this is commented out.
-  upload_to_itch: TotalKrill/newton_survivor
+  upload_to_itch: totalkrill/newton_survivor
 
   ############
   # ADVANCED #
@@ -77,7 +77,7 @@ env:
   use_github_cache: false
 
   # Reduce compile time.
-  RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
+  RUSTFLAGS: -Zshare-generics=y -Zthreads=0
 
 jobs:
   # Forward some environment variables as outputs of this job.

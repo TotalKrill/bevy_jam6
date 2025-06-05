@@ -6,13 +6,14 @@ pub mod apple;
 pub mod bullet;
 pub mod health;
 pub mod tractor;
+pub mod tree;
 pub mod turret;
 pub mod turret_aiming;
 
+pub const LEVEL_WIDHT: f32 = 200.0;
+
 pub mod level {
     use bevy::color::palettes::tailwind::GRAY_100;
-
-    const LEVEL_WIDHT: f32 = 200.0;
 
     #[derive(Component)]
     pub struct Ground;
@@ -46,4 +47,5 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(turret_aiming::plugin);
     app.add_plugins(apple::plugin);
     app.add_plugins(health::plugin);
+    app.add_plugins(tree::plugin);
 }
