@@ -1,4 +1,7 @@
-use crate::gameplay::tractor::Tractor;
+use crate::gameplay::{
+    tractor::Tractor,
+    turret::{BARREL_LEN, Turret},
+};
 
 use super::*;
 use bevy_enhanced_input::prelude::*;
@@ -14,8 +17,24 @@ struct MoveEvent;
 #[input_action(output = bool)]
 struct BreakEvent;
 
+#[derive(Debug, InputAction)]
+#[input_action(output = bool)]
+pub struct FireEvent;
+
 #[derive(InputContext)]
-struct InTractor;
+pub struct InTractor;
+
+pub(super) fn plugin(app: &mut App) {
+    debug!("Adding movement controls plugin");
+
+    app.add_plugins(EnhancedInputPlugin);
+    app.add_systems(Update, tractor_break);
+
+    app.add_input_context::<InTractor>()
+        .add_observer(bind_actions)
+        .add_observer(tractor_move)
+        .add_observer(fire_turret);
+}
 
 fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Actions<InTractor>>) {
     debug!("Binding actions");
@@ -24,6 +43,37 @@ fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Ac
         .bind::<MoveEvent>()
         .to(Spatial::wasd_and(KeyCode::ArrowUp, KeyCode::ArrowDown));
     actions.bind::<BreakEvent>().to(KeyCode::Space);
+    actions.bind::<FireEvent>().to(MouseButton::Left);
+}
+
+fn fire_turret(
+    trigger: Trigger<Fired<FireEvent>>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    tractors: Query<&Children, With<Tractor>>,
+    attached_turrets: Query<(&ChildOf, &GlobalTransform, &Turret)>,
+) {
+    let action_target = trigger.target();
+
+    let Ok(tractor_children) = tractors.get(action_target) else {
+        debug!("Goodbye");
+        return;
+    };
+
+    for child in tractor_children {
+        if let Ok((_childof, t, _turret)) = attached_turrets.get(*child) {
+            let forward = t.forward();
+            let bullet_spawnpoint = t.translation() + (BARREL_LEN + 0.5) * forward;
+            commands.spawn(bullet::bullet(
+                &mut meshes,
+                &mut materials,
+                forward,
+                50.,
+                bullet_spawnpoint,
+            ));
+        }
+    }
 }
 
 fn tractor_break(
@@ -32,12 +82,12 @@ fn tractor_break(
     mut torque: Query<&mut ExternalTorque>,
     query: Query<(&Tractor, &LeftWheels, &RightWheels)>,
 ) {
-    if keyboard.any_pressed([KeyCode::KeyW, KeyCode::KeyS]) {
+    if keyboard.any_pressed([KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyD, KeyCode::KeyA]) {
         return;
     };
 
     let Ok((_, left_wheels, right_wheels)) = query.single() else {
-        debug!("No tractor found, skipping break application");
+        debug!("No tractor found, skipping brake application");
         return;
     };
 
@@ -59,7 +109,7 @@ fn tractor_move(
     time: Res<Time>,
 ) {
     let Ok((transform, _, left_wheels, right_wheels)) = query.single() else {
-        debug!("No tractor found, skipping break application");
+        debug!("No tractor found, skipping brake application");
         return;
     };
 
@@ -84,22 +134,4 @@ fn tractor_move(
     for wheel in left_wheels.iter() {
         torque.get_mut(wheel).unwrap().set_torque(left_torque);
     }
-}
-
-pub(super) fn plugin(app: &mut App) {
-    debug!("Adding movement controls plugin");
-
-    app.add_plugins(EnhancedInputPlugin);
-    app.add_systems(Startup, spawn);
-    app.add_systems(Update, tractor_break);
-
-    app.add_input_context::<InTractor>()
-        .add_observer(bind_actions)
-        .add_observer(tractor_move);
-    // .add_observer(tractor_break);
-}
-
-fn spawn(mut commands: Commands) {
-    debug!("Spawning movement controls");
-    commands.spawn(Actions::<InTractor>::default());
 }
