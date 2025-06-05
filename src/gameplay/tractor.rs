@@ -9,7 +9,7 @@ pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
 pub const TRACTOR_LENGTH: f32 = 4.0;
 
-pub const TRACTOR_MAX_SPEED: f32 = 10.0;
+pub const TRACTOR_MAX_SPEED: f32 = 15.0;
 
 pub const WHEEL_RADIE: f32 = 0.9;
 
@@ -198,6 +198,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
 pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     (
         Tractor,
+        MaxLinearSpeed(TRACTOR_MAX_SPEED),
         Name::new("Tractor"),
         CollisionEventsEnabled,
         children![(
@@ -229,7 +230,6 @@ pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
         RigidBody::Dynamic,
         // Mass(20.),
         Collider::sphere(radius),
-        MaxAngularSpeed(TRACTOR_MAX_SPEED),
         // Mass(1.),
         // Collider::cylinder(radius, radius), //TODO: create a new collider with the axises correctly initiated
         Transform {

@@ -122,10 +122,6 @@ fn tractor_move(
 
     let apply_force = -trigger.value.z * time.delta_secs() * TRACTOR_ACCELERATION;
     let forward = transform.forward().normalize();
-    info!(
-        "Applying force: (trigger={:?}, forward={:?}, apply_force={:?})",
-        trigger.value, forward, apply_force
-    );
 
     force.set_force(forward * apply_force);
 
