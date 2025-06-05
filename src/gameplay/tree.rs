@@ -1,6 +1,8 @@
 use avian3d::prelude::*;
+use bevy::asset::LoadState;
 use bevy::{color::palettes::css::BROWN, prelude::*};
 
+use crate::gameplay::WorldAssets;
 use crate::gameplay::level::Ground;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
@@ -40,9 +42,11 @@ fn spawn_tree(
     mut commands: Commands,
     tree_assets: Res<TreeAssets>,
     mut raycast: MeshRayCast,
-    ground: Query<&Ground>,
+    world_assets: Res<WorldAssets>,
+    asset_server: Res<AssetServer>,
 ) {
-    if ground.is_empty() {
+    if !asset_server.is_loaded(world_assets.ground.id()) {
+        println!("World is not loaded yet, skipping tree spawn");
         return;
     }
 
@@ -60,7 +64,17 @@ fn spawn_tree(
             return;
         };
 
-        let position = vec3(event.position.x, TREE_STARTING_HEIGHT, event.position.y);
+        if hit.point.y < -500.0 {
+            commands.send_event(TreeSpawnEvent {
+                position: event.position,
+            });
+        };
+
+        let position = vec3(
+            event.position.x,
+            hit.point.y + TREE_STARTING_HEIGHT / 2.0,
+            event.position.y,
+        );
 
         log::info!(
             "Spawning tree at position: {:?} (from {:?}, distance: {:?})",
@@ -68,6 +82,7 @@ fn spawn_tree(
             event.position,
             hit.distance
         );
+
         commands.spawn((
             Tree {
                 apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
@@ -105,10 +120,13 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_event::<TreeSpawnEvent>();
     app.add_systems(
-        Update,
+        PostUpdate,
         (spawn_tree
             .run_if(in_state(Screen::InGame))
             .after(setup_gamescreen),),
     );
-    app.add_systems(OnEnter(Screen::InGame), startup_tree);
+    app.add_systems(
+        OnEnter(Screen::InGame),
+        startup_tree.after(setup_gamescreen),
+    );
 }
