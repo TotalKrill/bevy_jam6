@@ -11,23 +11,27 @@ use super::*;
 pub struct PointCounter;
 
 #[derive(Component)]
-pub struct Healthbar;
+struct Healthbar;
 
 pub fn hud_plugin(app: &mut App) {
     app.add_systems(Update, (update_points, update_healthbar));
 }
 
-pub fn update_points(
+fn update_points(
     score: Res<ScoreCounter>,
     mut hud_score: Single<&mut TextSpan, With<PointCounter>>,
 ) {
     hud_score.0 = format!("{}", score.points);
 }
-pub fn update_healthbar(
-    tractor: Single<&Health, With<Tractor>>,
+fn update_healthbar(
+    tractor: Query<&Health, With<Tractor>>,
     mut healthbar: Single<&mut Node, With<Healthbar>>,
 ) {
-    healthbar.width = Val::Percent(tractor.percentage());
+    if let Ok(tractor) = tractor.single() {
+        healthbar.width = Val::Percent(tractor.percentage());
+    } else {
+        healthbar.width = Val::Percent(0.);
+    }
 }
 
 pub fn points_node() -> impl Bundle {

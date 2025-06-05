@@ -100,17 +100,18 @@ fn damage_tractor(
 
 fn shoot_apples(
     mut collision_event_reader: EventReader<CollisionStarted>,
-    bullets: Query<Entity, With<Bullet>>,
+    bullets: Query<(Entity, &Bullet), With<Bullet>>,
     apples: Query<Entity, With<Apple>>,
     mut event_writer: EventWriter<Damage>,
 ) {
+
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
-            if let (Ok(apple), Ok(_bullet)) =
+            if let (Ok(apple), Ok(bullet)) =
                 (apples.get(apple_candidate), bullets.get(bullet_candidate))
             {
                 event_writer.write(Damage {
-                    value: 100.0,
+                    value: bullet.1.damage,
                     entity: apple,
                 });
                 break; // Only need to damage once per collision
