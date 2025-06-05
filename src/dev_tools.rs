@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
     );
-    app.add_plugins(PhysicsDebugPlugin::default());
+    // app.add_plugins(PhysicsDebugPlugin::default());
 }
 
 const TOGGLE_KEY: KeyCode = KeyCode::KeyT;

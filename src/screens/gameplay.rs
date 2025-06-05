@@ -45,7 +45,9 @@ fn spawn_tractor(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
-    use crate::gameplay::{level, turret_aiming};
+    use bevy_enhanced_input::prelude::Actions;
+
+    use crate::gameplay::{controls::InTractor, level, turret_aiming};
 
     for e in query.iter() {
         commands.entity(e).despawn();
@@ -58,7 +60,11 @@ fn spawn_tractor(
         &mut meshes,
         &mut materials,
         &assets,
-        ReplaceOnHotreload,
+        (
+            StateScoped(Screen::Gameplay),
+            ReplaceOnHotreload,
+            Actions::<InTractor>::default(),
+        ),
     );
 
     // commands.spawn((

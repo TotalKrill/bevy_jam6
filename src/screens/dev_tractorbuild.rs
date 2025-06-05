@@ -1,14 +1,10 @@
-use std::time::Duration;
-
 use super::*;
 use crate::gameplay::{
     level,
     tractor::{self, TractorAssets},
-    turret::FireEvent,
     turret_aiming,
 };
 
-use bevy::time::common_conditions::on_timer;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -20,21 +16,12 @@ pub(super) fn plugin(app: &mut App) {
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
-    app.add_systems(
-        Update,
-        fire_bullets
-            .run_if(in_state(Screen::TractorBuild))
-            .run_if(on_timer(Duration::from_secs(1))),
-    );
-}
-
-fn fire_bullets(
-    mut commands: Commands,
-    turrets: Query<Entity, With<crate::gameplay::turret::Turret>>,
-) {
-    for turret in turrets {
-        commands.trigger_targets(FireEvent, turret);
-    }
+    // app.add_systems(
+    //     Update,
+    //     fire_bullets
+    //         .run_if(in_state(Screen::TractorBuild))
+    //         .run_if(on_timer(Duration::from_secs(1))),
+    // );
 }
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
@@ -45,6 +32,10 @@ fn spawn_tractor(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
+    use bevy_enhanced_input::prelude::Actions;
+
+    use crate::gameplay::controls::InTractor;
+
     for e in query.iter() {
         commands.entity(e).despawn();
     }
@@ -57,7 +48,11 @@ fn spawn_tractor(
         &mut meshes,
         &mut materials,
         &assets,
-        (StateScoped(Screen::TractorBuild), ReplaceOnHotreload),
+        (
+            StateScoped(Screen::TractorBuild),
+            ReplaceOnHotreload,
+            Actions::<InTractor>::default(),
+        ),
     );
 
     commands.spawn((

@@ -20,7 +20,7 @@ mod theme;
 mod camera;
 mod leaderboard;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, ecs::schedule::ScheduleGraph, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -55,6 +55,21 @@ impl Plugin for AppPlugin {
         app.add_plugins(SimpleSubsecondPlugin::default());
 
         app.add_plugins(PhysicsPlugins::default());
+        app.add_systems(
+            OnEnter(Pause(true)),
+            |mut physics: ResMut<Time<Physics>>| {
+                info!("starting physics!");
+                physics.pause();
+            },
+        );
+        app.add_systems(
+            OnEnter(Pause(false)),
+            |mut physics: ResMut<Time<Physics>>| {
+                info!("starting physics!");
+                physics.unpause();
+            },
+        );
+
         app.add_plugins(bevy_mod_lookat::RotateTowardsPlugin::default());
         // Add other plugins.
         app.add_plugins((

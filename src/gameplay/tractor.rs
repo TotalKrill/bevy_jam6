@@ -1,6 +1,6 @@
 use avian3d::prelude::*;
 
-use crate::asset_tracking::LoadResource;
+use crate::{asset_tracking::LoadResource, screens::ReplaceOnHotreload};
 
 use super::*;
 
@@ -60,7 +60,7 @@ pub struct Wheel;
 #[derive(Component)]
 pub struct Tractor;
 
-pub fn spawn_tractor<T: Bundle + Clone>(
+pub fn spawn_tractor<T: Bundle>(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -68,7 +68,7 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     extra_components: T,
 ) -> Entity {
     let tractor_id = commands
-        .spawn((tractor_body(assets), extra_components.clone()))
+        .spawn((tractor_body(assets), extra_components))
         .with_child(turret::turret(
             meshes,
             materials,
@@ -85,7 +85,8 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     left_wheel_with_joint(
         commands,
         // (extra_components.clone(), Mass(2.)),
-        extra_components.clone(),
+        // extra_components.clone(),
+        ReplaceOnHotreload,
         tractor_id,
         wheel_pos,
         0.0,
@@ -99,7 +100,8 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     left_wheel_with_joint(
         commands,
         // (extra_components.clone(), Mass(2.)),
-        extra_components.clone(),
+        // extra_components.clone(),
+        ReplaceOnHotreload,
         tractor_id,
         wheel_pos,
         1.0,
@@ -112,8 +114,9 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     );
     right_wheel_with_joint(
         commands,
-        extra_components.clone(),
+        // extra_components.clone(),
         // (extra_components.clone(), Mass(2.)),
+        ReplaceOnHotreload,
         tractor_id,
         wheel_pos,
         1.0,
@@ -127,7 +130,8 @@ pub fn spawn_tractor<T: Bundle + Clone>(
     right_wheel_with_joint(
         commands,
         // (extra_components.clone(), Mass(2.)),
-        extra_components.clone(),
+        // extra_components.clone(),
+        ReplaceOnHotreload,
         tractor_id,
         wheel_pos,
         0.0,
