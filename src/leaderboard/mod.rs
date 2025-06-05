@@ -13,8 +13,7 @@ const GAME_NAME: &str = "newton-survivor";
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_plugins(JornetPlugin::with_leaderboard(
-        "0ebdf1b6-433d-4efa-b453-ac5e040b3bf1",
-        "8b5fdba6-540f-41fe-8d38-70e0f6428e1c",
+        "0bd81632-0349-40e2-84cf-99d4084b4263", "f3564368-60b1-4377-be5e-1162d3e3d61c",
     ))
     .add_event::<AddUserScore>()
     .add_systems(Startup, setup_local_storage)
@@ -100,8 +99,8 @@ fn go_back_on_click(
 }
 
 #[derive(Event)]
-struct AddUserScore {
-    value: f32,
+pub struct AddUserScore {
+    pub value: f32,
 }
 
 #[derive(Resource, Serialize, Deserialize, Debug, Default)]
