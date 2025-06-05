@@ -11,6 +11,9 @@ pub mod tree;
 pub mod turret;
 pub mod turret_aiming;
 
+#[cfg(feature = "dev_native")]
+use bevy_simple_subsecond_system::hot;
+
 pub const LEVEL_WIDHT: f32 = 200.0;
 
 pub mod level {
@@ -44,6 +47,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(tractor::tractor_plugin);
     app.add_plugins(bullet::bullet_plugin);
     app.add_plugins(turret_aiming::plugin);
+    app.add_plugins(turret::turret_plugin);
     app.add_plugins(apple::plugin);
     app.add_plugins(health::plugin);
     app.add_plugins(tree::plugin);

@@ -33,7 +33,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_input_context::<InTractor>()
         .add_observer(bind_actions)
         .add_observer(tractor_move)
-        .add_observer(fire_turret);
+        .add_observer(fire_turret)
+        .add_observer(stop_firing_turret);
 }
 
 fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Actions<InTractor>>) {
@@ -47,13 +48,11 @@ fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Ac
 }
 
 fn fire_turret(
-    trigger: Trigger<Fired<FireEvent>>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    trigger: Trigger<Started<FireEvent>>,
     tractors: Query<&Children, With<Tractor>>,
-    attached_turrets: Query<(&ChildOf, &GlobalTransform, &Turret)>,
+    mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
 ) {
+    info!("start firing!");
     let action_target = trigger.target();
 
     let Ok(tractor_children) = tractors.get(action_target) else {
@@ -62,16 +61,27 @@ fn fire_turret(
     };
 
     for child in tractor_children {
-        if let Ok((_childof, t, _turret)) = attached_turrets.get(*child) {
-            let forward = t.forward();
-            let bullet_spawnpoint = t.translation() + (BARREL_LEN + 0.5) * forward;
-            commands.spawn(bullet::bullet(
-                &mut meshes,
-                &mut materials,
-                forward,
-                50.,
-                bullet_spawnpoint,
-            ));
+        if let Ok((_childof, _t, mut turret)) = attached_turrets.get_mut(*child) {
+            turret.firing = true;
+        }
+    }
+}
+fn stop_firing_turret(
+    trigger: Trigger<Completed<FireEvent>>,
+    tractors: Query<&Children, With<Tractor>>,
+    mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
+) {
+    info!("Stop firing!");
+    let action_target = trigger.target();
+
+    let Ok(tractor_children) = tractors.get(action_target) else {
+        debug!("Goodbye");
+        return;
+    };
+
+    for child in tractor_children {
+        if let Ok((_childof, _t, mut turret)) = attached_turrets.get_mut(*child) {
+            turret.firing = false;
         }
     }
 }
