@@ -1,5 +1,4 @@
 use avian3d::prelude::*;
-use bevy::{color::palettes::css::RED, input::touch::ForceTouch, prelude::*};
 use bevy::{color::palettes::css::RED, prelude::*};
 use crate::{
     gameplay::{tractor::Tractor, tree::Tree},
