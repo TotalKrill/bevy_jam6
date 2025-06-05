@@ -83,6 +83,8 @@ fn damage_tractor(
                         value: 1.0,
                         entity: tractor,
                     });
+                    
+                    break;
                 }
             }
         }
