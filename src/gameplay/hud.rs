@@ -72,9 +72,10 @@ pub fn healthbar() -> impl Bundle {
         BorderColor(WHITE_SMOKE.into()),
         BackgroundColor(RED.into()),
         Children::spawn((Spawn((
+            Healthbar,
             BackgroundColor(GREEN_600.into()),
             Node {
-                width: Val::Percent(80.),
+                width: Val::Percent(100.),
                 height: Val::Percent(100.),
                 ..Default::default()
             },

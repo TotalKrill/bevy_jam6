@@ -25,7 +25,7 @@ pub struct Health {
 
 impl Health {
     pub fn percentage(&self) -> f32 {
-        self.current / self.max
+        (self.current / self.max) * 100.
     }
     pub fn new(health: f32) -> Self {
         Self {
@@ -90,7 +90,7 @@ fn damage_tractor(
                         value: 1.0,
                         entity: tractor,
                     });
-                    
+
                     break;
                 }
             }

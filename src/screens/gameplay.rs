@@ -51,6 +51,8 @@ fn setup_gamescreen(
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
+    use crate::gameplay::hud;
+
     for e in query.iter() {
         commands.entity(e).despawn();
     }
@@ -68,7 +70,7 @@ fn setup_gamescreen(
             Actions::<InTractor>::default(),
         ),
     );
-
+    commands.spawn(hud::healthbar());
     commands.spawn((
         ReplaceOnHotreload,
         level::level(&mut meshes, &mut materials),
