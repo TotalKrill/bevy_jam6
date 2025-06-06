@@ -1,6 +1,9 @@
 use bevy_mod_lookat::RotateTo;
 
-use crate::{PausableSystems, gameplay::turret::Turret};
+use crate::{
+    PausableSystems,
+    gameplay::{apple::Apple, turret::Turret},
+};
 
 use super::*;
 
@@ -37,6 +40,7 @@ fn move_sight(
     ground: Single<&GlobalTransform, With<level::Ground>>,
     mut sight: Single<&mut Transform, With<Sight>>,
     windows: Query<&Window>,
+    apples: Query<&Transform, With<Apple>>,
     mut gizmos: Gizmos,
 ) {
     let Ok(windows) = windows.single() else {
@@ -60,14 +64,23 @@ fn move_sight(
     let Some((_e, hit)) = hits.first() else {
         return;
     };
-    let above_ground = hit.point + ground.up() * 0.4;
 
-    sight.translation = above_ground;
+    let target = if let Some(apple_t) = apples
+        .iter()
+        .filter(|t| t.translation.distance(hit.point) < 10.)
+        .next()
+    {
+        apple_t.translation
+    } else {
+        hit.point + ground.up() * 0.4
+    };
+
+    sight.translation = target;
 
     // Draw a circle just above the ground plane at that position.
     gizmos.circle(
         Isometry3d::new(
-            above_ground,
+            target,
             Quat::from_rotation_arc(Vec3::Z, ground.up().as_vec3()),
         ),
         0.3,
