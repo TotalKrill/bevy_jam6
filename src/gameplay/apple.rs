@@ -1,6 +1,7 @@
 use crate::PausableSystems;
 use crate::asset_tracking::LoadResource;
 use crate::gameplay::health::{Death, Health};
+use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
@@ -21,6 +22,7 @@ const APPLE_DAMAGE_MAX: f32 = 10.0;
 const APPLE_SPEED_MIN: f32 = 2.0;
 const APPLE_SPEED_MAX: f32 = 40.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
+use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
 pub struct Apple;
@@ -93,6 +95,7 @@ fn spawn_apple_event_handler(
                 Health::new(event.apple_strength.health),
                 event.apple_strength.clone(),
                 ReplaceOnHotreload,
+                AnchoredUiNodes::spawn_one(healthbar(100.)),
                 SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
