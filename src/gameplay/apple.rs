@@ -1,6 +1,7 @@
 use crate::PausableSystems;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::level::TERRAIN_HEIGHT;
+use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
 use crate::{
     ReplaceOnHotreload,
@@ -39,6 +40,7 @@ fn spawn_apple_event_handler(
         commands
             .spawn((
                 Apple,
+                Sawable::default(),
                 Name::new("Apple"),
                 Health::new(1.0),
                 ReplaceOnHotreload,
