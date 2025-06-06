@@ -91,7 +91,10 @@ pub fn setup_gamescreen(
     hud::spawn_hud(&mut commands);
     spawn_startup_trees(&mut commands);
 
-    commands.spawn((ReplaceOnHotreload, level::level(&world_assets)));
+    commands.spawn((
+        StateScoped(Screen::TractorBuild),
+        level::level(meshes, materials),
+    ));
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {

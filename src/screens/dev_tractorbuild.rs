@@ -62,8 +62,7 @@ fn setup_devscreen(
     spawn_hud(&mut commands);
 
     commands.spawn((
-        ReplaceOnHotreload,
         StateScoped(Screen::TractorBuild),
-        level::level(&world_assets),
+        level::level(meshes, materials),
     ));
 }
