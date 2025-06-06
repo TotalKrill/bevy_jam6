@@ -98,7 +98,7 @@ pub fn setup_gamescreen(
         level::level(world_assets, meshes, materials),
     ));
 
-    commands.spawn(PerfUiAllEntries::default());
+    // commands.spawn(PerfUiAllEntries::default());
 
     // Spawn the Sun
     commands.spawn((

@@ -90,5 +90,5 @@ fn setup_devscreen(
         level::level(world_assets, meshes, materials),
     ));
 
-    commands.spawn(PerfUiAllEntries::default());
+    // commands.spawn(PerfUiAllEntries::default());
 }
