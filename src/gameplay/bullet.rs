@@ -77,7 +77,6 @@ fn fire_bullet_event_handler(
     }
 }
 
-use bevy_simple_subsecond_system::prelude::*;
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(
     apples: Query<&Transform, With<Apple>>,

@@ -1,10 +1,6 @@
 use std::time::Duration;
 
-use crate::{
-    asset_tracking::LoadResource,
-    gameplay::{health::Death, tractor::Tractor},
-    menus::Menu,
-};
+use crate::{asset_tracking::LoadResource, menus::Menu};
 use avian3d::prelude::*;
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 pub use bevy::{color::palettes::css::*, prelude::*};
@@ -18,9 +14,6 @@ pub struct GameOver;
 struct DespawnAfter(pub(super) Timer);
 
 impl DespawnAfter {
-    pub fn new(duration: Duration) -> Self {
-        Self(Timer::new(duration, TimerMode::Once))
-    }
     pub fn millis(millis: u64) -> Self {
         Self(Timer::new(Duration::from_millis(millis), TimerMode::Once))
     }
@@ -63,8 +56,6 @@ pub mod damage_indicator {
     fn spawn_damage_indicators_on_event(
         mut commands: Commands,
         transforms: Query<&GlobalTransform>,
-        // mut meshes: ResMut<Assets<Mesh>>,
-        // mut materials: ResMut<Assets<StandardMaterial>>,
         mut damage_reader: EventReader<DamageEvent>,
     ) {
         const DUR: u64 = 500;

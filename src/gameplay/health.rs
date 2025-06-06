@@ -1,12 +1,13 @@
 use crate::PausableSystems;
 use crate::gameplay::apple::Apple;
-use crate::gameplay::bullet::{Bullet, BulletSpawnEvent, BulletSplitEvent};
+use crate::gameplay::bullet::{Bullet, BulletSplitEvent};
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use crate::screens::Screen;
 use avian3d::prelude::CollisionStarted;
 use bevy::prelude::*;
-use rand::Rng;
 use std::collections::HashSet;
+
+use super::*;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<DamageEvent>()
@@ -103,7 +104,6 @@ fn damage_tractor(
     }
 }
 
-use bevy_simple_subsecond_system::prelude::*;
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_apple_collision_damage(
     mut collision_event_reader: EventReader<CollisionStarted>,
@@ -122,8 +122,7 @@ fn bullet_apple_collision_damage(
                     entity: apple,
                 });
 
-                let mut rng = rand::thread_rng();
-                let percent = rng.gen_range(0.0..1.0);
+                let percent: f32 = rand::random();
                 if percent < bullet.split_probability {
                     info!("splitting bullet!");
                     bullet_split.write(BulletSplitEvent {
