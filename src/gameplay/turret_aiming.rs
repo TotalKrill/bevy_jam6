@@ -1,8 +1,9 @@
+use bevy::math::NormedVectorSpace;
 use bevy_mod_lookat::RotateTo;
 
 use crate::{
     PausableSystems,
-    gameplay::{apple::Apple, turret::Turret},
+    gameplay::{apple::Apple, bullet::BULLET_SPEED, tractor::Tractor, turret::Turret},
 };
 
 use super::*;
@@ -38,9 +39,10 @@ fn move_sight(
     camera_query: Single<(&Camera, &GlobalTransform)>,
     mut raycast: MeshRayCast,
     ground: Single<&GlobalTransform, With<level::Ground>>,
-    mut sight: Single<&mut Transform, With<Sight>>,
+    mut sight: Single<&mut Transform, (With<Sight>, Without<Apple>)>,
     windows: Query<&Window>,
-    apples: Query<&Transform, With<Apple>>,
+    apples: Query<(&Transform, &LinearVelocity), (With<Apple>, Without<Sight>)>,
+    tractor: Single<&Transform, (With<Tractor>, Without<Apple>, Without<Sight>)>,
     mut gizmos: Gizmos,
 ) {
     let Ok(windows) = windows.single() else {
@@ -65,12 +67,16 @@ fn move_sight(
         return;
     };
 
-    let target = if let Some(apple_t) = apples
+    let target = if let Some((apple_t, apple_v)) = apples
         .iter()
-        .filter(|t| t.translation.distance(hit.point) < 10.)
-        .next()
-    {
+        .filter(|(t, _v)| t.translation.distance_squared(hit.point) < 100.)
+        .min_by(|(t1, _v1), (t2, _v2)| {
+            t1.translation
+                .distance_squared(hit.point)
+                .total_cmp(&t2.translation.distance_squared(hit.point))
+        }) {
         apple_t.translation
+            + apple_v.0 * (apple_t.translation.distance(tractor.translation) / BULLET_SPEED)
     } else {
         hit.point + ground.up() * 0.4
     };
