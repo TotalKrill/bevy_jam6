@@ -32,7 +32,7 @@ pub struct Health {
 
 impl Health {
     pub fn percentage(&self) -> u32 {
-        (self.current / self.max) * 100
+        ((self.current  as f32 / self.max as f32) * 100.) as u32
     }
     pub fn new(health: u32) -> Self {
         Self {
