@@ -1,6 +1,8 @@
 use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
+use crate::gameplay::apple::AppleStrength;
 use crate::gameplay::health::*;
+use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::saw::Sawable;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
@@ -9,8 +11,8 @@ use bevy::asset::uuid::Timestamp;
 use bevy::prelude::*;
 use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
 use bevy_tweening::{AnimationSystem, Animator, Tween, component_animator_system};
+use bevy_ui_anchor::AnchoredUiNodes;
 use std::time::Duration;
-use crate::gameplay::apple::AppleStrength;
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
 pub const TREE_STARTING_HEIGHT: f32 = 3.0;
@@ -127,6 +129,7 @@ fn spawn_tree(
                         ),
                     },
                     Sawable::default(),
+                    AnchoredUiNodes::spawn_one(healthbar(100.)),
                     Health::new(TREE_HEALTH_MIN),
                     AppleStrength::new(),
                     StateScoped(Screen::InGame),
@@ -162,16 +165,19 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
     }
 }
 
-fn increase_tree_strength(time: Res<Time>, mut trees: Query<((&mut Health, &mut AppleStrength), &mut Tree)>) {
+fn increase_tree_strength(
+    time: Res<Time>,
+    mut trees: Query<((&mut Health, &mut AppleStrength), &mut Tree)>,
+) {
     for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
 
         if health.current == health.max {
             if tree.timer.elapsed_secs() as u64 % TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC == 0 {
-
                 let tree_growth = tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32;
 
-                let new_health = tree_growth  * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) + TREE_HEALTH_MIN;
+                let new_health =
+                    tree_growth * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) + TREE_HEALTH_MIN;
                 health.current = new_health;
                 health.max = new_health;
 
