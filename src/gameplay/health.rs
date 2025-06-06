@@ -1,4 +1,5 @@
 use crate::PausableSystems;
+use crate::audio::{SoundEffectType, SoundEffects};
 use crate::gameplay::apple::{Apple, AppleStrength};
 use crate::gameplay::bullet::{Bullet, BulletSplitEvent};
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
@@ -53,18 +54,20 @@ pub struct Death;
 fn damage_health(
     mut commands: Commands,
     mut event_reader: EventReader<DamageEvent>,
-    mut query: Query<(Entity, &mut Health), With<Health>>,
+    mut health_query: Query<&mut Health>,
+    tractor: Single<Entity, With<Tractor>>,
+    sound_effects: Res<SoundEffects>,
 ) {
     for event in event_reader.read() {
-        for (entity, mut health) in query.iter_mut() {
-            if event.entity == entity {
+        if let Ok(mut health) = health_query.get_mut(event.entity) {
+            if health.current <= event.value {
+                commands.trigger_targets(Death, event.entity);
+            } else {
+                health.current -= event.value;
+            }
 
-                if health.current <= event.value {
-                    commands.trigger_targets(Death, entity);
-                } else {
-                    health.current -= event.value;    
-                }
-                
+            if event.entity == *tractor {
+                sound_effects.play_sound(&mut commands, SoundEffectType::Hurt);
             }
         }
     }

@@ -5,6 +5,7 @@ use crate::asset_tracking::LoadResource;
 #[derive(Resource)]
 pub struct SoundEffects {
     fire: Handle<AudioSource>,
+    hurt: Handle<AudioSource>,
 }
 
 impl SoundEffects {
@@ -13,6 +14,9 @@ impl SoundEffects {
             SoundEffectType::Fire => {
                 commands.spawn(sound_effect(self.fire.clone()));
             }
+            SoundEffectType::Hurt => {
+                commands.spawn(sound_effect(self.hurt.clone()));
+            }
         }
     }
 }
@@ -20,6 +24,7 @@ impl SoundEffects {
 #[derive(Clone, Copy)]
 pub enum SoundEffectType {
     Fire,
+    Hurt,
 }
 
 impl FromWorld for SoundEffects {
@@ -27,6 +32,7 @@ impl FromWorld for SoundEffects {
         let assets: &AssetServer = world.resource::<AssetServer>();
         Self {
             fire: assets.load::<AudioSource>("audio/sound_effects/gunfire.wav"),
+            hurt: assets.load::<AudioSource>("audio/sound_effects/tractor-damage.wav"),
         }
     }
 }
