@@ -18,15 +18,9 @@ pub fn tractor_plugin(app: &mut App) {
 
     // add meshes to wheels
     app.add_observer(
-        |trigger: Trigger<OnAdd, Wheel>,
-         mut commands: Commands,
-         mut meshes: ResMut<Assets<Mesh>>,
-         mut materials: ResMut<Assets<StandardMaterial>>| {
+        |trigger: Trigger<OnAdd, Wheel>, mut commands: Commands, assets: Res<TractorAssets>| {
             if let Ok(mut ec) = commands.get_entity(trigger.target()) {
-                ec.insert(Mesh3d(meshes.add(Sphere::new(WHEEL_RADIE))));
-                ec.insert(MeshMaterial3d(
-                    materials.add(StandardMaterial::from_color(BLACK)),
-                ));
+                ec.insert(SceneRoot(assets.wheelball.clone()));
             }
         },
     );
@@ -58,6 +52,7 @@ pub struct RightWheels(Vec<Entity>);
 #[reflect(Resource)]
 pub struct TractorAssets {
     tractor: Handle<Scene>,
+    wheelball: Handle<Scene>,
 }
 
 impl FromWorld for TractorAssets {
@@ -66,6 +61,7 @@ impl FromWorld for TractorAssets {
         Self {
             tractor: assets
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
+            wheelball: assets.load(GltfAssetLabel::Scene(0).from_asset("models/wheelball.glb")),
         }
     }
 }

@@ -6,7 +6,6 @@ use crate::{
     gameplay::{tractor::Tractor, tree::Tree},
     screens::*,
 };
-use avian3d::parry::na::Translation;
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
 

@@ -10,7 +10,7 @@ pub struct Ground;
 
 use super::*;
 const SEED: u32 = 1134;
-const TERRAIN_HEIGHT: f32 = 70.;
+const TERRAIN_HEIGHT: f32 = 10.;
 
 const PLANE_X_SIZE: f32 = 300.;
 const PLANE_Z_SIZE: f32 = 300.;
