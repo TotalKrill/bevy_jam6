@@ -7,6 +7,7 @@ use crate::gameplay::{
 
 use crate::gameplay::WorldAssets;
 use bevy_editor_cam::prelude::*;
+use iyes_perf_ui::entries::PerfUiAllEntries;
 
 pub(super) fn plugin(app: &mut App) {
     if !app.is_plugin_added::<MinimalEditorCamPlugin>() {
@@ -66,4 +67,6 @@ fn setup_devscreen(
         StateScoped(Screen::TractorBuild),
         level::level(meshes, materials),
     ));
+
+    commands.spawn(PerfUiAllEntries::default());
 }

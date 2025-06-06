@@ -118,6 +118,14 @@ impl Plugin for AppPlugin {
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
+
+        #[cfg(feature = "dev")]
+        app.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
+            .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+            .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+            .add_plugins(bevy::render::diagnostic::RenderDiagnosticsPlugin)
+
+            .add_plugins(PerfUiPlugin);
     }
 }
 
@@ -155,3 +163,4 @@ struct PausableSystems;
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::prelude::*;
+use iyes_perf_ui::PerfUiPlugin;

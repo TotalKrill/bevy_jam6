@@ -2,7 +2,7 @@
 
 use crate::gameplay::{WorldAssets, tree::TreeSpawnEvent};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
-
+use iyes_perf_ui::prelude::PerfUiAllEntries;
 use crate::{
     Pause,
     gameplay::tractor::{self, TractorAssets},
@@ -95,6 +95,8 @@ pub fn setup_gamescreen(
         StateScoped(Screen::TractorBuild),
         level::level(meshes, materials),
     ));
+
+    commands.spawn(PerfUiAllEntries::default());
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
