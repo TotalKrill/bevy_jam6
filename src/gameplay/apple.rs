@@ -20,7 +20,7 @@ pub struct AppleSpawnEvent {
     pub radius: f32,
 }
 
-const APPLE_RADIUS: f32 = 1.0;
+pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_SPAWN_RADIUS: f32 = 10.0;
 const APPLE_FORCE_SCALAR: f32 = 10.0; // Rate at which the apple want to get to the player
 
