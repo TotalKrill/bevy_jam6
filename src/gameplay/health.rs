@@ -1,10 +1,11 @@
 use crate::PausableSystems;
 use crate::gameplay::apple::Apple;
-use crate::gameplay::bullet::Bullet;
+use crate::gameplay::bullet::{Bullet, BulletSpawnEvent, BulletSplitEvent};
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use crate::screens::Screen;
 use avian3d::prelude::CollisionStarted;
 use bevy::prelude::*;
+use rand::Rng;
 use std::collections::HashSet;
 
 pub fn plugin(app: &mut App) {
@@ -13,7 +14,7 @@ pub fn plugin(app: &mut App) {
         (
             damage_health.run_if(in_state(Screen::InGame)),
             damage_tractor.run_if(in_state(Screen::InGame)),
-            shoot_apples.run_if(in_state(Screen::InGame)),
+            bullet_apple_collision_damage.run_if(in_state(Screen::InGame)),
         )
             .in_set(PausableSystems),
     );
@@ -100,21 +101,34 @@ fn damage_tractor(
     }
 }
 
-fn shoot_apples(
+use bevy_simple_subsecond_system::prelude::*;
+#[cfg_attr(feature = "dev_native", hot)]
+fn bullet_apple_collision_damage(
     mut collision_event_reader: EventReader<CollisionStarted>,
-    bullets: Query<(Entity, &Bullet), With<Bullet>>,
-    apples: Query<Entity, With<Apple>>,
+    bullets: Query<(Entity, &Bullet)>,
+    apples: Query<(Entity, &Transform), With<Apple>>,
     mut event_writer: EventWriter<Damage>,
+    mut bullet_split: EventWriter<BulletSplitEvent>,
 ) {
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
-            if let (Ok(apple), Ok(bullet)) =
+            if let (Ok((apple, apple_t)), Ok((_bullet_e, bullet))) =
                 (apples.get(apple_candidate), bullets.get(bullet_candidate))
             {
                 event_writer.write(Damage {
-                    value: bullet.1.damage,
+                    value: bullet.damage,
                     entity: apple,
                 });
+
+                let mut rng = rand::thread_rng();
+                let percent = rng.gen_range(0.0..1.0);
+                if percent < bullet.split_probability {
+                    info!("splitting bullet!");
+                    bullet_split.write(BulletSplitEvent {
+                        center: apple_t.translation,
+                        bullet: bullet.half(),
+                    });
+                }
                 break; // Only need to damage once per collision
             }
         }

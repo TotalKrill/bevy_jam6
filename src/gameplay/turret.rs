@@ -16,27 +16,27 @@ pub struct Turret {
     pub firing: bool,
 }
 
+use crate::gameplay::bullet::BulletSpawnEvent;
 #[cfg_attr(feature = "dev_native", hot)]
 fn tick_and_fire_turret(
-    mut commands: Commands,
     time: Res<Time>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut turrets: Query<(&mut Turret, &GlobalTransform)>,
+    mut fire_bullet_evt: EventWriter<BulletSpawnEvent>,
 ) {
+    use crate::gameplay::bullet::Bullet;
+
     for (mut turret, transform) in turrets.iter_mut() {
         turret.rate_of_fire.tick(time.delta());
         if turret.rate_of_fire.finished() && turret.firing {
             turret.rate_of_fire.reset();
             let forward = transform.forward();
             let bullet_spawnpoint = transform.translation() + (BARREL_LEN + 0.5) * forward;
-            commands.spawn(bullet::bullet(
-                &mut meshes,
-                &mut materials,
-                forward,
-                50.,
-                bullet_spawnpoint,
-            ));
+            fire_bullet_evt.write(BulletSpawnEvent {
+                at: bullet_spawnpoint,
+                dir: forward,
+                speed: 50.,
+                bullet: Bullet::new(1., 1.0),
+            });
         }
     }
 }
