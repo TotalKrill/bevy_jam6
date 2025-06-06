@@ -14,6 +14,30 @@ const SEED_RADIUS: f32 = 0.1;
 const SEED_DESPAWN_TIME_SEC: u64 = 5;
 const SEED_SPAWN_TREE_PROBABILITY: f32 = 0.1;
 
+#[derive(Resource)]
+pub struct SeedAssets {
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+}
+
+impl FromWorld for SeedAssets {
+    fn from_world(world: &mut World) -> Self {
+        let mut meshes = world.get_resource_mut::<Assets<Mesh>>().unwrap();
+        let mesh = meshes.add(Sphere::new(SEED_RADIUS));
+
+        let mut materials = world
+            .get_resource_mut::<Assets<StandardMaterial>>()
+            .unwrap();
+
+        let mut material = StandardMaterial::from_color(BLACK);
+        material.emissive = LinearRgba::rgb(0.1, 0.1, 100.);
+
+        let material = materials.add(material);
+
+        Self { mesh, material }
+    }
+}
+
 #[derive(Debug, Component)]
 pub struct Seed {
     pub timer: Timer,
@@ -32,6 +56,8 @@ impl SeedSpawnEvent {
 
 pub(super) fn plugin(app: &mut App) {
     app.add_event::<SeedSpawnEvent>();
+    app.init_resource::<SeedAssets>();
+
     app.add_observer(spawn_seeds);
     app.add_systems(Update, despawn_seeds.in_set(PausableSystems));
 }
@@ -39,8 +65,7 @@ pub(super) fn plugin(app: &mut App) {
 fn spawn_seeds(
     trigger: Trigger<SeedSpawnEvent>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    seedasset: Res<SeedAssets>,
 ) {
     let position = trigger.position + Vec3::new(0., 0.1, 0.);
 
@@ -55,13 +80,13 @@ fn spawn_seeds(
         commands.spawn((
             Name::new("Seed"),
             Health::new(1.0),
-            Mass(10.),
+            Mass(0.1),
             Seed {
                 timer: Timer::new(Duration::from_secs(SEED_DESPAWN_TIME_SEC), TimerMode::Once),
             },
             ReplaceOnHotreload,
-            Mesh3d(meshes.add(Sphere::new(SEED_RADIUS))),
-            MeshMaterial3d(materials.add(StandardMaterial::from_color(BLACK))),
+            Mesh3d(seedasset.mesh.clone()),
+            MeshMaterial3d(seedasset.material.clone()),
             RigidBody::Dynamic,
             Collider::sphere(SEED_RADIUS),
             Transform::from_translation(position),
