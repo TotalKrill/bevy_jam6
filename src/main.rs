@@ -20,8 +20,8 @@ mod theme;
 mod camera;
 mod leaderboard;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy::input::common_conditions::input_toggle_active;
+use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -65,6 +65,9 @@ impl Plugin for AppPlugin {
 
         app.add_plugins(PhysicsPlugins::default());
         app.add_plugins(PhysicsDebugPlugin::default());
+        // Overwrite default debug rendering configuration so its off (optional)
+        app.insert_gizmo_config(PhysicsGizmos::none(), GizmoConfig::default());
+
         app.add_systems(
             OnEnter(Pause(true)),
             |mut physics: ResMut<Time<Physics>>| {
@@ -100,7 +103,6 @@ impl Plugin for AppPlugin {
             theme::plugin,
             gameplay::plugin,
         ));
-
 
         // Order new `AppSystems` variants by adding them here:
         app.configure_sets(

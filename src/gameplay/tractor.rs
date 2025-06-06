@@ -13,6 +13,25 @@ pub const TRACTOR_MAX_SPEED: f32 = 15.0;
 
 pub const WHEEL_RADIE: f32 = 0.9;
 
+pub fn tractor_plugin(app: &mut App) {
+    app.load_resource::<TractorAssets>();
+
+    // add meshes to wheels
+    app.add_observer(
+        |trigger: Trigger<OnAdd, Wheel>,
+         mut commands: Commands,
+         mut meshes: ResMut<Assets<Mesh>>,
+         mut materials: ResMut<Assets<StandardMaterial>>| {
+            if let Ok(mut ec) = commands.get_entity(trigger.target()) {
+                ec.insert(Mesh3d(meshes.add(Sphere::new(WHEEL_RADIE))));
+                ec.insert(MeshMaterial3d(
+                    materials.add(StandardMaterial::from_color(BLACK)),
+                ));
+            }
+        },
+    );
+}
+
 #[derive(Component, Debug)]
 #[relationship(relationship_target = LeftWheels)]
 pub struct LeftWheel {
@@ -49,10 +68,6 @@ impl FromWorld for TractorAssets {
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
         }
     }
-}
-
-pub fn tractor_plugin(app: &mut App) {
-    app.load_resource::<TractorAssets>();
 }
 
 #[derive(Component)]
@@ -149,7 +164,7 @@ fn left_wheel_with_joint<T: Bundle + Clone>(
 ) {
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos),
             LeftWheel {
                 vehicle: tractor_id,
             },
@@ -176,7 +191,7 @@ fn right_wheel_with_joint<T: Bundle + Clone>(
 ) {
     let front_left_wheel = commands
         .spawn((
-            wheel(WHEEL_RADIE, wheel_pos, Wheel),
+            wheel(WHEEL_RADIE, wheel_pos),
             RightWheel {
                 vehicle: tractor_id,
             },
@@ -222,12 +237,13 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
-pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
+pub fn wheel(radius: f32, pos: Vec3) -> impl Bundle {
     (
         Name::new("Wheel"),
         CollisionEventsEnabled,
         CollidingEntities::default(),
         RigidBody::Dynamic,
+        Wheel,
         // Mass(20.),
         Collider::sphere(radius),
         // Mass(1.),
@@ -237,6 +253,5 @@ pub fn wheel<T: Component>(radius: f32, pos: Vec3, marker: T) -> impl Bundle {
             // rotation: Quat::from_rotation_z(90_f32.to_radians()),
             ..default()
         },
-        marker,
     )
 }

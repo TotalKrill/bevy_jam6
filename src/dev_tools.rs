@@ -1,6 +1,6 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
-use avian3d::prelude::{Collider, DebugRender, ExternalForce, PhysicsDebugPlugin};
+use avian3d::prelude::{Collider, DebugRender, ExternalForce, PhysicsDebugPlugin, PhysicsGizmos};
 use bevy::{
     dev_tools::states::log_transitions, input::common_conditions::input_just_pressed, prelude::*,
     ui::UiDebugOptions,
@@ -26,17 +26,16 @@ fn toggle_debug_ui(
     mut options: ResMut<UiDebugOptions>,
     mut commands: Commands,
     // mut graphics_debug: ResMut<DebugRender>,
-    colliders: Query<Entity, Or<(With<Collider>, With<ExternalForce>)>>,
+    mut gizmoconf: ResMut<GizmoConfigStore>,
     mut on: Local<bool>,
 ) {
     *on = !*on;
 
-    for collider in colliders {
-        if *on {
-            commands.entity(collider).insert(DebugRender::all());
-        } else {
-            commands.entity(collider).insert(DebugRender::none());
-        }
+    let (_, physgiz) = gizmoconf.config_mut::<PhysicsGizmos>();
+    if *on {
+        *physgiz = PhysicsGizmos::default();
+    } else {
+        *physgiz = PhysicsGizmos::none();
     }
     options.enabled = *on;
 }

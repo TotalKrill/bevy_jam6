@@ -1,3 +1,4 @@
+use crate::PausableSystems;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::seed::SeedSpawnEvent;
 use crate::{
@@ -102,6 +103,7 @@ pub(super) fn plugin(app: &mut App) {
             spawn_apple_event_handler.run_if(in_state(Screen::InGame)),
             spawn_apples.run_if(in_state(Screen::InGame)),
             apply_apple_force.run_if(in_state(Screen::InGame)),
-        ),
+        )
+            .in_set(PausableSystems),
     );
 }

@@ -76,35 +76,35 @@ fn spawn_tree(
             commands.send_event(TreeSpawnEvent {
                 position: event.position,
             });
-        };
+        } else {
+            let position = vec3(
+                event.position.x,
+                hit.point.y + TREE_STARTING_HEIGHT / 2.0,
+                event.position.y,
+            );
 
-        let position = vec3(
-            event.position.x,
-            hit.point.y + TREE_STARTING_HEIGHT / 2.0,
-            event.position.y,
-        );
+            log::info!(
+                "Spawning tree at position: {:?} (from {:?}, distance: {:?})",
+                hit.point,
+                event.position,
+                hit.distance
+            );
 
-        log::info!(
-            "Spawning tree at position: {:?} (from {:?}, distance: {:?})",
-            hit.point,
-            event.position,
-            hit.distance
-        );
-
-        commands.spawn((
-            Tree {
-                apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
-                last_apple_spawn: 0.0,
-            },
-            StateScoped(Screen::InGame),
-            Name::new("Apple"),
-            ReplaceOnHotreload,
-            SceneRoot(tree_assets.tree.clone()),
-            ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
-            RigidBody::Static,
-            Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
-            Transform::from_translation(position),
-        ));
+            commands.spawn((
+                Name::new("Tree"),
+                Tree {
+                    apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
+                    last_apple_spawn: 0.0,
+                },
+                StateScoped(Screen::InGame),
+                ReplaceOnHotreload,
+                SceneRoot(tree_assets.tree.clone()),
+                ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
+                RigidBody::Static,
+                Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
+                Transform::from_translation(position),
+            ));
+        }
     }
 }
 
