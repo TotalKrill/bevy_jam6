@@ -67,7 +67,6 @@ pub fn setup_gamescreen(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
-    asset_server: Res<AssetServer>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
@@ -103,6 +102,7 @@ pub fn setup_gamescreen(
 
     // Spawn the Sun
     commands.spawn((
+        ReplaceOnHotreload,
         DirectionalLight {
             illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
@@ -117,9 +117,9 @@ pub fn setup_gamescreen(
             first_cascade_far_bound: 4.0,
             maximum_distance: 10.0,
             ..default()
-        }.build(),
+        }
+        .build(),
     ));
-
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
