@@ -9,11 +9,11 @@ use noise::{BasicMulti, NoiseFn, Perlin};
 #[derive(Component)]
 pub struct Ground;
 
-const SEED: u32 = 1134;
-pub const TERRAIN_HEIGHT: f32 = 20.;
+const SEED: u32 = 1135;
+pub const TERRAIN_HEIGHT: f32 = 40.;
 pub const PLANE_X_SIZE: f32 = 300.;
 pub const PLANE_Z_SIZE: f32 = 300.;
-const PLANE_SUB_DIVISION_COUNT: u32 = 200;
+const PLANE_SUB_DIVISION_COUNT: u32 = 20;
 
 fn create_plane() -> Mesh {
     Mesh::from(
@@ -80,16 +80,18 @@ pub fn level(
     let terrain = create_terrain(plane);
 
     let grass = world_assets.ground.clone();
+    let material = StandardMaterial {
+        base_color_texture: Some(grass.clone()),
+        uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
+        reflectance: 0.05,
+        ..default()
+    };
 
     (
         ReplaceOnHotreload,
         ColliderConstructor::TrimeshFromMesh,
         Mesh3d(meshes.add(terrain)),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color_texture: Some(grass.clone()),
-            uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
-            ..default()
-        })),
+        MeshMaterial3d(materials.add(material)),
         // TODO Where should we spawn the tractor?
         Transform::from_xyz(0., -2., 0.),
         RigidBody::Static,
