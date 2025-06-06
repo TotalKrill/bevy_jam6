@@ -74,7 +74,7 @@ fn move_gameplay_camera(
 
     // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, rat = {vel_ratio}, camera_height={camera_height}");
 
-    player_velocity_old.value = player_velocity_new;
+    player_velocity_old.value = vel_ratio;
 
     let target_position = Vec3::new(x, camera_height, z + camera_offset);
 
