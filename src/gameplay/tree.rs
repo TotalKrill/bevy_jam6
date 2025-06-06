@@ -10,6 +10,7 @@ use bevy::prelude::*;
 use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
 use bevy_tweening::{AnimationSystem, Animator, Tween, component_animator_system};
 use std::time::Duration;
+use crate::gameplay::apple::AppleStrength;
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
 const TREE_STARTING_HEIGHT: f32 = 3.0;
@@ -127,6 +128,11 @@ fn spawn_tree(
                     },
                     Sawable::default(),
                     Health::new(TREE_HEALTH_MIN),
+                    AppleStrength {
+                        health: 1.0,
+                        damage: 10.0,
+                        speed: 1.0,
+                    },
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),

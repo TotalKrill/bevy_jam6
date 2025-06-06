@@ -1,5 +1,5 @@
 use crate::PausableSystems;
-use crate::gameplay::apple::Apple;
+use crate::gameplay::apple::{Apple, AppleStrength};
 use crate::gameplay::bullet::{Bullet, BulletSplitEvent};
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
 use crate::screens::Screen;
@@ -73,7 +73,7 @@ fn damage_health(
 fn damage_tractor(
     mut collision_event_reader: EventReader<CollisionStarted>,
     tractor: Single<(Entity, &LeftWheels, &RightWheels), With<Tractor>>,
-    apples: Query<Entity, With<Apple>>,
+    apples: Query<(Entity, &AppleStrength), With<Apple>>,
     mut event_writer: EventWriter<DamageEvent>,
 ) {
     let (tractor, left, right) = *tractor;
@@ -86,14 +86,14 @@ fn damage_tractor(
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, tractor_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
             if tractor_entities.contains(&tractor_candidate) {
-                if let Ok(apple) = apples.get(apple_candidate) {
+                if let Ok((apple, apple_strength)) = apples.get(apple_candidate) {
                     event_writer.write(DamageEvent {
                         value: 100.0,
                         entity: apple,
                     });
 
                     event_writer.write(DamageEvent {
-                        value: 1.0,
+                        value: apple_strength.damage,
                         entity: tractor,
                     });
 

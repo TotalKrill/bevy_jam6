@@ -20,6 +20,14 @@ pub struct AppleSpawnEvent {
     pub position: Vec3,
     pub max_radius: f32,
     pub radius: f32,
+    pub apple_strength: AppleStrength
+}
+
+#[derive(Component, Clone, Debug)]
+pub struct AppleStrength {
+    pub health: f32,
+    pub damage: f32,
+    pub speed: f32,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -57,7 +65,8 @@ fn spawn_apple_event_handler(
                 Apple,
                 Sawable::default(),
                 Name::new("Apple"),
-                Health::new(1.0),
+                Health::new(event.apple_strength.health),
+                event.apple_strength.clone(),
                 ReplaceOnHotreload,
                 SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
@@ -95,17 +104,18 @@ fn apply_apple_force(
 }
 fn spawn_apples(
     mut commands: Commands,
-    mut query: Query<(&Transform, &mut Tree)>,
+    mut query: Query<((&Transform, &AppleStrength), &mut Tree)>,
     time: Res<Time>,
 ) {
     let elapsed_time = time.elapsed_secs();
-    for (&transform, mut tree) in query.iter_mut() {
+    for (((&transform, apple_strength)), mut tree) in query.iter_mut() {
         if elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
             tree.last_apple_spawn = elapsed_time;
             commands.send_event(AppleSpawnEvent {
                 position: transform.translation,
                 max_radius: APPLE_SPAWN_RADIUS,
                 radius: APPLE_RADIUS,
+                apple_strength: apple_strength.clone(),
             });
         }
     }
