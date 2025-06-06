@@ -9,7 +9,7 @@ use bevy_enhanced_input::prelude::*;
 use std::collections::HashSet;
 use tractor::{LeftWheels, RightWheels};
 
-const TRACTOR_ACCELERATION: f32 = 5000.0;
+const TRACTOR_ACCELERATION: f32 = 10000.0;
 const TRACTOR_TURN_RATE: f32 = 130.0;
 
 #[derive(Debug, InputAction)]

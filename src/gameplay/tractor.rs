@@ -193,7 +193,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         ),],
         RigidBody::Dynamic,
         Health::new(5.),
-        CenterOfMass::new(0.0, TRACTOR_HEIGHT / 2.0, 0.0),
+        CenterOfMass::new(0.0, -TRACTOR_HEIGHT / 2.0 - WHEEL_RADIE, 0.0),
         Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
         CollidingEntities::default(),
     )
