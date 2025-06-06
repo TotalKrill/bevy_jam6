@@ -108,49 +108,16 @@ pub fn spawn_tractor<T: Bundle>(
     let wheel_offset_y = -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.;
 
     let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, wheel_offset_z);
-
-    left_wheel_with_joint(
-        commands,
-        // (extra_components.clone(), Mass(2.)),
-        // extra_components.clone(),
-        ReplaceOnHotreload,
-        tractor_id,
-        wheel_pos,
-        0.0,
-    );
+    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
 
     let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, wheel_offset_z);
-    left_wheel_with_joint(
-        commands,
-        // (extra_components.clone(), Mass(2.)),
-        // extra_components.clone(),
-        ReplaceOnHotreload,
-        tractor_id,
-        wheel_pos,
-        1.0,
-    );
+    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
 
     let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, -wheel_offset_z);
-    right_wheel_with_joint(
-        commands,
-        // extra_components.clone(),
-        // (extra_components.clone(), Mass(2.)),
-        ReplaceOnHotreload,
-        tractor_id,
-        wheel_pos,
-        1.0,
-    );
+    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
 
     let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, -wheel_offset_z);
-    right_wheel_with_joint(
-        commands,
-        // (extra_components.clone(), Mass(2.)),
-        // extra_components.clone(),
-        ReplaceOnHotreload,
-        tractor_id,
-        wheel_pos,
-        0.0,
-    );
+    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
 
     tractor_id
 }
@@ -225,13 +192,8 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
             SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
-        // Mass(200.),
         Health::new(5.),
-        // AngularInertia {
-        //     principal: Vec3::splat(0.1),
-        //     local_frame: Quat::IDENTITY,
-        // },
-        // CenterOfMass::new(TRACTOR_LENGTH / 2.0, -TRACTOR_HEIGHT / 2., 0.),
+        CenterOfMass::new(0.0, TRACTOR_HEIGHT / 2.0, 0.0),
         Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
         CollidingEntities::default(),
     )
@@ -244,10 +206,7 @@ pub fn wheel(radius: f32, pos: Vec3) -> impl Bundle {
         CollidingEntities::default(),
         RigidBody::Dynamic,
         Wheel,
-        // Mass(20.),
         Collider::sphere(radius),
-        // Mass(1.),
-        // Collider::cylinder(radius, radius), //TODO: create a new collider with the axises correctly initiated
         Transform {
             translation: pos,
             // rotation: Quat::from_rotation_z(90_f32.to_radians()),
