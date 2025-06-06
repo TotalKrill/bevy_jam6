@@ -12,13 +12,13 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (move_gameplay_camera, toggle_camera));
 }
 
-const CAMERA_DECAY_RATE: f32 = 15.0;
+const CAMERA_DECAY_RATE: f32 = 25.0;
 const CAMERA_HEIGHT_MIN: f32 = 30.0; // Height above the player
 const CAMERA_HEIGHT_MAX: f32 = 60.0; // Height above the player
 const CAMERA_OFFSET_MIN: f32 = 20.0; // How far back the camera sits from the player
 const CAMERA_OFFSET_MAX: f32 = 30.0; // How far back the camera sits from the player
 const CAMERA_ANGLE: f32 = -65.0; // Looking down at an angle (in degrees)
-const VELOCITY_FILTER_WEIGHT: f32 = 0.30;
+const VELOCITY_FILTER_WEIGHT: f32 = 0.10;
 #[derive(Component)]
 pub struct GameplayCamera;
 
@@ -50,7 +50,6 @@ fn move_gameplay_camera(
     time: Res<Time>,
     mut player_velocity_old: Local<PlayerVelocity>,
 ) {
-    
     // TODO Sample event N millisecond?
     // TODO Higher order low pass filtering?
 
@@ -60,19 +59,19 @@ fn move_gameplay_camera(
 
     let player_velocity_new = velocity.length() / TRACTOR_MAX_SPEED;
 
-    let vel_ratio = VELOCITY_FILTER_WEIGHT
-        * player_velocity_new
-        + (1.0 - VELOCITY_FILTER_WEIGHT)
-        * player_velocity_old.value;
-
+    let vel_ratio = VELOCITY_FILTER_WEIGHT * player_velocity_new
+        + (1.0 - VELOCITY_FILTER_WEIGHT) * player_velocity_old.value;
 
     let camera_height = vel_ratio * (CAMERA_HEIGHT_MAX - CAMERA_HEIGHT_MIN) + CAMERA_HEIGHT_MIN;
 
     let camera_offset = vel_ratio * (CAMERA_OFFSET_MAX - CAMERA_OFFSET_MIN) + CAMERA_OFFSET_MIN;
 
-    // let vel_old = player_velocity_old.value;
+    let vel_old = player_velocity_old.value;
 
     // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, rat = {vel_ratio}, camera_height={camera_height}");
+    // let diff = vel_old - player_velocity_new;
+
+    // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, diff = {diff}");
 
     player_velocity_old.value = vel_ratio;
 
