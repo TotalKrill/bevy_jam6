@@ -80,14 +80,16 @@ fn fire_bullet_event_handler(
     }
 }
 
+pub const BULLET_SPEED: f32 = 75.;
+
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(
-    apples: Query<&Transform, With<Apple>>,
+    apples: Query<(&Transform, &LinearVelocity), With<Apple>>,
     mut split_event: EventReader<BulletSplitEvent>,
     mut spawn_writer: EventWriter<BulletSpawnEvent>,
 ) {
     for evt in split_event.read() {
-        for apple in apples
+        for (apple_t, apple_v) in apples
             .iter()
             .sort_by::<&Transform>(|t1, t2| {
                 t1.translation
@@ -96,13 +98,16 @@ fn bullet_split_event_handler(
             })
             .take(2)
         {
-            if let Ok(dir) = (apple.translation - evt.center).normalize().try_into() {
+            let apple_target = apple_t.translation
+                + apple_v.0 * (apple_t.translation.distance(evt.center) / BULLET_SPEED);
+
+            if let Ok(dir) = (apple_target - evt.center).normalize().try_into() {
                 info!("Spawning new bullet!");
                 spawn_writer.write(BulletSpawnEvent {
                     at: evt.center + dir * APPLE_RADIUS,
                     dir,
                     bullet: evt.bullet.clone(),
-                    speed: 50.,
+                    speed: BULLET_SPEED,
                 });
             }
         }
