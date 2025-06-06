@@ -58,41 +58,42 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<SeedSpawnEvent>();
     app.init_resource::<SeedAssets>();
 
-    app.add_observer(spawn_seeds);
-    app.add_systems(Update, despawn_seeds.in_set(PausableSystems));
+    app.add_systems(Update, (spawn_seeds, despawn_seeds).in_set(PausableSystems));
 }
 
 fn spawn_seeds(
-    trigger: Trigger<SeedSpawnEvent>,
+    mut events: EventReader<SeedSpawnEvent>,
     mut commands: Commands,
     seedasset: Res<SeedAssets>,
 ) {
-    let position = trigger.position + Vec3::new(0., 0.1, 0.);
+    for event in events.read() {
+        let position = event.position + Vec3::new(0., 0.1, 0.);
 
-    for vel in [
-        Vec3::new(5., 5., 5.),
-        Vec3::new(5., 5., -5.),
-        Vec3::new(-5., 5., 5.),
-        Vec3::new(-5., 5., -5.),
-    ]
-    .into_iter()
-    {
-        commands.spawn((
-            Name::new("Seed"),
-            Health::new(1.0),
-            Mass(0.1),
-            Seed {
-                timer: Timer::new(Duration::from_secs(SEED_DESPAWN_TIME_SEC), TimerMode::Once),
-            },
-            ReplaceOnHotreload,
-            Mesh3d(seedasset.mesh.clone()),
-            MeshMaterial3d(seedasset.material.clone()),
-            RigidBody::Dynamic,
-            Collider::sphere(SEED_RADIUS),
-            Transform::from_translation(position),
-            LinearVelocity(vel),
-            LinearDamping(2.0),
-        ));
+        for vel in [
+            Vec3::new(5., 5., 5.),
+            Vec3::new(5., 5., -5.),
+            Vec3::new(-5., 5., 5.),
+            Vec3::new(-5., 5., -5.),
+        ]
+        .into_iter()
+        {
+            commands.spawn((
+                Name::new("Seed"),
+                Health::new(1.0),
+                Mass(0.1),
+                Seed {
+                    timer: Timer::new(Duration::from_secs(SEED_DESPAWN_TIME_SEC), TimerMode::Once),
+                },
+                ReplaceOnHotreload,
+                Mesh3d(seedasset.mesh.clone()),
+                MeshMaterial3d(seedasset.material.clone()),
+                RigidBody::Dynamic,
+                Collider::sphere(SEED_RADIUS),
+                Transform::from_translation(position),
+                LinearVelocity(vel),
+                LinearDamping(2.0),
+            ));
+        }
     }
 }
 

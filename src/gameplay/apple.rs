@@ -1,5 +1,6 @@
 use crate::PausableSystems;
 use crate::gameplay::health::{Death, Health};
+use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::seed::SeedSpawnEvent;
 use crate::{
     ReplaceOnHotreload,
@@ -8,7 +9,6 @@ use crate::{
 };
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
-use crate::gameplay::level::TERRAIN_HEIGHT;
 
 #[derive(Component)]
 pub struct Apple;
@@ -51,9 +51,10 @@ fn spawn_apple_event_handler(
             .observe(
                 |trigger: Trigger<Death>,
                  mut commands: Commands,
+                 mut eventwriter: EventWriter<SeedSpawnEvent>,
                  query: Query<(Entity, &Transform), With<Apple>>| {
                     if let Ok(apple) = query.get(trigger.target()) {
-                        commands.trigger(SeedSpawnEvent::new(apple.1.translation));
+                        eventwriter.write(SeedSpawnEvent::new(apple.1.translation));
                     }
 
                     commands
