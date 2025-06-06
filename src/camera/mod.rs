@@ -1,5 +1,5 @@
-use crate::gameplay::tractor::Tractor;
-use avian3d::prelude::RayCaster;
+use crate::gameplay::tractor::{TRACTOR_MAX_SPEED, Tractor};
+use avian3d::prelude::{LinearVelocity, RayCaster};
 use bevy::core_pipeline::bloom::Bloom;
 use bevy::prelude::*;
 use bevy_atmosphere::prelude::*;
@@ -12,8 +12,20 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (move_gameplay_camera, toggle_camera));
 }
 
+const CAMERA_DECAY_RATE: f32 = 15.0;
+const CAMERA_HEIGHT_MIN: f32 = 30.0; // Height above the player
+const CAMERA_HEIGHT_MAX: f32 = 60.0; // Height above the player
+const CAMERA_OFFSET_MIN: f32 = 20.0; // How far back the camera sits from the player
+const CAMERA_OFFSET_MAX: f32 = 30.0; // How far back the camera sits from the player
+const CAMERA_ANGLE: f32 = -65.0; // Looking down at an angle (in degrees)
+const VELOCITY_FILTER_WEIGHT: f32 = 0.30;
 #[derive(Component)]
 pub struct GameplayCamera;
+
+#[derive(Default)]
+struct PlayerVelocity {
+    value: f32,
+}
 
 pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
@@ -32,18 +44,39 @@ pub fn spawn_camera(mut commands: Commands) {
     ));
 }
 
-pub fn move_gameplay_camera(
+fn move_gameplay_camera(
     mut camera: Single<&mut Transform, (With<GameplayCamera>, Without<Tractor>)>,
-    player: Single<&Transform, (With<Tractor>, Without<GameplayCamera>)>,
+    player: Single<(&Transform, &LinearVelocity), (With<Tractor>, Without<GameplayCamera>)>,
     time: Res<Time>,
+    mut player_velocity_old: Local<PlayerVelocity>,
 ) {
-    const CAMERA_DECAY_RATE: f32 = 10.0;
-    const CAMERA_HEIGHT: f32 = 29.0; // Height above the player
-    const CAMERA_OFFSET: f32 = 20.0; // How far back the camera sits from the player
-    const CAMERA_ANGLE: f32 = -60.0; // Looking down at an angle (in degrees)
+    
+    // TODO Sample event N millisecond?
+    // TODO Higher order low pass filtering?
 
-    let Vec3 { x, z, .. } = player.translation; // Use x and z for horizontal movement
-    let target_position = Vec3::new(x, CAMERA_HEIGHT, z + CAMERA_OFFSET);
+    let (transform, velocity) = player.into_inner();
+
+    let Vec3 { x, z, .. } = transform.translation; // Use x and z for horizontal movement
+
+    let player_velocity_new = velocity.length() / TRACTOR_MAX_SPEED;
+
+    let vel_ratio = VELOCITY_FILTER_WEIGHT
+        * player_velocity_new
+        + (1.0 - VELOCITY_FILTER_WEIGHT)
+        * player_velocity_old.value;
+
+
+    let camera_height = vel_ratio * (CAMERA_HEIGHT_MAX - CAMERA_HEIGHT_MIN) + CAMERA_HEIGHT_MIN;
+
+    let camera_offset = vel_ratio * (CAMERA_OFFSET_MAX - CAMERA_OFFSET_MIN) + CAMERA_OFFSET_MIN;
+
+    // let vel_old = player_velocity_old.value;
+
+    // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, rat = {vel_ratio}, camera_height={camera_height}");
+
+    player_velocity_old.value = player_velocity_new;
+
+    let target_position = Vec3::new(x, camera_height, z + camera_offset);
 
     camera
         .translation
