@@ -2,7 +2,8 @@ use avian3d::prelude::*;
 
 use crate::gameplay::health::{Death, Health};
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
-
+use crate::gameplay::apple::Apple;
+use crate::gameplay::level::TERRAIN_HEIGHT;
 use super::*;
 
 pub const TRACTOR_WIDTH: f32 = 1.0;
@@ -15,6 +16,8 @@ pub const WHEEL_RADIE: f32 = 0.4;
 
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
+    
+    app.add_systems(Update, kill_tractor_below_map);
 
     // add meshes to wheels
     app.add_observer(
@@ -217,4 +220,15 @@ pub fn wheel(radius: f32, pos: Vec3) -> impl Bundle {
             ..default()
         },
     )
+}
+
+fn kill_tractor_below_map(
+    mut commands: Commands,
+    query: Query<(Entity, &Transform), With<Tractor>>,
+) {
+    for (entity, transform) in query.iter() {
+        if transform.translation.y < -2. * TERRAIN_HEIGHT {
+            commands.entity(entity).despawn();
+        }
+    }
 }
