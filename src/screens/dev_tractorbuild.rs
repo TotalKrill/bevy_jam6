@@ -1,3 +1,5 @@
+use avian3d::math::PI;
+use bevy::pbr::CascadeShadowConfigBuilder;
 use super::*;
 use crate::gameplay::{
     level,
@@ -37,6 +39,7 @@ fn setup_devscreen(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
+    asset_server: Res<AssetServer>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
@@ -59,13 +62,32 @@ fn setup_devscreen(
         ),
     );
 
+    // Spawn the Sun
+    commands.spawn((
+        DirectionalLight {
+            illuminance: light_consts::lux::OVERCAST_DAY,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0.0, 10.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        // CascadeShadowConfigBuilder {
+        //     first_cascade_far_bound: 4.0,
+        //     maximum_distance: 10.0,
+        //     ..default()
+        // }.build(),
+    ));
+
     /// ui
     use crate::gameplay::hud::*;
     spawn_hud(&mut commands);
 
     commands.spawn((
         StateScoped(Screen::TractorBuild),
-        level::level(meshes, materials),
+        level::level(world_assets, meshes, materials),
     ));
 
     commands.spawn(PerfUiAllEntries::default());

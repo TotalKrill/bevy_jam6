@@ -1,6 +1,6 @@
 use avian3d::prelude::*;
 pub use bevy::{color::palettes::css::*, prelude::*};
-
+use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use crate::{
     asset_tracking::LoadResource,
     gameplay::{health::Death, tractor::Tractor},
@@ -32,14 +32,31 @@ use bevy_simple_subsecond_system::hot;
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct WorldAssets {
-    pub ground: Handle<Scene>,
+    pub ground: Handle<Image>,
 }
 
 impl FromWorld for WorldAssets {
     fn from_world(world: &mut World) -> Self {
         let assets: &AssetServer = world.resource::<AssetServer>();
+        let path = "models/map/Grass_04-512x512.png";
         Self {
-            ground: assets.load(GltfAssetLabel::Scene(0).from_asset("models/map/map.glb")),
+
+            // ground: assets.load(path)
+
+            ground: assets.load_with_settings(
+                path,
+                |s: &mut _| {
+                    *s = ImageLoaderSettings {
+                        sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                            // rewriting mode to repeat image,
+                            address_mode_u: ImageAddressMode::Repeat,
+                            address_mode_v: ImageAddressMode::Repeat,
+                            ..default()
+                        }),
+                        ..default()
+                    }
+                },
+            )
         }
     }
 }
