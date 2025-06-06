@@ -9,15 +9,17 @@ use rand::Rng;
 use std::collections::HashSet;
 
 pub fn plugin(app: &mut App) {
-    app.add_event::<Damage>().add_event::<Death>().add_systems(
-        Update,
-        (
-            damage_health.run_if(in_state(Screen::InGame)),
-            damage_tractor.run_if(in_state(Screen::InGame)),
-            bullet_apple_collision_damage.run_if(in_state(Screen::InGame)),
-        )
-            .in_set(PausableSystems),
-    );
+    app.add_event::<DamageEvent>()
+        .add_event::<Death>()
+        .add_systems(
+            Update,
+            (
+                damage_health.run_if(in_state(Screen::InGame)),
+                damage_tractor.run_if(in_state(Screen::InGame)),
+                bullet_apple_collision_damage.run_if(in_state(Screen::InGame)),
+            )
+                .in_set(PausableSystems),
+        );
 }
 
 #[derive(Component, Debug)]
@@ -39,7 +41,7 @@ impl Health {
 }
 
 #[derive(Event, Debug)]
-pub struct Damage {
+pub struct DamageEvent {
     pub value: f32,
     pub entity: Entity,
 }
@@ -49,7 +51,7 @@ pub struct Death;
 
 fn damage_health(
     mut commands: Commands,
-    mut event_reader: EventReader<Damage>,
+    mut event_reader: EventReader<DamageEvent>,
     mut query: Query<(Entity, &mut Health), With<Health>>,
 ) {
     for event in event_reader.read() {
@@ -71,7 +73,7 @@ fn damage_tractor(
     mut collision_event_reader: EventReader<CollisionStarted>,
     tractor: Single<(Entity, &LeftWheels, &RightWheels), With<Tractor>>,
     apples: Query<Entity, With<Apple>>,
-    mut event_writer: EventWriter<Damage>,
+    mut event_writer: EventWriter<DamageEvent>,
 ) {
     let (tractor, left, right) = *tractor;
 
@@ -84,12 +86,12 @@ fn damage_tractor(
         for (apple_candidate, tractor_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
             if tractor_entities.contains(&tractor_candidate) {
                 if let Ok(apple) = apples.get(apple_candidate) {
-                    event_writer.write(Damage {
+                    event_writer.write(DamageEvent {
                         value: 100.0,
                         entity: apple,
                     });
 
-                    event_writer.write(Damage {
+                    event_writer.write(DamageEvent {
                         value: 1.0,
                         entity: tractor,
                     });
@@ -107,7 +109,7 @@ fn bullet_apple_collision_damage(
     mut collision_event_reader: EventReader<CollisionStarted>,
     bullets: Query<(Entity, &Bullet)>,
     apples: Query<(Entity, &Transform), With<Apple>>,
-    mut event_writer: EventWriter<Damage>,
+    mut event_writer: EventWriter<DamageEvent>,
     mut bullet_split: EventWriter<BulletSplitEvent>,
 ) {
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
@@ -115,7 +117,7 @@ fn bullet_apple_collision_damage(
             if let (Ok((apple, apple_t)), Ok((_bullet_e, bullet))) =
                 (apples.get(apple_candidate), bullets.get(bullet_candidate))
             {
-                event_writer.write(Damage {
+                event_writer.write(DamageEvent {
                     value: bullet.damage,
                     entity: apple,
                 });

@@ -64,7 +64,9 @@ impl Plugin for AppPlugin {
             app.add_plugins(AtmospherePlugin);
         }
 
+        app.add_plugins(bevy_tween::DefaultTweenPlugins);
         app.add_plugins(PhysicsPlugins::default());
+
         app.add_plugins(PhysicsDebugPlugin::default());
         // Overwrite default debug rendering configuration so its off (optional)
         app.insert_gizmo_config(PhysicsGizmos::none(), GizmoConfig::default());
