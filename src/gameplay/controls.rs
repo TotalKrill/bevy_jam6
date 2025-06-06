@@ -128,7 +128,6 @@ fn tractor_move(
     let mut wheels_on_ground = 0;
 
     for wheel in wheels.iter() {
-        // TODO: check why contact_graph.get is not working here
         if let Some(collision) = collisions.get(*ground_entity, wheel) {
             if collision.is_touching() {
                 wheels_on_ground += 1;
@@ -146,7 +145,9 @@ fn tractor_move(
     let apply_force = -trigger.value.z * time.delta_secs() * TRACTOR_ACCELERATION;
     let forward = transform.forward().normalize();
 
-    force.set_force(forward * apply_force);
+    let down_force = -transform.up() * TRACTOR_ACCELERATION * time.delta_secs();
+
+    force.set_force(forward * apply_force + down_force);
 
     angular_velocity.x =
         -transform.up().x * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
