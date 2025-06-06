@@ -1,4 +1,5 @@
 use crate::PausableSystems;
+use crate::asset_tracking::LoadResource;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
@@ -21,6 +22,21 @@ pub struct AppleSpawnEvent {
     pub radius: f32,
 }
 
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct AppleAssets {
+    apple: Handle<Scene>,
+}
+
+impl FromWorld for AppleAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets: &AssetServer = world.resource::<AssetServer>();
+        Self {
+            apple: assets.load(GltfAssetLabel::Scene(0).from_asset("models/apple/apple.glb")),
+        }
+    }
+}
+
 pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_SPAWN_RADIUS: f32 = 10.0;
 const APPLE_FORCE_SCALAR: f32 = 10.0; // Rate at which the apple want to get to the player
@@ -28,8 +44,7 @@ const APPLE_FORCE_SCALAR: f32 = 10.0; // Rate at which the apple want to get to 
 fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    assets: Res<AppleAssets>,
 ) {
     for event in events.read() {
         let radii = rand::random::<f32>() * event.max_radius;
@@ -44,8 +59,7 @@ fn spawn_apple_event_handler(
                 Name::new("Apple"),
                 Health::new(1.0),
                 ReplaceOnHotreload,
-                Mesh3d(meshes.add(Sphere::new(event.radius))),
-                MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
+                SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
                 Transform::from_translation(position),
@@ -110,6 +124,8 @@ fn despawn_apples_below_map(
 
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding apple plugin");
+    app.load_resource::<AppleAssets>();
+
     app.add_event::<AppleSpawnEvent>();
     app.add_systems(
         Update,

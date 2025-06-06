@@ -40,11 +40,7 @@ fn check_saw_colitions(
     }
 }
 
-fn check_sawable_timers(
-    mut sawables: Query<&mut Sawable>,
-    time: Res<Time>,
-    saw: Single<&TractorSaw>,
-) {
+fn check_sawable_timers(mut sawables: Query<&mut Sawable>, time: Res<Time>) {
     for mut sawable in sawables.iter_mut() {
         sawable.timer.tick(time.delta());
     }
