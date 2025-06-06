@@ -1,11 +1,11 @@
-use avian3d::prelude::*;
-pub use bevy::{color::palettes::css::*, prelude::*};
-use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 use crate::{
     asset_tracking::LoadResource,
     gameplay::{health::Death, tractor::Tractor},
     menus::Menu,
 };
+use avian3d::prelude::*;
+use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
+pub use bevy::{color::palettes::css::*, prelude::*};
 //all the gameplay stuff
 
 /// Event that is triggered when the game is over!
@@ -16,6 +16,7 @@ pub mod apple;
 pub mod bullet;
 pub mod controls;
 pub mod health;
+pub mod saw;
 pub mod score;
 pub mod tractor;
 pub mod tree;
@@ -40,23 +41,18 @@ impl FromWorld for WorldAssets {
         let assets: &AssetServer = world.resource::<AssetServer>();
         let path = "models/map/Grass_04-512x512.png";
         Self {
-
             // ground: assets.load(path)
-
-            ground: assets.load_with_settings(
-                path,
-                |s: &mut _| {
-                    *s = ImageLoaderSettings {
-                        sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
-                            // rewriting mode to repeat image,
-                            address_mode_u: ImageAddressMode::Repeat,
-                            address_mode_v: ImageAddressMode::Repeat,
-                            ..default()
-                        }),
+            ground: assets.load_with_settings(path, |s: &mut _| {
+                *s = ImageLoaderSettings {
+                    sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                        // rewriting mode to repeat image,
+                        address_mode_u: ImageAddressMode::Repeat,
+                        address_mode_v: ImageAddressMode::Repeat,
                         ..default()
-                    }
-                },
-            )
+                    }),
+                    ..default()
+                }
+            }),
         }
     }
 }
@@ -87,4 +83,5 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(health::plugin);
     app.add_plugins(tree::plugin);
     app.add_plugins(score::plugin);
+    app.add_plugins(saw::plugin);
 }

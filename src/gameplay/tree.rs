@@ -4,6 +4,8 @@ use std::time::Duration;
 
 use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
+use crate::gameplay::health::*;
+use crate::gameplay::saw::Sawable;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 
@@ -90,20 +92,29 @@ fn spawn_tree(
                 hit.distance
             );
 
-            commands.spawn((
-                Name::new("Tree"),
-                Tree {
-                    apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
-                    last_apple_spawn: 0.0,
-                },
-                StateScoped(Screen::InGame),
-                ReplaceOnHotreload,
-                SceneRoot(tree_assets.tree.clone()),
-                ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
-                RigidBody::Static,
-                Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
-                Transform::from_translation(position),
-            ));
+            commands
+                .spawn((
+                    Name::new("Tree"),
+                    Tree {
+                        apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
+                        last_apple_spawn: 0.0,
+                    },
+                    Sawable::default(),
+                    Health::new(1.0),
+                    StateScoped(Screen::InGame),
+                    ReplaceOnHotreload,
+                    SceneRoot(tree_assets.tree.clone()),
+                    ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
+                    RigidBody::Static,
+                    Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
+                    Transform::from_translation(position),
+                ))
+                .observe(|trigger: Trigger<Death>, mut commands: Commands| {
+                    commands
+                        .get_entity(trigger.target().entity())
+                        .unwrap()
+                        .despawn();
+                });
         }
     }
 }

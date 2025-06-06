@@ -1,10 +1,12 @@
+use std::time::Duration;
+
 use avian3d::prelude::*;
 
-use crate::gameplay::health::{Death, Health};
-use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
-use crate::gameplay::apple::Apple;
-use crate::gameplay::level::TERRAIN_HEIGHT;
 use super::*;
+use crate::gameplay::apple::Apple;
+use crate::gameplay::health::{Death, Health};
+use crate::gameplay::level::TERRAIN_HEIGHT;
+use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
 
 pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
@@ -13,6 +15,8 @@ pub const TRACTOR_LENGTH: f32 = 4.0;
 pub const TRACTOR_MAX_SPEED: f32 = 15.0;
 
 pub const WHEEL_RADIE: f32 = 0.4;
+pub const SAW_DEFAULT_RRATE_OF_FIRE: Duration = Duration::from_millis(500);
+pub const SAW_DEFAULT_DAMAGE: f32 = 1.0;
 
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
@@ -56,6 +60,7 @@ pub struct RightWheels(Vec<Entity>);
 pub struct TractorAssets {
     tractor: Handle<Scene>,
     wheelball: Handle<Scene>,
+    saw: Handle<Scene>,
 }
 
 impl FromWorld for TractorAssets {
@@ -65,6 +70,7 @@ impl FromWorld for TractorAssets {
             tractor: assets
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
             wheelball: assets.load(GltfAssetLabel::Scene(0).from_asset("models/wheelball.glb")),
+            saw: assets.load(GltfAssetLabel::Scene(0).from_asset("models/saw/saw.glb")),
         }
     }
 }
@@ -74,6 +80,12 @@ pub struct Wheel;
 
 #[derive(Component)]
 pub struct Tractor;
+
+#[derive(Component)]
+pub struct TractorSaw {
+    pub rate_of_fire: Duration,
+    pub damage: f32,
+}
 
 pub fn spawn_tractor<T: Bundle>(
     commands: &mut Commands,
@@ -105,6 +117,8 @@ pub fn spawn_tractor<T: Bundle>(
             ),
         ))
         .id();
+
+    tractor_saw(assets, tractor_id, commands);
 
     let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.2 + WHEEL_RADIE;
     let wheel_offset_z = TRACTOR_LENGTH / 2.0 - WHEEL_RADIE - 0.2;
@@ -206,6 +220,34 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
+pub fn tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
+    let saw_pos = Vec3::new(
+        -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE),
+        0.0,
+        -(TRACTOR_LENGTH / 2.0),
+    );
+    let saw = commands
+        .spawn((
+            TractorSaw {
+                rate_of_fire: SAW_DEFAULT_RRATE_OF_FIRE,
+                damage: SAW_DEFAULT_DAMAGE,
+            },
+            ReplaceOnHotreload,
+            CollisionEventsEnabled,
+            Name::new("TractorSaw"),
+            RigidBody::Dynamic,
+            SceneRoot(assets.saw.clone()),
+            Transform::from_translation(saw_pos),
+            Collider::cuboid((TRACTOR_WIDTH + WHEEL_RADIE * 2.0) * 2. + 2.0, 0.5, 0.5),
+        ))
+        .id();
+
+    commands.spawn(
+        FixedJoint::new(tractor_id, saw)
+            .with_local_anchor_1(saw_pos)
+            .with_local_anchor_2(Vec3::ZERO),
+    );
+}
 pub fn wheel(radius: f32, pos: Vec3) -> impl Bundle {
     (
         Name::new("Wheel"),
