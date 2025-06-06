@@ -10,7 +10,18 @@ use crate::{
     screens::*,
 };
 use avian3d::prelude::*;
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::prelude::*;
+
+pub const APPLE_RADIUS: f32 = 1.0;
+const APPLE_SPAWN_RADIUS: f32 = 10.0;
+// const APPLE_FORCE_SCALAR: f32 = 10.0; // value used before refactor to using APPLE_DAMAGE_MIN and APPLE_DAMAGE_MAX
+
+const APPLE_HEALTH_MIN: f32 = 1.0;
+const APPLE_HEALTH_MAX: f32 = 10.0;
+const APPLE_DAMAGE_MIN: f32 = 1.0;
+const APPLE_DAMAGE_MAX: f32 = 10.0;
+const APPLE_SPEED_MIN: f32 = 2.0;
+const APPLE_SPEED_MAX: f32 = 40.0;
 
 #[derive(Component)]
 pub struct Apple;
@@ -20,7 +31,7 @@ pub struct AppleSpawnEvent {
     pub position: Vec3,
     pub max_radius: f32,
     pub radius: f32,
-    pub apple_strength: AppleStrength
+    pub apple_strength: AppleStrength,
 }
 
 #[derive(Component, Clone, Debug)]
@@ -28,6 +39,21 @@ pub struct AppleStrength {
     pub health: f32,
     pub damage: f32,
     pub speed: f32,
+}
+
+impl AppleStrength {
+    pub fn new() -> Self {
+        Self {
+            health: APPLE_HEALTH_MIN,
+            damage: APPLE_DAMAGE_MIN,
+            speed: APPLE_SPEED_MIN,
+        }
+    }
+    pub fn increase(&mut self, tree_growth: f32) {
+        self.health = tree_growth * (APPLE_HEALTH_MAX - APPLE_HEALTH_MIN) + APPLE_HEALTH_MIN;
+        self.damage = tree_growth * (APPLE_DAMAGE_MAX - APPLE_DAMAGE_MIN) + APPLE_DAMAGE_MIN;
+        self.speed = tree_growth * (APPLE_SPEED_MAX - APPLE_SPEED_MIN) + APPLE_SPEED_MIN;
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -44,10 +70,6 @@ impl FromWorld for AppleAssets {
         }
     }
 }
-
-pub const APPLE_RADIUS: f32 = 1.0;
-const APPLE_SPAWN_RADIUS: f32 = 10.0;
-const APPLE_FORCE_SCALAR: f32 = 10.0; // Rate at which the apple want to get to the player
 
 fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
@@ -92,12 +114,12 @@ fn spawn_apple_event_handler(
 }
 
 fn apply_apple_force(
-    mut query: Query<(&mut ExternalForce, &Transform), With<Apple>>,
+    mut query: Query<(&mut ExternalForce, &Transform, &AppleStrength), With<Apple>>,
     tractor: Single<&Transform, With<Tractor>>,
 ) {
-    for (mut apple_force, apple_transform) in query.iter_mut() {
+    for (mut apple_force, apple_transform, apple_strength) in query.iter_mut() {
         let force =
-            (tractor.translation - apple_transform.translation).normalize() * APPLE_FORCE_SCALAR;
+            (tractor.translation - apple_transform.translation).normalize() * apple_strength.speed;
 
         apple_force.set_force(force);
     }

@@ -128,11 +128,7 @@ fn spawn_tree(
                     },
                     Sawable::default(),
                     Health::new(TREE_HEALTH_MIN),
-                    AppleStrength {
-                        health: 1.0,
-                        damage: 10.0,
-                        speed: 1.0,
-                    },
+                    AppleStrength::new(),
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
@@ -167,17 +163,20 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
     }
 }
 
-fn increase_tree_strength(time: Res<Time>, mut trees: Query<(&mut Health, &mut Tree)>) {
-    for (mut health, mut tree) in trees.iter_mut() {
+fn increase_tree_strength(time: Res<Time>, mut trees: Query<((&mut Health, &mut AppleStrength), &mut Tree)>) {
+    for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
 
         if health.current == health.max {
             if tree.timer.elapsed_secs() as u64 % TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC == 0 {
-                let new_health = tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32
-                    * (TREE_HEALTH_MAX - TREE_HEALTH_MIN)
-                    + TREE_HEALTH_MIN;
+
+                let tree_growth = tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32;
+
+                let new_health = tree_growth  * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) + TREE_HEALTH_MIN;
                 health.current = new_health;
                 health.max = new_health;
+
+                apple_strength.increase(tree_growth);
             }
         }
 
