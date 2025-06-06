@@ -116,7 +116,7 @@ fn spawn_tree(
                         last_apple_spawn: 0.0,
                     },
                     Sawable::default(),
-                    Health::new(1.0),
+                    Health::new(5.0),
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),

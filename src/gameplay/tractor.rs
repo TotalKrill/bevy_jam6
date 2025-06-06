@@ -238,7 +238,7 @@ pub fn tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Co
             RigidBody::Dynamic,
             SceneRoot(assets.saw.clone()),
             Transform::from_translation(saw_pos),
-            Collider::cuboid((TRACTOR_WIDTH + WHEEL_RADIE * 2.0) * 2.0 - 2.0, 0.5, 0.5),
+            Collider::cuboid((TRACTOR_WIDTH + WHEEL_RADIE * 2.0) * 2.0 - 1.0, 0.5, 0.5),
         ))
         .id();
 
