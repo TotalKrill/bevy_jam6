@@ -14,7 +14,7 @@ use crate::{
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-const APPLE_MASS = 1.0;
+const APPLE_MASS: f32 = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_HEALTH_MIN: f32 = 1.0;
 const APPLE_HEALTH_MAX: f32 = 10.0;
@@ -89,7 +89,7 @@ fn spawn_apple_event_handler(
         let towards_player =
             ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
 
-        println!(" * event.radius + 0.1: {:?}",   event.radius + 0.1);
+        println!(" * event.radius + 0.1: {:?}", event.radius + 0.1);
 
         commands
             .spawn((
@@ -104,7 +104,7 @@ fn spawn_apple_event_handler(
                 SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
-                Transform::from_translation(position).with_scale(Vec3::splat( event.radius + 0.2)),
+                Transform::from_translation(position).with_scale(Vec3::splat(event.radius + 0.2)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
             ))
             .observe(
@@ -148,7 +148,7 @@ fn spawn_apples(
             commands.send_event(AppleSpawnEvent {
                 tree: entity,
                 apple_strength: apple_strength.clone(),
-                radius: tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32
+                radius: tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32,
             });
         }
     }
