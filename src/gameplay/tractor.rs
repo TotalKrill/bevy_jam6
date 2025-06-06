@@ -16,7 +16,7 @@ pub const WHEEL_RADIE: f32 = 0.4;
 
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
-    
+
     app.add_systems(Update, kill_tractor_below_map);
 
     // add meshes to wheels
@@ -227,8 +227,8 @@ fn kill_tractor_below_map(
     query: Query<(Entity, &Transform), With<Tractor>>,
 ) {
     for (entity, transform) in query.iter() {
-        if transform.translation.y < -2. * TERRAIN_HEIGHT {
-            commands.entity(entity).despawn();
+        if transform.translation.y < -1. * TERRAIN_HEIGHT {
+            commands.trigger_targets(Death, entity);
         }
     }
 }

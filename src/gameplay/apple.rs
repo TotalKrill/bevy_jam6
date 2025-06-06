@@ -99,7 +99,7 @@ fn despawn_apples_below_map(
     query: Query<(Entity, &Transform), With<Apple>>,
 ) {
     for (entity, transform) in query.iter() {
-        if transform.translation.y < -2. * TERRAIN_HEIGHT {
+        if transform.translation.y < -1. * TERRAIN_HEIGHT {
             commands.entity(entity).despawn();
         }
     }
