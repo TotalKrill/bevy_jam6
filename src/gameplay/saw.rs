@@ -1,9 +1,5 @@
-use std::time::Duration;
-
-use bevy::state::commands;
-
 use crate::{
-    gameplay::{health::Damage, tractor::TractorSaw, tree::Tree},
+    gameplay::{health::Damage, tractor::TractorSaw},
     screens::Screen,
 };
 
@@ -24,16 +20,14 @@ impl Default for Sawable {
 
 fn saw_collition_started(
     mut collision_event_reader: EventReader<CollisionStarted>,
-    saw: Single<(Entity, &TractorSaw)>,
-    mut sawable: Query<(Entity, &mut Sawable)>,
+    saw_entity: Single<Entity, With<TractorSaw>>,
+    mut sawable: Query<&mut Sawable>,
 ) {
-    let (saw_entity, saw) = saw.into_inner();
-
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
-        if (*entity1 == saw_entity) || (*entity2 == saw_entity) {
-            if let Ok((sawable_entity, mut sawable)) = sawable.get_mut(*entity1) {
+        if (*entity1 == *saw_entity) || (*entity2 == *saw_entity) {
+            if let Ok(mut sawable) = sawable.get_mut(*entity1) {
                 sawable.timer.unpause();
-            } else if let Ok((sawable_entity, mut sawable)) = sawable.get_mut(*entity2) {
+            } else if let Ok(mut sawable) = sawable.get_mut(*entity2) {
                 sawable.timer.unpause();
             }
         }
@@ -42,16 +36,14 @@ fn saw_collition_started(
 
 fn saw_collition_ended(
     mut collision_event_reader: EventReader<CollisionEnded>,
-    saw: Single<(Entity, &TractorSaw)>,
-    mut sawable: Query<(Entity, &mut Sawable)>,
+    saw_entity: Single<Entity, With<TractorSaw>>,
+    mut sawable: Query<&mut Sawable>,
 ) {
-    let (saw_entity, saw) = saw.into_inner();
-
     for CollisionEnded(entity1, entity2) in collision_event_reader.read() {
-        if (*entity1 == saw_entity) || (*entity2 == saw_entity) {
-            if let Ok((sawable_entity, mut sawable)) = sawable.get_mut(*entity1) {
+        if (*entity1 == *saw_entity) || (*entity2 == *saw_entity) {
+            if let Ok(mut sawable) = sawable.get_mut(*entity1) {
                 sawable.timer.pause();
-            } else if let Ok((sawable_entity, mut sawable)) = sawable.get_mut(*entity2) {
+            } else if let Ok(mut sawable) = sawable.get_mut(*entity2) {
                 sawable.timer.pause();
             }
         }
@@ -68,7 +60,6 @@ fn check_sawable_timers(
         if sawable.timer.paused() {
             continue; // Skip if the timer is paused
         }
-        println!("Sawable timer tick for entity: {:?}", entity);
 
         sawable.timer.tick(time.delta());
         if sawable.timer.finished() {
@@ -76,8 +67,8 @@ fn check_sawable_timers(
             sawable.timer.reset();
 
             commands.send_event(Damage {
-                value: 1.0, // Example damage value
-                entity,
+                value: saw.damage,
+                entity: entity,
             });
         }
     }
