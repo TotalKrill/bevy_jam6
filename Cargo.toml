@@ -35,7 +35,6 @@ dirs = "6.0.0"
 
 bevy_atmosphere = "0.13.0"
 iyes_perf_ui = "0.5.0"
-bevy_tween = "0.8.0"
 bevy_ui_anchor = "0.7.0"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.

@@ -1,5 +1,5 @@
 use crate::{
-    gameplay::{health::Damage, tractor::TractorSaw},
+    gameplay::{health::DamageEvent, tractor::TractorSaw},
     screens::Screen,
 };
 
@@ -29,7 +29,7 @@ fn check_saw_colitions(
     for (sawable_entity, mut sawable) in sawables {
         if collisions.contains(sawable_entity, saw_entity) && sawable.timer.finished() {
             // Object is currently beeing damaged by the saw
-            commands.send_event(Damage {
+            commands.send_event(DamageEvent {
                 value: saw.damage,
                 entity: sawable_entity,
             });

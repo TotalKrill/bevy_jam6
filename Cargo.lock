@@ -1679,6 +1679,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_ui_anchor"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e53519558b026c750f352babbcfbbf3e4d4d23224f193cc8edcebbe908418c2e"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_utils"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4136,6 +4145,7 @@ dependencies = [
  "bevy_mod_lookat",
  "bevy_simple_subsecond_system",
  "bevy_tweening",
+ "bevy_ui_anchor",
  "dirs",
  "getrandom 0.3.3",
  "iyes_perf_ui",

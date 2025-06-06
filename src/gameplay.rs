@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     asset_tracking::LoadResource,
     gameplay::{health::Death, tractor::Tractor},
@@ -11,6 +13,18 @@ pub use bevy::{color::palettes::css::*, prelude::*};
 /// Event that is triggered when the game is over!
 #[derive(Event)]
 pub struct GameOver;
+
+#[derive(Component)]
+struct DespawnAfter(pub(super) Timer);
+
+impl DespawnAfter {
+    pub fn new(duration: Duration) -> Self {
+        Self(Timer::new(duration, TimerMode::Once))
+    }
+    pub fn millis(millis: u64) -> Self {
+        Self(Timer::new(Duration::from_millis(millis), TimerMode::Once))
+    }
+}
 
 pub mod apple;
 pub mod bullet;
@@ -29,8 +43,11 @@ pub mod hud;
 mod seed;
 
 pub mod damage_indicator {
+    use std::time::Duration;
+
     use crate::gameplay::health::DamageEvent;
     use bevy::prelude::*;
+    use bevy_tweening::{Animator, Tween, lens::TransformPositionLens};
     use bevy_ui_anchor::*;
 
     use super::*;
@@ -42,18 +59,51 @@ pub mod damage_indicator {
     #[derive(Component)]
     pub struct DamageIndicatorBase;
 
+    #[cfg_attr(feature = "dev_native", hot)]
     fn spawn_damage_indicators_on_event(
         mut commands: Commands,
         transforms: Query<&GlobalTransform>,
+        // mut meshes: ResMut<Assets<Mesh>>,
+        // mut materials: ResMut<Assets<StandardMaterial>>,
         mut damage_reader: EventReader<DamageEvent>,
     ) {
+        const DUR: u64 = 500;
         for damage in damage_reader.read() {
             if let Ok(position) = transforms.get(damage.entity) {
+                let dir: Vec3 = rand::random();
+                let len = 3.0;
+                let dir = dir.normalize() * len;
+                let tween = Tween::new(
+                    // Use a quadratic easing on both endpoints.
+                    EaseFunction::Linear,
+                    // Animation time (one way only; for ping-pong it takes 2 seconds
+                    // to come back to start).
+                    Duration::from_millis(DUR),
+                    // The lens gives the Animator access to the Transform component,
+                    // to animate it. It also contains the start and end values associated
+                    // with the animation ratios 0. and 1.
+                    TransformPositionLens {
+                        start: position.translation(),
+                        end: position.translation() + dir,
+                    },
+                );
+
                 commands.spawn((
                     Name::new("DamageIndicator"),
                     DamageIndicatorBase,
+                    Animator::new(tween),
+                    DespawnAfter::millis(DUR),
+                    //
+                    // Mesh3d(meshes.add(Sphere::new(1.0))),
+                    // MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
                     Transform::from_translation(position.translation()),
-                    AnchoredUiNodes::spawn_one(Text::new(format!("{}", damage.value))),
+                    Visibility::Visible,
+                    AnchoredUiNodes::spawn_one((
+                        DespawnAfter::millis(DUR),
+                        Name::new("DamageIndicatorUI"),
+                        Text::new(format!("{}", damage.value)),
+                        AnchorUiConfig::default(),
+                    )),
                 ));
             }
         }
@@ -103,6 +153,20 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(Update, to_gameover.run_if(on_event::<GameOver>));
 
+    app.add_systems(
+        Update,
+        |mut commands: Commands,
+         time: Res<Time>,
+         mut timers: Query<(Entity, &mut DespawnAfter)>| {
+            for (e, mut timer) in timers.iter_mut() {
+                timer.0.tick(time.delta());
+                if timer.0.just_finished() {
+                    commands.entity(e).despawn();
+                }
+            }
+        },
+    );
+
     app.add_plugins(controls::plugin);
     app.add_plugins(hud::hud_plugin);
     app.add_plugins(tractor::tractor_plugin);
@@ -114,5 +178,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(health::plugin);
     app.add_plugins(tree::plugin);
     app.add_plugins(score::plugin);
+    app.add_plugins(damage_indicator::plugin);
     app.add_plugins(saw::plugin);
 }
