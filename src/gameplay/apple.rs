@@ -5,7 +5,7 @@ use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
-use crate::gameplay::tree::TREE_STARTING_HEIGHT;
+use crate::gameplay::tree::{TREE_GROWTH_DURATION_SEC, TREE_STARTING_HEIGHT};
 use crate::{
     ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
@@ -14,6 +14,7 @@ use crate::{
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+const APPLE_MASS = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_HEALTH_MIN: f32 = 1.0;
 const APPLE_HEALTH_MAX: f32 = 10.0;
@@ -31,6 +32,7 @@ pub struct Apple;
 pub struct AppleSpawnEvent {
     pub tree: Entity,
     pub apple_strength: AppleStrength,
+    pub radius: f32,
 }
 
 #[derive(Component, Clone, Debug)]
@@ -87,6 +89,8 @@ fn spawn_apple_event_handler(
         let towards_player =
             ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
 
+        println!(" * event.radius + 0.1: {:?}",   event.radius + 0.1);
+
         commands
             .spawn((
                 Apple,
@@ -94,12 +98,13 @@ fn spawn_apple_event_handler(
                 Name::new("Apple"),
                 Health::new(event.apple_strength.health),
                 event.apple_strength.clone(),
+                Mass(APPLE_MASS),
                 ReplaceOnHotreload,
                 AnchoredUiNodes::spawn_one(healthbar(100.)),
                 SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
-                Transform::from_translation(position),
+                Transform::from_translation(position).with_scale(Vec3::splat( event.radius + 0.2)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
             ))
             .observe(
@@ -143,6 +148,7 @@ fn spawn_apples(
             commands.send_event(AppleSpawnEvent {
                 tree: entity,
                 apple_strength: apple_strength.clone(),
+                radius: tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32
             });
         }
     }
