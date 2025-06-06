@@ -16,10 +16,10 @@ use bevy::prelude::*;
 
 const APPLE_MASS: f32 = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
-const APPLE_HEALTH_MIN: f32 = 1.0;
-const APPLE_HEALTH_MAX: f32 = 10.0;
-const APPLE_DAMAGE_MIN: f32 = 1.0;
-const APPLE_DAMAGE_MAX: f32 = 10.0;
+const APPLE_HEALTH_MIN: u32 = 1;
+const APPLE_HEALTH_MAX: u32 = 10;
+const APPLE_DAMAGE_MIN: u32 = 1;
+const APPLE_DAMAGE_MAX: u32 = 10;
 const APPLE_SPEED_MIN: f32 = 2.0;
 const APPLE_SPEED_MAX: f32 = 40.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
@@ -37,8 +37,8 @@ pub struct AppleSpawnEvent {
 
 #[derive(Component, Clone, Debug)]
 pub struct AppleStrength {
-    pub health: f32,
-    pub damage: f32,
+    pub health: u32,
+    pub damage: u32,
     pub speed: f32,
 }
 
@@ -51,8 +51,8 @@ impl AppleStrength {
         }
     }
     pub fn increase(&mut self, tree_growth: f32) {
-        self.health = tree_growth * (APPLE_HEALTH_MAX - APPLE_HEALTH_MIN) + APPLE_HEALTH_MIN;
-        self.damage = tree_growth * (APPLE_DAMAGE_MAX - APPLE_DAMAGE_MIN) + APPLE_DAMAGE_MIN;
+        self.health = tree_growth as u32 * (APPLE_HEALTH_MAX - APPLE_HEALTH_MIN) + APPLE_HEALTH_MIN;
+        self.damage = tree_growth as u32 * (APPLE_DAMAGE_MAX - APPLE_DAMAGE_MIN) + APPLE_DAMAGE_MIN;
         self.speed = tree_growth * (APPLE_SPEED_MAX - APPLE_SPEED_MIN) + APPLE_SPEED_MIN;
     }
 }

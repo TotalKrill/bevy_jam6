@@ -25,15 +25,15 @@ pub fn plugin(app: &mut App) {
 
 #[derive(Component, Debug)]
 pub struct Health {
-    pub current: f32,
-    pub max: f32,
+    pub current: u32,
+    pub max: u32,
 }
 
 impl Health {
-    pub fn percentage(&self) -> f32 {
-        (self.current / self.max) * 100.
+    pub fn percentage(&self) -> u32 {
+        (self.current / self.max) * 100
     }
-    pub fn new(health: f32) -> Self {
+    pub fn new(health: u32) -> Self {
         Self {
             current: health,
             max: health,
@@ -43,7 +43,7 @@ impl Health {
 
 #[derive(Event, Debug)]
 pub struct DamageEvent {
-    pub value: f32,
+    pub value: u32,
     pub entity: Entity,
 }
 
@@ -58,13 +58,13 @@ fn damage_health(
     for event in event_reader.read() {
         for (entity, mut health) in query.iter_mut() {
             if event.entity == entity {
-                // println!("damage {entity}");
 
-                health.current -= event.value;
-
-                if health.current <= 0.0 {
+                if health.current <= event.value {
                     commands.trigger_targets(Death, entity);
+                } else {
+                    health.current -= event.value;    
                 }
+                
             }
         }
     }
@@ -88,7 +88,7 @@ fn damage_tractor(
             if tractor_entities.contains(&tractor_candidate) {
                 if let Ok((apple, apple_strength)) = apples.get(apple_candidate) {
                     event_writer.write(DamageEvent {
-                        value: 100.0,
+                        value: 100,
                         entity: apple,
                     });
 

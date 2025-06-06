@@ -23,10 +23,10 @@ const RANDOM_SPAWN_X_MAX: f32 = 150.0;
 const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
 const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
-const TREE_HEALTH_MIN: f32 = 1.0;
-const TREE_HEALTH_MAX: f32 = 10.0;
-pub const TREE_GROWTH_DURATION_SEC: u64 = 20;
-const TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC: u64 = 2;
+const TREE_HEALTH_MIN: u32 = 1;
+const TREE_HEALTH_MAX: u32 = 10;
+pub const TREE_GROWTH_DURATION_SEC: u64 = 180;
+const TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC: u64 = 10;
 
 #[derive(Component)]
 pub struct Tree {
@@ -177,7 +177,7 @@ fn increase_tree_strength(
                 let tree_growth = tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32;
 
                 let new_health =
-                    tree_growth * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) + TREE_HEALTH_MIN;
+                    ((tree_growth * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) as f32 ) + (TREE_HEALTH_MIN as f32)) as u32;
                 health.current = new_health;
                 health.max = new_health;
 
