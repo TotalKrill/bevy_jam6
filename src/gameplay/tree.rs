@@ -26,7 +26,7 @@ const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
 const TREE_GROWTH_DURATION_SEC: u64 = 180;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
-const TREE_HEALTH_INCREASE_TICK_INTERVAL_TICK: u64 = 3;
+const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 3;
 
 #[derive(Component)]
 pub struct Tree {
@@ -124,7 +124,7 @@ fn spawn_tree(
                         apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
                         last_apple_spawn: 0.0,
                         timer: Timer::new(
-                            Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_TICK),
+                            Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
                             TimerMode::Repeating,
                         ),
                     },
