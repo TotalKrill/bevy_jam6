@@ -93,7 +93,10 @@ fn toggle_camera(
                         max_size_per_pixel: 1e27, // The diameter of the observable universe is probably a good upper limit.
                         zoom_through_objects: true,
                     },
-                    orbit_constraint: OrbitConstraint::Free,
+                    orbit_constraint: OrbitConstraint::Fixed {
+                        up: Vec3::Y,
+                        can_pass_tdc: false,
+                    },
                     last_anchor_depth: -cam_trans.translation.length() as f64,
                     orthographic: projections::OrthographicSettings {
                         scale_to_near_clip: 1_000_f32, // Needed for SSAO to work in ortho

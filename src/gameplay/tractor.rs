@@ -11,7 +11,7 @@ pub const TRACTOR_LENGTH: f32 = 4.0;
 
 pub const TRACTOR_MAX_SPEED: f32 = 15.0;
 
-pub const WHEEL_RADIE: f32 = 0.9;
+pub const WHEEL_RADIE: f32 = 0.4;
 
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
@@ -95,25 +95,29 @@ pub fn spawn_tractor<T: Bundle>(
         .with_child(turret::turret(
             meshes,
             materials,
-            Vec3::new(0.0, tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE, 0.5),
+            Vec3::new(
+                0.0,
+                tractor::TRACTOR_HEIGHT / 2.0 + turret::BODY_RADIE + WHEEL_RADIE,
+                0.75,
+            ),
         ))
         .id();
 
-    let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.1 + WHEEL_RADIE;
-    let wheel_offset_z = TRACTOR_LENGTH / 2.0 + WHEEL_RADIE;
-    let wheel_offset_y = -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2.;
+    let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.2 + WHEEL_RADIE;
+    let wheel_offset_z = TRACTOR_LENGTH / 2.0 - WHEEL_RADIE - 0.2;
+    let wheel_offset_y = -TRACTOR_HEIGHT / 2.0 + WHEEL_RADIE / 2. + 0.1;
 
     let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, wheel_offset_z);
-    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
+    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 0.8);
 
     let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, wheel_offset_z);
-    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
+    left_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 0.8);
 
     let wheel_pos = Vec3::new(-wheel_offset_x, wheel_offset_y, -wheel_offset_z);
-    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
+    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 0.8);
 
     let wheel_pos = Vec3::new(wheel_offset_x, wheel_offset_y, -wheel_offset_z);
-    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 1.0);
+    right_wheel_with_joint(commands, ReplaceOnHotreload, tractor_id, wheel_pos, 0.8);
 
     tractor_id
 }
@@ -181,7 +185,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         CollisionEventsEnabled,
         children![(
             Transform {
-                translation: vec3(0., -TRACTOR_HEIGHT / 2. - 0.4, 0.),
+                translation: vec3(0.0, -TRACTOR_HEIGHT / 2. - 0.1, 0.2),
                 rotation: Quat::from_rotation_y(-90_f32.to_radians()),
                 ..default()
             },
@@ -189,8 +193,12 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
         ),],
         RigidBody::Dynamic,
         Health::new(5.),
-        CenterOfMass::new(0.0, -TRACTOR_HEIGHT / 2.0 - WHEEL_RADIE, 0.0),
-        Collider::cuboid(TRACTOR_WIDTH, TRACTOR_HEIGHT, TRACTOR_LENGTH),
+        CenterOfMass::new(0.0, -TRACTOR_HEIGHT / 2.0, 0.0),
+        Collider::cuboid(
+            TRACTOR_WIDTH,
+            TRACTOR_HEIGHT,
+            TRACTOR_LENGTH - WHEEL_RADIE * 2.,
+        ),
         CollidingEntities::default(),
     )
 }

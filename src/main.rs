@@ -41,6 +41,7 @@ impl Plugin for AppPlugin {
                     // This causes errors and even panics on web build on itch.
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
                     meta_check: AssetMetaCheck::Never,
+                    watch_for_changes_override: Some(true),
                     ..default()
                 })
                 .set(WindowPlugin {
@@ -124,7 +125,6 @@ impl Plugin for AppPlugin {
             .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
             .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
             .add_plugins(bevy::render::diagnostic::RenderDiagnosticsPlugin)
-
             .add_plugins(PerfUiPlugin);
     }
 }
