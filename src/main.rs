@@ -103,6 +103,7 @@ impl Plugin for AppPlugin {
             screens::plugin,
             theme::plugin,
             gameplay::plugin,
+            TweeningPlugin
         ));
 
         // Order new `AppSystems` variants by adding them here:
@@ -163,4 +164,5 @@ struct PausableSystems;
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::prelude::*;
+use bevy_tweening::TweeningPlugin;
 use iyes_perf_ui::PerfUiPlugin;

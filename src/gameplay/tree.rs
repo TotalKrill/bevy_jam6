@@ -1,7 +1,8 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use std::time::Duration;
-
+use bevy_tweening::{component_animator_system, AnimationSystem, Animator, Tween};
+use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
 use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
 use crate::gameplay::health::*;
@@ -92,6 +93,21 @@ fn spawn_tree(
                 hit.distance
             );
 
+            let tween = Tween::new(
+                // Use a quadratic easing on both endpoints.
+                EaseFunction::Linear,
+                // Animation time (one way only; for ping-pong it takes 2 seconds
+                // to come back to start).
+                Duration::from_secs(10),
+                // The lens gives the Animator access to the Transform component,
+                // to animate it. It also contains the start and end values associated
+                // with the animation ratios 0. and 1.
+                TransformScaleLens {
+                    start: Vec3::new(0.01, 0.01, 0.01),
+                    end: Vec3::new(3., 3., 3.),
+                },
+            );
+
             commands
                 .spawn((
                     Name::new("Tree"),
@@ -108,6 +124,7 @@ fn spawn_tree(
                     RigidBody::Static,
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform::from_translation(position),
+                    Animator::new(tween),
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
                     commands
@@ -153,6 +170,7 @@ pub(super) fn plugin(app: &mut App) {
                 .run_if(in_state(Screen::InGame))
                 .after(setup_gamescreen),
             spawn_tree_timer.run_if(in_state(Screen::InGame)),
+            component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate).run_if(in_state(Screen::InGame))
         )
             .in_set(PausableSystems),
     );
