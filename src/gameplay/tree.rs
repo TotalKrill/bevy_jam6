@@ -40,6 +40,7 @@ pub struct Tree {
 #[derive(Event)]
 pub struct TreeSpawnEvent {
     pub(crate) position: Vec2,
+    pub(crate) active: bool,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -89,6 +90,7 @@ fn spawn_tree(
         if hit.point.y < -500.0 {
             commands.send_event(TreeSpawnEvent {
                 position: event.position,
+                active: false,
             });
         } else {
             let position = vec3(
@@ -129,7 +131,7 @@ fn spawn_tree(
                             Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
                             TimerMode::Repeating,
                         ),
-                        active: false,
+                        active: event.active,
                     },
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
@@ -164,6 +166,7 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
 
         commands.send_event(TreeSpawnEvent {
             position: Vec2::new(x, z),
+            active: false,
         });
     }
 }
@@ -174,7 +177,7 @@ fn increase_tree_strength(
 ) {
     for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
-        
+
         if !tree.active && tree.timer.elapsed_secs() > TREE_ACTIVE_THRESHOLD_SEC {
             tree.active = true;
         }

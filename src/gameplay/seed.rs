@@ -108,6 +108,7 @@ fn despawn_seeds(
             if rand::random::<f32>() < SEED_SPAWN_TREE_PROBABILITY {
                 commands.send_event(TreeSpawnEvent {
                     position: Vec2::new(transform.translation.x, transform.translation.z),
+                    active: false,
                 });
             }
 

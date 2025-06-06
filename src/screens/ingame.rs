@@ -43,12 +43,15 @@ pub(super) fn plugin(app: &mut App) {
 pub fn spawn_startup_trees(commands: &mut Commands) {
     commands.send_event(TreeSpawnEvent {
         position: vec2(22.0, 20.0),
+        active: true,
     });
     commands.send_event(TreeSpawnEvent {
         position: vec2(-15.0, -10.0),
+        active: true,
     });
     commands.send_event(TreeSpawnEvent {
         position: vec2(34.0, -20.0),
+        active: true,
     });
 }
 
