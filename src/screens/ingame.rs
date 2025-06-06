@@ -1,14 +1,16 @@
 //! The screen state for the main gameplay.
 
 use crate::gameplay::{WorldAssets, tree::TreeSpawnEvent};
-use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
-use iyes_perf_ui::prelude::PerfUiAllEntries;
 use crate::{
     Pause,
     gameplay::tractor::{self, TractorAssets},
     menus::Menu,
     screens::Screen,
 };
+use avian3d::math::PI;
+use bevy::pbr::CascadeShadowConfigBuilder;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
+use iyes_perf_ui::prelude::PerfUiAllEntries;
 
 pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
@@ -97,6 +99,26 @@ pub fn setup_gamescreen(
     ));
 
     commands.spawn(PerfUiAllEntries::default());
+
+    // Spawn the Sun
+    commands.spawn((
+        DirectionalLight {
+            illuminance: light_consts::lux::OVERCAST_DAY,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }.build(),
+    ));
+
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
