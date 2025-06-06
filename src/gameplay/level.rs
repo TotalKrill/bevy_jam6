@@ -2,19 +2,19 @@ use super::*;
 use crate::ReplaceOnHotreload;
 use avian3d::prelude::{ColliderConstructor, Friction, RigidBody};
 use bevy::color::palettes::tailwind::{AMBER_800, GREEN_400};
+use bevy::math::Affine2;
 use bevy::render::mesh::VertexAttributeValues;
 use noise::{BasicMulti, NoiseFn, Perlin};
 
 #[derive(Component)]
 pub struct Ground;
 
-use super::*;
 const SEED: u32 = 1134;
-const TERRAIN_HEIGHT: f32 = 10.;
+const TERRAIN_HEIGHT: f32 = 20.;
 
 const PLANE_X_SIZE: f32 = 300.;
 const PLANE_Z_SIZE: f32 = 300.;
-const PLANE_SUB_DIVISION_COUNT: u32 = 100;
+const PLANE_SUB_DIVISION_COUNT: u32 = 200;
 
 fn create_plane() -> Mesh {
     Mesh::from(
@@ -73,19 +73,22 @@ fn create_terrain(mut terrain: Mesh) -> Mesh {
 }
 
 pub fn level(
+    world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) -> impl Bundle {
     let plane = create_plane();
     let terrain = create_terrain(plane);
 
+    let grass = world_assets.ground.clone();
+
     (
         ReplaceOnHotreload,
         ColliderConstructor::TrimeshFromMesh,
         Mesh3d(meshes.add(terrain)),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::WHITE,
-            perceptual_roughness: 0.9,
+            base_color_texture: Some(grass.clone()),
+            uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
             ..default()
         })),
         // TODO Where should we spawn the tractor?

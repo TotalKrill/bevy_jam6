@@ -67,6 +67,7 @@ pub fn setup_gamescreen(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
+    asset_server: Res<AssetServer>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
@@ -95,7 +96,7 @@ pub fn setup_gamescreen(
 
     commands.spawn((
         StateScoped(Screen::TractorBuild),
-        level::level(meshes, materials),
+        level::level(world_assets, meshes, materials),
     ));
 
     commands.spawn(PerfUiAllEntries::default());
