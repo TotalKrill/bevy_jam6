@@ -125,12 +125,12 @@ fn despawn_bullets(
 #[derive(Component, Clone)]
 pub struct Bullet {
     pub timer: Timer,
-    pub damage: f32,
+    pub damage: u32,
     pub split_probability: f32,
 }
 
 impl Bullet {
-    pub fn new(damage: f32, split_probability: f32) -> Self {
+    pub fn new(damage: u32, split_probability: f32) -> Self {
         Self {
             damage,
             split_probability,
@@ -140,7 +140,7 @@ impl Bullet {
     /// returns a bullet with half the values of the original
     pub fn half(&self) -> Self {
         Bullet {
-            damage: self.damage / 2.0,
+            damage: self.damage / 2,
             split_probability: self.split_probability / 2.0,
             timer: self.timer.clone(),
         }

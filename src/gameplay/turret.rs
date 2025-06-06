@@ -35,7 +35,7 @@ fn tick_and_fire_turret(
                 at: bullet_spawnpoint,
                 dir: forward,
                 speed: 50.,
-                bullet: Bullet::new(1., 1.0),
+                bullet: Bullet::new(1, 1.0),
             });
         }
     }

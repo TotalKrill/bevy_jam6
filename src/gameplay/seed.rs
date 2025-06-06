@@ -79,7 +79,7 @@ fn spawn_seeds(
         {
             commands.spawn((
                 Name::new("Seed"),
-                Health::new(1.0),
+                Health::new(1),
                 Mass(0.1),
                 Seed {
                     timer: Timer::new(Duration::from_secs(SEED_DESPAWN_TIME_SEC), TimerMode::Once),

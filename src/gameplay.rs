@@ -105,7 +105,7 @@ pub mod healthbars {
         health_entities: Query<(&AnchoredUiNodes, &Health), Changed<Health>>,
     ) {
         for (ui_nodes, health) in health_entities.iter() {
-            if health.percentage() < 99.9 {
+            if health.percentage() < 99 {
                 for uinode in ui_nodes.iter() {
                     if let Ok(mut nodes) = healthbars.get_mut(uinode) {
                         *nodes = Visibility::Visible;
@@ -126,7 +126,7 @@ pub mod healthbars {
             for children in healthbars.iter_many(ui_nodes.collection()) {
                 for child in children.collection() {
                     if let Ok(mut bar_node) = healthbar_bar.get_mut(*child) {
-                        bar_node.width = Val::Percent(percent);
+                        bar_node.width = Val::Percent(percent as f32);
                     }
                 }
             }

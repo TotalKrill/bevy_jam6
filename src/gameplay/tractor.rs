@@ -16,7 +16,7 @@ pub const TRACTOR_MAX_SPEED: f32 = 15.0;
 
 pub const WHEEL_RADIE: f32 = 0.4;
 pub const SAW_DEFAULT_RRATE_OF_FIRE: Duration = Duration::from_millis(500);
-pub const SAW_DEFAULT_DAMAGE: f32 = 1.0;
+pub const SAW_DEFAULT_DAMAGE: u32 = 1;
 
 pub fn tractor_plugin(app: &mut App) {
     app.load_resource::<TractorAssets>();
@@ -84,7 +84,7 @@ pub struct Tractor;
 #[derive(Component)]
 pub struct TractorSaw {
     pub rate_of_fire: Duration,
-    pub damage: f32,
+    pub damage: u32,
 }
 
 pub fn spawn_tractor<T: Bundle>(
@@ -209,7 +209,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
             SceneRoot(assets.tractor.clone()),
         ),],
         RigidBody::Dynamic,
-        Health::new(5.),
+        Health::new(5),
         CenterOfMass::new(0.0, -TRACTOR_HEIGHT / 2.0, 0.0),
         Collider::cuboid(
             TRACTOR_WIDTH,

@@ -23,10 +23,10 @@ const RANDOM_SPAWN_X_MAX: f32 = 150.0;
 const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
 const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
-const TREE_HEALTH_MIN: f32 = 1.0;
-const TREE_HEALTH_MAX: f32 = 10.0;
-pub const TREE_GROWTH_DURATION_SEC: u64 = 20;
-const TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC: u64 = 2;
+const TREE_GROWTH_DURATION_SEC: u64 = 180;
+const TREE_HEALTH_INIT: u32 = 1;
+const TREE_HEALTH_INCREASE_TICK: u32 = 1;
+const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 5;
 
 #[derive(Component)]
 pub struct Tree {
@@ -124,13 +124,13 @@ fn spawn_tree(
                         apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
                         last_apple_spawn: 0.0,
                         timer: Timer::new(
-                            Duration::from_secs(TREE_GROWTH_DURATION_SEC),
-                            TimerMode::Once,
+                            Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
+                            TimerMode::Repeating,
                         ),
                     },
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
-                    Health::new(TREE_HEALTH_MIN),
+                    Health::new(TREE_HEALTH_INIT),
                     AppleStrength::new(),
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
@@ -172,22 +172,15 @@ fn increase_tree_strength(
     for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
 
-        if health.current == health.max {
-            if tree.timer.elapsed_secs() as u64 % TREE_GROWTH_STRENGTH_INCREASE_INTERVAL_SEC == 0 {
-                let tree_growth = tree.timer.elapsed_secs() / TREE_GROWTH_DURATION_SEC as f32;
-
-                let new_health =
-                    tree_growth * (TREE_HEALTH_MAX - TREE_HEALTH_MIN) + TREE_HEALTH_MIN;
-                health.current = new_health;
-                health.max = new_health;
-
-                apple_strength.increase(tree_growth);
-            }
-        }
-
-        // if it finished, despawn the bomb
         if tree.timer.finished() {
-            // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
+            if health.current == health.max {
+                // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
+
+                health.current += TREE_HEALTH_INCREASE_TICK;
+                health.max = TREE_HEALTH_INCREASE_TICK;
+
+                apple_strength.increase();
+            }
         }
     }
 }

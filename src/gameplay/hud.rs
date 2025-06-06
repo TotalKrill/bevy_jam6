@@ -50,7 +50,7 @@ fn update_healthbar(
     mut healthbar: Single<&mut Node, With<Healthbar>>,
 ) {
     if let Ok(tractor) = tractor.single() {
-        healthbar.width = Val::Percent(tractor.percentage());
+        healthbar.width = Val::Percent(tractor.percentage() as f32);
     } else {
         healthbar.width = Val::Percent(0.);
     }
