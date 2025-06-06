@@ -141,7 +141,7 @@ fn spawn_apples(
 ) {
     let elapsed_time = time.elapsed_secs();
     for ((entity, apple_strength), mut tree) in query.iter_mut() {
-        if elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
+        if tree.active && elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
             tree.last_apple_spawn = elapsed_time;
             commands.send_event(AppleSpawnEvent {
                 tree: entity,

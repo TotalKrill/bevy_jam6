@@ -27,12 +27,14 @@ const TREE_GROWTH_DURATION_SEC: u64 = 180;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 10;
+const TREE_ACTIVE_THRESHOLD_SEC: f32 = 5.; // sec until tree starts spawning apples
 
 #[derive(Component)]
 pub struct Tree {
     pub apple_spawn_time_sec: f32,
     pub last_apple_spawn: f32,
     pub timer: Timer,
+    pub active: bool,
 }
 
 #[derive(Event)]
@@ -127,6 +129,7 @@ fn spawn_tree(
                             Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
                             TimerMode::Repeating,
                         ),
+                        active: false,
                     },
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
@@ -171,6 +174,10 @@ fn increase_tree_strength(
 ) {
     for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
+        
+        if !tree.active && tree.timer.elapsed_secs() > TREE_ACTIVE_THRESHOLD_SEC {
+            tree.active = true;
+        }
 
         if tree.timer.finished() {
             if health.current == health.max {
