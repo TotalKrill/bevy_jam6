@@ -16,6 +16,7 @@ pub mod apple;
 pub mod bullet;
 pub mod controls;
 pub mod health;
+pub mod level;
 pub mod saw;
 pub mod score;
 pub mod tractor;
@@ -26,6 +27,38 @@ pub mod turret_aiming;
 /// contains the heads up display during game;
 pub mod hud;
 mod seed;
+
+pub mod damage_indicator {
+    use crate::gameplay::health::DamageEvent;
+    use bevy::prelude::*;
+    use bevy_ui_anchor::*;
+
+    use super::*;
+
+    pub fn plugin(app: &mut App) {
+        app.add_systems(Update, spawn_damage_indicators_on_event);
+    }
+
+    #[derive(Component)]
+    pub struct DamageIndicatorBase;
+
+    fn spawn_damage_indicators_on_event(
+        mut commands: Commands,
+        transforms: Query<&GlobalTransform>,
+        mut damage_reader: EventReader<DamageEvent>,
+    ) {
+        for damage in damage_reader.read() {
+            if let Ok(position) = transforms.get(damage.entity) {
+                commands.spawn((
+                    Name::new("DamageIndicator"),
+                    DamageIndicatorBase,
+                    Transform::from_translation(position.translation()),
+                    AnchoredUiNodes::spawn_one(Text::new(format!("{}", damage.value))),
+                ));
+            }
+        }
+    }
+}
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
@@ -56,8 +89,6 @@ impl FromWorld for WorldAssets {
         }
     }
 }
-
-pub mod level;
 
 fn to_gameover(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::GameOver);
