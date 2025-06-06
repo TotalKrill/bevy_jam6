@@ -55,7 +55,7 @@ fn damage_health(
     for event in event_reader.read() {
         for (entity, mut health) in query.iter_mut() {
             if event.entity == entity {
-                println!("damage {entity}");
+                // println!("damage {entity}");
 
                 health.current -= event.value;
 
