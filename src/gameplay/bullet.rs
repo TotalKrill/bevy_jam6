@@ -77,6 +77,8 @@ fn fire_bullet_event_handler(
     }
 }
 
+use bevy_simple_subsecond_system::prelude::*;
+#[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(
     apples: Query<&Transform, With<Apple>>,
     mut split_event: EventReader<BulletSplitEvent>,
@@ -92,17 +94,15 @@ fn bullet_split_event_handler(
             })
             .take(2)
         {
-            let dir = (apple.translation - evt.center)
-                .normalize()
-                .try_into()
-                .unwrap();
-            info!("Spawning new bullet!");
-            spawn_writer.write(BulletSpawnEvent {
-                at: evt.center + dir * APPLE_RADIUS,
-                dir,
-                bullet: evt.bullet.clone(),
-                speed: 50.,
-            });
+            if let Ok(dir) = (apple.translation - evt.center).normalize().try_into() {
+                info!("Spawning new bullet!");
+                spawn_writer.write(BulletSpawnEvent {
+                    at: evt.center + dir * APPLE_RADIUS,
+                    dir,
+                    bullet: evt.bullet.clone(),
+                    speed: 50.,
+                });
+            }
         }
     }
 }
