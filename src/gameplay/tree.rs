@@ -11,10 +11,10 @@ const TREE_STARTING_RADIUS: f32 = 0.5;
 const TREE_STARTING_HEIGHT: f32 = 3.0;
 const DEFAULT_APPLE_SPAWN_TIME_SEC: f32 = 5.0; // Time between apple spawns
 
-const RANDOM_SPAWN_X_MIN: f32 = -90.0;
-const RANDOM_SPAWN_X_MAX: f32 = 90.0;
-const RANDOM_SPAWN_Z_MIN: f32 = -90.0;
-const RANDOM_SPAWN_Z_MAX: f32 = 90.0;
+const RANDOM_SPAWN_X_MIN: f32 = -150.0;
+const RANDOM_SPAWN_X_MAX: f32 = 150.0;
+const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
+const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 5;
 
 #[derive(Component)]
