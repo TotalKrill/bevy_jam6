@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::{
     PausableSystems,
+    audio::{SoundEffectType, SoundEffects},
     gameplay::apple::{APPLE_RADIUS, Apple},
 };
 
@@ -65,6 +66,7 @@ fn fire_bullet_event_handler(
     mut commands: Commands,
     assets: Res<BulletAssets>,
     mut spawnevent: EventReader<BulletSpawnEvent>,
+    sound_effects: Res<SoundEffects>,
 ) {
     for evt in spawnevent.read() {
         commands.spawn(bullet(
@@ -74,6 +76,7 @@ fn fire_bullet_event_handler(
             evt.dir,
             evt.speed,
         ));
+        sound_effects.play_sound(&mut commands, SoundEffectType::Fire);
     }
 }
 
