@@ -8,6 +8,7 @@ use crate::{
 };
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
+use crate::gameplay::level::TERRAIN_HEIGHT;
 
 #[derive(Component)]
 pub struct Apple;
@@ -93,6 +94,17 @@ fn spawn_apples(
     }
 }
 
+fn despawn_apples_below_map(
+    mut commands: Commands,
+    query: Query<(Entity, &Transform), With<Apple>>,
+) {
+    for (entity, transform) in query.iter() {
+        if transform.translation.y < -2. * TERRAIN_HEIGHT {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding apple plugin");
     app.add_event::<AppleSpawnEvent>();
@@ -102,6 +114,7 @@ pub(super) fn plugin(app: &mut App) {
             spawn_apple_event_handler.run_if(in_state(Screen::InGame)),
             spawn_apples.run_if(in_state(Screen::InGame)),
             apply_apple_force.run_if(in_state(Screen::InGame)),
+            despawn_apples_below_map.run_if(in_state(Screen::InGame)),
         )
             .in_set(PausableSystems),
     );

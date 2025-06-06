@@ -10,10 +10,9 @@ use noise::{BasicMulti, NoiseFn, Perlin};
 pub struct Ground;
 
 const SEED: u32 = 1134;
-const TERRAIN_HEIGHT: f32 = 20.;
-
-const PLANE_X_SIZE: f32 = 300.;
-const PLANE_Z_SIZE: f32 = 300.;
+pub const TERRAIN_HEIGHT: f32 = 20.;
+pub const PLANE_X_SIZE: f32 = 300.;
+pub const PLANE_Z_SIZE: f32 = 300.;
 const PLANE_SUB_DIVISION_COUNT: u32 = 200;
 
 fn create_plane() -> Mesh {
