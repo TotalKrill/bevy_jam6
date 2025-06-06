@@ -13,7 +13,7 @@ use std::time::Duration;
 use crate::gameplay::apple::AppleStrength;
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
-const TREE_STARTING_HEIGHT: f32 = 3.0;
+pub const TREE_STARTING_HEIGHT: f32 = 3.0;
 const DEFAULT_APPLE_SPAWN_TIME_SEC: f32 = 5.0; // Time between apple spawns
 
 const RANDOM_SPAWN_X_MIN: f32 = -150.0;
@@ -132,7 +132,6 @@ fn spawn_tree(
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
-                    ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
                     RigidBody::Static,
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform::from_translation(position),

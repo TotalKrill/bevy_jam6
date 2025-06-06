@@ -4,6 +4,7 @@ use crate::gameplay::health::{Death, Health};
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
+use crate::gameplay::tree::TREE_STARTING_HEIGHT;
 use crate::{
     ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
@@ -13,24 +14,20 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 pub const APPLE_RADIUS: f32 = 1.0;
-const APPLE_SPAWN_RADIUS: f32 = 10.0;
-// const APPLE_FORCE_SCALAR: f32 = 10.0; // value used before refactor to using APPLE_DAMAGE_MIN and APPLE_DAMAGE_MAX
-
 const APPLE_HEALTH_MIN: f32 = 1.0;
 const APPLE_HEALTH_MAX: f32 = 10.0;
 const APPLE_DAMAGE_MIN: f32 = 1.0;
 const APPLE_DAMAGE_MAX: f32 = 10.0;
 const APPLE_SPEED_MIN: f32 = 2.0;
 const APPLE_SPEED_MAX: f32 = 40.0;
+const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 
 #[derive(Component)]
 pub struct Apple;
 
 #[derive(Event)]
 pub struct AppleSpawnEvent {
-    pub position: Vec3,
-    pub max_radius: f32,
-    pub radius: f32,
+    pub tree: Entity,
     pub apple_strength: AppleStrength,
 }
 
@@ -75,13 +72,19 @@ fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
     mut commands: Commands,
     assets: Res<AppleAssets>,
+    trees: Query<&Transform, With<Tree>>,
+    tractor: Single<&Transform, With<Tractor>>,
 ) {
     for event in events.read() {
-        let radii = rand::random::<f32>() * event.max_radius;
-        let angle = rand::random::<f32>() * std::f32::consts::PI * 2.0;
+        // let radii = rand::random::<f32>() * event.max_radius;
+        // let angle = rand::random::<f32>() * std::f32::consts::PI * 2.0;
 
-        let position = event.position
-            + Vec3::new(radii * angle.cos(), APPLE_RADIUS * 2.0, radii * angle.sin());
+        let tree_transform = trees.get(event.tree).unwrap();
+        let spawn_height = TREE_STARTING_HEIGHT * tree_transform.scale.y + APPLE_RADIUS * 2.0;
+        let position = tree_transform.translation + Vec3::Y * spawn_height;
+        let towards_player =
+            ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
+
         commands
             .spawn((
                 Apple,
@@ -94,6 +97,7 @@ fn spawn_apple_event_handler(
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
                 Transform::from_translation(position),
+                LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
             ))
             .observe(
                 |trigger: Trigger<Death>,
@@ -126,17 +130,15 @@ fn apply_apple_force(
 }
 fn spawn_apples(
     mut commands: Commands,
-    mut query: Query<((&Transform, &AppleStrength), &mut Tree)>,
+    mut query: Query<((Entity, &AppleStrength), &mut Tree)>,
     time: Res<Time>,
 ) {
     let elapsed_time = time.elapsed_secs();
-    for (((&transform, apple_strength)), mut tree) in query.iter_mut() {
+    for ((entity, apple_strength), mut tree) in query.iter_mut() {
         if elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
             tree.last_apple_spawn = elapsed_time;
             commands.send_event(AppleSpawnEvent {
-                position: transform.translation,
-                max_radius: APPLE_SPAWN_RADIUS,
-                radius: APPLE_RADIUS,
+                tree: entity,
                 apple_strength: apple_strength.clone(),
             });
         }
