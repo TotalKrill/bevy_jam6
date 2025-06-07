@@ -44,7 +44,6 @@ pub struct Tree {
 pub struct TreeSpawnEvent {
     pub(crate) position: Vec2,
     pub(crate) startlevel: u32,
-    pub(crate) scale: f32,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -129,7 +128,7 @@ fn spawn_tree(
                             Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
                             TimerMode::Repeating,
                         ),
-                        level: 0,
+                        level: event.startlevel,
                     },
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
@@ -141,7 +140,7 @@ fn spawn_tree(
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform {
                         translation: position,
-                        scale: vec3(event.scale, event.scale, event.scale),
+                        scale: Vec3::splat(event.startlevel as f32),
                         ..Default::default()
                     },
                     Animator::new(tween),
@@ -169,8 +168,7 @@ fn spawn_tree_timer(
     if num_trees < DEFAULT_TREE_LOCATIONS.len() {
         commands.send_event(TreeSpawnEvent {
             position: DEFAULT_TREE_LOCATIONS[num_trees],
-            startlevel: 0,
-            scale: 1.0,
+            startlevel: 1,
         });
     }
 
@@ -182,7 +180,6 @@ fn spawn_tree_timer(
 
         commands.send_event(TreeSpawnEvent {
             position: Vec2::new(x, z),
-            scale: 0.0,
             startlevel: 0,
         });
     }
@@ -195,9 +192,7 @@ fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut Tree)>) {
         if tree.timer.finished() {
             if health.current == health.max {
                 // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
-
-                health.current += TREE_HEALTH_INCREASE_TICK;
-                health.max = TREE_HEALTH_INCREASE_TICK;
+                health.increase_max(TREE_HEALTH_INCREASE_TICK);
                 tree.level += 1;
             }
         }

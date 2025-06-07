@@ -48,6 +48,16 @@ pub struct Health {
 }
 
 impl Health {
+    pub fn increase_max(&mut self, amount: u32) {
+        self.current += amount;
+        self.max += amount;
+    }
+
+    pub fn set_max_to(&mut self, new_max: u32) {
+        let diff = new_max - self.max;
+        self.increase_max(diff);
+    }
+
     pub fn percentage(&self) -> u32 {
         ((self.current as f32 / self.max as f32) * 100.) as u32
     }

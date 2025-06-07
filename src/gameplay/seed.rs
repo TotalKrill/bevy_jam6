@@ -107,7 +107,6 @@ fn despawn_seeds(
                 commands.send_event(TreeSpawnEvent {
                     position: Vec2::new(transform.translation.x, transform.translation.z),
                     startlevel: 0,
-                    scale: 0.0,
                 });
             }
 
