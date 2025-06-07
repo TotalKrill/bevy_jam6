@@ -289,12 +289,7 @@ pub(super) fn plugin(app: &mut App) {
         ),
     });
 
-    app.add_systems(
-        Update,
-        (component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate),)
-            .run_if(in_state(Screen::InGame))
-            .in_set(PausableSystems),
-    );
+    
 
     app.add_systems(
         FixedUpdate,
