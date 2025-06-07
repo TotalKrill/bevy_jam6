@@ -74,11 +74,6 @@ fn spawn_tree(
     asset_server: Res<AssetServer>,
     ground: Single<Entity, With<Ground>>,
 ) {
-    if !asset_server.is_loaded(world_assets.ground.id()) {
-        println!("World is not loaded yet, skipping tree spawn");
-        return;
-    }
-
     for event in events.read() {
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
         let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
@@ -88,8 +83,6 @@ fn spawn_tree(
         let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
 
         if let Some((_, hit)) = hits.into_iter().find(|(entity, _)| *entity == *ground) {
-            println!("Spawngin tree gound found {:?}", hit.point);
-
             let position = vec3(
                 event.position.x,
                 hit.point.y + TREE_STARTING_HEIGHT / 2.0,

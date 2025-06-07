@@ -4,6 +4,7 @@ use bevy_simple_subsecond_system::hot;
 
 pub(crate) mod ingame;
 mod loading;
+mod music;
 mod splash;
 mod title;
 
@@ -20,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
         loading::plugin,
         splash::plugin,
         title::plugin,
+        music::plugin,
     ));
     app.add_plugins(dev_tractorbuild::plugin);
 }

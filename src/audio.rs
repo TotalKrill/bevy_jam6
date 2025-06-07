@@ -1,15 +1,21 @@
-use bevy::prelude::*;
+use bevy::{audio::*, prelude::*};
+
+const FADE_TIME: f32 = 1.0;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Music>();
     app.register_type::<SoundEffect>();
+    app.add_event::<ChangeMusicEvent>();
 
     app.add_systems(
         Update,
-        apply_global_volume.run_if(resource_changed::<GlobalVolume>),
+        (
+            apply_global_volume.run_if(resource_changed::<GlobalVolume>),
+            change_music,
+            fade_in,
+            fade_out,
+        ),
     );
-
-    app.add_systems(Startup, setup_background_music);
 }
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
@@ -20,9 +26,76 @@ pub(super) fn plugin(app: &mut App) {
 #[reflect(Component)]
 pub struct Music;
 
+#[derive(Component)]
+struct FadeIn;
+
+#[derive(Component)]
+struct FadeOut;
+
+#[derive(Event)]
+pub struct ChangeMusicEvent {
+    pub music: Handle<AudioSource>,
+}
+
 /// A music audio instance.
 pub fn music(handle: Handle<AudioSource>) -> impl Bundle {
-    (AudioPlayer(handle), PlaybackSettings::LOOP, Music)
+    (AudioPlayer(handle), PlaybackSettings::LOOP, Music, FadeIn)
+}
+
+pub fn change_music(
+    mut events: EventReader<ChangeMusicEvent>,
+    mut commands: Commands,
+    musics: Query<Entity, With<AudioSink>>,
+) {
+    for event in events.read() {
+        for track in musics.iter() {
+            commands.entity(track).insert(FadeOut);
+        }
+
+        commands.spawn((
+            AudioPlayer(event.music.clone()),
+            Music,
+            PlaybackSettings {
+                mode: PlaybackMode::Loop,
+                volume: Volume::SILENT,
+                ..default()
+            },
+            FadeIn,
+        ));
+    }
+}
+
+// Fades in the audio of entities that has the FadeIn component. Removes the FadeIn component once
+// full volume is reached.
+fn fade_in(
+    mut commands: Commands,
+    mut audio_sink: Query<(&mut AudioSink, Entity), With<FadeIn>>,
+    time: Res<Time>,
+) {
+    for (mut audio, entity) in audio_sink.iter_mut() {
+        let current_volume = audio.volume();
+        audio.set_volume(current_volume + Volume::Linear(time.delta_secs() / FADE_TIME));
+        if audio.volume().to_linear() >= 1.0 {
+            audio.set_volume(Volume::Linear(1.0));
+            commands.entity(entity).remove::<FadeIn>();
+        }
+    }
+}
+
+// Fades out the audio of entities that has the FadeOut component. Despawns the entities once audio
+// volume reaches zero.
+fn fade_out(
+    mut commands: Commands,
+    mut audio_sink: Query<(&mut AudioSink, Entity), With<FadeOut>>,
+    time: Res<Time>,
+) {
+    for (mut audio, entity) in audio_sink.iter_mut() {
+        let current_volume = audio.volume();
+        audio.set_volume(current_volume - Volume::Linear(time.delta_secs() / FADE_TIME));
+        if audio.volume().to_linear() <= 0.0 {
+            commands.entity(entity).despawn();
+        }
+    }
 }
 
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
@@ -46,9 +119,4 @@ fn apply_global_volume(
     for (playback, mut sink) in &mut audio_query {
         sink.set_volume(global_volume.volume * playback.volume);
     }
-}
-
-fn setup_background_music(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let game_music = asset_server.load::<AudioSource>("audio/music/Swing-Machine-chosic.com_.ogg");
-    commands.spawn(music(game_music));
 }
