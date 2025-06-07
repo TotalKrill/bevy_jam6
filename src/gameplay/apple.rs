@@ -46,7 +46,7 @@ impl AppleStrength {
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct AppleAssets {
-    apple: Handle<Scene>,
+    pub apple: Handle<Scene>,
     eaten_apple: Handle<Scene>,
     eaten_apple_2: Handle<Scene>,
     death_sound: Handle<AudioSource>,
@@ -82,7 +82,8 @@ fn spawn_apple_event_handler(
         let apple_rotation =
             rot.mul_vec3((tractor.translation - position).normalize()) * APPLE_INITIAL_ROTATION;
 
-        let apple_radius = event.radius + 0.1 * event.radius * (event.apple_strength.health - 1) as f32;
+        let apple_radius =
+            event.radius + 0.1 * event.radius * (event.apple_strength.health - 1) as f32;
 
         commands
             .spawn((

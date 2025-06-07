@@ -37,6 +37,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_systems(OnEnter(Screen::InGame), setup_gamescreen);
+    app.add_systems(Startup, setup_level);
 }
 
 use super::*;
@@ -47,6 +48,16 @@ use crate::{
 };
 
 use crate::gameplay::{hud, score::Currency};
+
+pub fn setup_level(
+    mut commands: Commands,
+    world_assets: Res<WorldAssets>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn(level::level(world_assets, meshes, materials));
+}
+
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 pub fn setup_gamescreen(
     mut commands: Commands,
@@ -80,11 +91,6 @@ pub fn setup_gamescreen(
     );
 
     hud::spawn_hud(&mut commands);
-
-    commands.spawn((
-        StateScoped(Screen::TractorBuild),
-        level::level(world_assets, meshes, materials),
-    ));
 
     // commands.spawn(PerfUiAllEntries::default());
 

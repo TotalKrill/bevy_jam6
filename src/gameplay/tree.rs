@@ -1,7 +1,7 @@
 use crate::PausableSystems;
 use crate::audio::sound_effect;
 use crate::gameplay::WorldAssets;
-use crate::gameplay::apple::{APPLE_RADIUS, AppleSpawnEvent, AppleStrength};
+use crate::gameplay::apple::{APPLE_RADIUS, AppleAssets, AppleSpawnEvent, AppleStrength};
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::Ground;
@@ -64,6 +64,9 @@ pub struct TreeSpawnEvent {
 pub struct TreeAssets {
     pub tree: Handle<Scene>,
 }
+
+#[derive(Component)]
+pub struct TreeApple;
 
 impl FromWorld for TreeAssets {
     fn from_world(world: &mut World) -> Self {
@@ -142,6 +145,7 @@ fn spawn_tree(
     mut events: EventReader<TreeSpawnEvent>,
     mut commands: Commands,
     tree_assets: Res<TreeAssets>,
+    apple_assets: Res<AppleAssets>,
     mut raycast: MeshRayCast,
     ground: Single<Entity, With<Ground>>,
 ) {
@@ -189,7 +193,7 @@ fn spawn_tree(
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform {
                         translation: position,
-                        scale: Vec3::splat(0.01),
+                        scale: Vec3::splat(9.01),
                         ..Default::default()
                     },
                     Animator::new(level_up_animation(
@@ -198,6 +202,15 @@ fn spawn_tree(
                             Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL,
                         ),
                     )),
+                    // children![
+                    //     TreeApple,
+                    //     Transform {
+                    //         translation: Vec3::Y * 500000.0,
+                    //         scale: Vec3::splat(1.0),
+                    //         ..default()
+                    //     },
+                    //     SceneRoot(apple_assets.apple.clone()),
+                    // ],
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
                     if let Ok(mut ec) = commands.get_entity(trigger.target().entity()) {
@@ -205,26 +218,13 @@ fn spawn_tree(
                     }
                 });
         } else {
-            log::error!("Ground not found when spawning tree");
+            log::error!("Ground not found when spawning tree at {:}", ray_start);
         }
     }
 }
 
-fn spawn_tree_timer(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut config: ResMut<TreeSpawnConfig>,
-    trees: Query<&Tree>,
-) {
+fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
     config.timer.tick(time.delta());
-
-    let num_trees = trees.iter().count();
-    if num_trees < DEFAULT_TREE_LOCATIONS.len() {
-        commands.send_event(TreeSpawnEvent {
-            position: DEFAULT_TREE_LOCATIONS[num_trees],
-            startlevel: 1,
-        });
-    }
 
     if config.timer.finished() {
         let x =
@@ -235,6 +235,15 @@ fn spawn_tree_timer(
         commands.send_event(TreeSpawnEvent {
             position: Vec2::new(x, z),
             startlevel: 0,
+        });
+    }
+}
+
+fn spawn_initial_trees(mut commands: Commands) {
+    for pos in DEFAULT_TREE_LOCATIONS {
+        commands.send_event(TreeSpawnEvent {
+            position: pos,
+            startlevel: 1,
         });
     }
 }
@@ -320,6 +329,8 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),),
     );
+
+    app.add_systems(OnEnter(Screen::InGame), spawn_initial_trees);
 
     app.add_systems(
         FixedUpdate,

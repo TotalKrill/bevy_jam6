@@ -88,7 +88,6 @@ pub fn level(
     };
 
     (
-        ReplaceOnHotreload,
         ColliderConstructor::TrimeshFromMesh,
         Mesh3d(meshes.add(terrain)),
         MeshMaterial3d(materials.add(material)),
