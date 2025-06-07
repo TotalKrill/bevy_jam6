@@ -144,7 +144,6 @@ fn update_apple_mesh(
     assets: Res<AppleAssets>,
 ) {
     for (apple, health) in query {
-        println!("Apple health changed!");
         // commands.entity(apple).remove::<SceneRoot>();
         if let Ok(mut entity_commands) = commands.get_entity(apple) {
             let health_percentage = health.percentage();
