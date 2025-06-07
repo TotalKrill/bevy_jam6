@@ -1,6 +1,6 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
-use avian3d::prelude::{Collider, DebugRender, ExternalForce, PhysicsDebugPlugin, PhysicsGizmos};
+use avian3d::prelude::PhysicsGizmos;
 use bevy::{
     dev_tools::states::log_transitions, input::common_conditions::input_just_pressed, prelude::*,
     ui::UiDebugOptions,
@@ -17,14 +17,12 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
     );
-    // app.add_plugins(PhysicsDebugPlugin::default());
 }
 
 const TOGGLE_KEY: KeyCode = KeyCode::KeyT;
 
 fn toggle_debug_ui(
     mut options: ResMut<UiDebugOptions>,
-    mut commands: Commands,
     // mut graphics_debug: ResMut<DebugRender>,
     mut gizmoconf: ResMut<GizmoConfigStore>,
     mut on: Local<bool>,

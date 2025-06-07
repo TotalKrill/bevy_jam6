@@ -55,7 +55,7 @@ fn fire_turret(
     tractors: Query<&Children, With<Tractor>>,
     mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
 ) {
-    info!("start firing!");
+    debug!("start firing!");
     let action_target = trigger.target();
 
     let Ok(tractor_children) = tractors.get(action_target) else {
@@ -74,7 +74,7 @@ fn stop_firing_turret(
     tractors: Query<&Children, With<Tractor>>,
     mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
 ) {
-    info!("Stop firing!");
+    debug!("Stop firing!");
     let action_target = trigger.target();
 
     let Ok(tractor_children) = tractors.get(action_target) else {

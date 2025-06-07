@@ -121,7 +121,7 @@ pub fn spawn_tractor<T: Bundle>(
         ))
         .id();
 
-    tractor_saw(assets, tractor_id, commands);
+    spawn_tractor_saw(assets, tractor_id, commands);
 
     let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.2 + WHEEL_RADIE;
     let wheel_offset_z = TRACTOR_LENGTH / 2.0 - WHEEL_RADIE - 0.2;
@@ -223,7 +223,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
-pub fn tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
+pub fn spawn_tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
     let saw_pos = Vec3::new(
         -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE),
         0.0,

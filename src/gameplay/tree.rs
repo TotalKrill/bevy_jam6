@@ -9,9 +9,10 @@ use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_tweening::lens::TransformScaleLens;
-use bevy_tweening::{AnimationSystem, Animator, Tween, component_animator_system};
+use bevy_tweening::lens::{TransformRotateXLens, TransformRotateZLens, TransformScaleLens};
+use bevy_tweening::{AnimationSystem, Animator, Sequence, Tween, component_animator_system};
 use bevy_ui_anchor::AnchoredUiNodes;
+use std::f32::consts::PI;
 use std::time::Duration;
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
@@ -24,7 +25,7 @@ const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
 const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
-const TREE_HEALTH_INCREASE_TICK: u32 = 1;
+const TREE_HEALTH_INCREASE_TICK: f32 = 1.5;
 
 const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
@@ -41,6 +42,9 @@ impl Tree {
     const SCALE_PER_LEVEL: f32 = 0.5;
     const SCALE_DURATION_MS: u64 = 1500;
     const LEVEL_UP_TIME: u64 = 10;
+    const SCALE_SHAKE_DURATION_MS: u64 = 50;
+    const SCALE_SHAKE_ANGLE_RADIAN: f32 = PI / 9.0;
+    const SCALE_SHAKE_COUNT: u32 = 10;
 }
 
 #[derive(Event)]
@@ -66,6 +70,63 @@ impl FromWorld for TreeAssets {
 #[derive(Resource, Debug)]
 pub struct TreeSpawnConfig {
     pub timer: Timer,
+}
+
+fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
+    let mut sequence = Sequence::with_capacity(7);
+
+    sequence = sequence.then(Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(Tree::SCALE_DURATION_MS),
+        TransformScaleLens { start, end },
+    ));
+
+    let mut rotations = 0;
+    let mut rotation = Tree::SCALE_SHAKE_ANGLE_RADIAN;
+    let mut duration = Tree::SCALE_SHAKE_DURATION_MS as f32;
+
+    sequence = sequence.then(Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(duration as u64),
+        TransformRotateXLens {
+            start: 0.0,
+            end: rotation,
+        },
+    ));
+
+    while rotations < Tree::SCALE_SHAKE_COUNT {
+        let new_rotation = -1. * rotation / 1.618033988;
+        let new_duration = duration / 1.618033988;
+
+        // println!("rot = {}, new rot = {}, duration = {} new duration = {}", rotation, new_rotation, duration, new_duration);
+
+        if rotations % 2 == 0 {
+            sequence = sequence.then(Tween::new(
+                EaseFunction::Linear,
+                Duration::from_millis(new_duration as u64),
+                TransformRotateXLens {
+                    start: rotation,
+                    end: new_rotation,
+                },
+            ));
+        } else {
+            sequence = sequence.then(Tween::new(
+                EaseFunction::Linear,
+                Duration::from_millis(new_duration as u64),
+                TransformRotateZLens {
+                    start: rotation,
+                    end: new_rotation,
+                },
+            ));
+        };
+
+        rotation = new_rotation;
+        duration = new_duration;
+
+        rotations += 1;
+    }
+
+    sequence
 }
 
 fn spawn_tree(
@@ -97,22 +158,6 @@ fn spawn_tree(
                 hit.distance
             );
 
-            let scale = Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL;
-            let tween = Tween::new(
-                // Use a quadratic easing on both endpoints.
-                EaseFunction::Linear,
-                // Animation time (one way only; for ping-pong it takes 2 seconds
-                // to come back to start).
-                Duration::from_millis(Tree::SCALE_DURATION_MS),
-                // The lens gives the Animator access to the Transform component,
-                // to animate it. It also contains the start and end values associated
-                // with the animation ratios 0. and 1.
-                TransformScaleLens {
-                    start: Vec3::splat(0.01),
-                    end: Vec3::splat(scale),
-                },
-            );
-
             commands
                 .spawn((
                     Name::new("Tree"),
@@ -138,7 +183,12 @@ fn spawn_tree(
                         scale: Vec3::splat(0.01),
                         ..Default::default()
                     },
-                    Animator::new(tween),
+                    Animator::new(level_up_animation(
+                        Vec3::splat(0.01),
+                        Vec3::splat(
+                            Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL,
+                        ),
+                    )),
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
                     if let Ok(mut ec) = commands.get_entity(trigger.target().entity()) {
@@ -190,28 +240,16 @@ fn level_up_trees(
 
         if tree.timer.just_finished() {
             if tree_health.current == tree_health.max {
-                // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
-                tree_health.increase_max(TREE_HEALTH_INCREASE_TICK);
                 tree.level += 1;
+                tree_health.set_max_to(1 + (TREE_HEALTH_INCREASE_TICK * tree.level as f32) as u32);
             }
 
-            let startscale = tree_t.scale;
-            let scale = Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL;
-            let tween = Tween::new(
-                // Use a quadratic easing on both endpoints.
-                EaseFunction::Linear,
-                // Animation time (one way only; for ping-pong it takes 2 seconds
-                // to come back to start).
-                Duration::from_millis(Tree::SCALE_DURATION_MS),
-                // The lens gives the Animator access to the Transform component,
-                // to animate it. It also contains the start and end values associated
-                // with the animation ratios 0. and 1.
-                TransformScaleLens {
-                    start: startscale,
-                    end: Vec3::splat(scale),
-                },
-            );
-            commands.entity(ent).insert(Animator::new(tween));
+            commands
+                .entity(ent)
+                .insert(Animator::new(level_up_animation(
+                    tree_t.scale,
+                    Vec3::splat(Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL),
+                )));
         }
     }
 }
@@ -253,15 +291,20 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (
-            spawn_tree.after(setup_gamescreen),
-            spawn_tree_timer,
-            component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate),
-            trees_spawn_apples,
-        )
+        (component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate),)
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),
     );
 
-    app.add_systems(FixedUpdate, level_up_trees.run_if(in_state(Screen::InGame)));
+    app.add_systems(
+        FixedUpdate,
+        (
+            trees_spawn_apples,
+            spawn_tree.after(setup_gamescreen),
+            spawn_tree_timer,
+            level_up_trees
+                .run_if(in_state(Screen::InGame))
+                .in_set(PausableSystems),
+        ),
+    );
 }

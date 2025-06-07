@@ -1,15 +1,14 @@
-use avian3d::math::PI;
-use bevy::pbr::CascadeShadowConfigBuilder;
 use super::*;
 use crate::gameplay::{
+    hud::spawn_hud,
     level,
     tractor::{self, TractorAssets},
     turret_aiming,
 };
+use avian3d::math::PI;
 
 use crate::gameplay::WorldAssets;
 use bevy_editor_cam::prelude::*;
-use iyes_perf_ui::entries::PerfUiAllEntries;
 
 pub(super) fn plugin(app: &mut App) {
     if !app.is_plugin_added::<MinimalEditorCamPlugin>() {
@@ -39,7 +38,6 @@ fn setup_devscreen(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
-    asset_server: Res<AssetServer>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
@@ -48,6 +46,8 @@ fn setup_devscreen(
     }
 
     commands.spawn((ReplaceOnHotreload, turret_aiming::sight()));
+
+    hud::spawn_hud(&mut commands);
 
     log::info!("spawning tractor");
     tractor::spawn_tractor(
@@ -82,7 +82,7 @@ fn setup_devscreen(
     ));
 
     /// ui
-    use crate::gameplay::hud::*;
+    use crate::gameplay::hud::{self, *};
     spawn_hud(&mut commands);
 
     commands.spawn((
