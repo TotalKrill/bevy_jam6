@@ -66,10 +66,11 @@ pub fn bullet_plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            despawn_bullets,
             fire_bullet_event_handler,
             bullet_split_event_handler,
+            despawn_bullets,
         )
+            .chain()
             .in_set(PausableSystems),
     );
 }
@@ -93,7 +94,7 @@ fn fire_bullet_event_handler(
     }
 }
 
-pub const BULLET_SPEED: f32 = 75.;
+pub const BULLET_SPEED: f32 = 50.;
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(

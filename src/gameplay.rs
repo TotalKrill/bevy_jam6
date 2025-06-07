@@ -75,7 +75,8 @@ fn to_gameover(mut next_menu: ResMut<NextState<Menu>>) {
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding gameplay plugins");
 
-    app.load_resource::<WorldAssets>();
+    app.init_resource::<WorldAssets>();
+    // app.load_resource::<WorldAssets>();
 
     app.add_event::<GameOver>();
 

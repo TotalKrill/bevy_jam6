@@ -1,4 +1,5 @@
 use super::*;
+use crate::gameplay::WorldAssets;
 use crate::gameplay::{
     hud::spawn_hud,
     level,
@@ -7,7 +8,6 @@ use crate::gameplay::{
 };
 use avian3d::math::PI;
 use bevy::pbr::CascadeShadowConfigBuilder;
-use crate::gameplay::WorldAssets;
 use bevy_editor_cam::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -85,10 +85,10 @@ fn setup_devscreen(
     use crate::gameplay::hud::{self, *};
     spawn_hud(&mut commands);
 
-    commands.spawn((
-        StateScoped(Screen::TractorBuild),
-        level::level(world_assets, meshes, materials),
-    ));
+    // commands.spawn((
+    //     StateScoped(Screen::TractorBuild),
+    //     level::level(world_assets, meshes, materials),
+    // ));
 
     // Spawn the Sun
     commands.spawn((
@@ -108,7 +108,7 @@ fn setup_devscreen(
             maximum_distance: 10.0,
             ..default()
         }
-            .build(),
+        .build(),
     ));
 
     // commands.spawn(PerfUiAllEntries::default());
