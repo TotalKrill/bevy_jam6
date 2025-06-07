@@ -207,7 +207,7 @@ fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut AppleStre
     }
 }
 
-fn spawn_apples(
+fn trees_spawn_apples(
     mut commands: Commands,
     mut query: Query<(&AppleStrength, &mut Tree, &Transform)>,
     time: Res<Time>,
@@ -246,7 +246,7 @@ pub(super) fn plugin(app: &mut App) {
             spawn_tree.after(setup_gamescreen),
             spawn_tree_timer,
             component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate),
-            spawn_apples,
+            trees_spawn_apples,
         )
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),
