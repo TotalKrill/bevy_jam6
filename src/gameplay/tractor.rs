@@ -223,7 +223,7 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
     )
 }
 
-pub fn tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
+pub fn spawn_tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
     let saw_pos = Vec3::new(
         -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE),
         0.0,
