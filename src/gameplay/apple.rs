@@ -46,6 +46,8 @@ impl AppleStrength {
 #[reflect(Resource)]
 pub struct AppleAssets {
     apple: Handle<Scene>,
+    eaten_apple: Handle<Scene>,
+    eaten_apple_2: Handle<Scene>,
     death_sound: Handle<AudioSource>,
 }
 
@@ -53,7 +55,11 @@ impl FromWorld for AppleAssets {
     fn from_world(world: &mut World) -> Self {
         let assets: &AssetServer = world.resource::<AssetServer>();
         Self {
-            apple: assets.load(GltfAssetLabel::Scene(0).from_asset("models/apple/apple.glb")),
+            apple: assets.load(GltfAssetLabel::Scene(0).from_asset("models/apple/apple.gltf")),
+            eaten_apple: assets
+                .load(GltfAssetLabel::Scene(1).from_asset("models/apple/apple.gltf")),
+            eaten_apple_2: assets
+                .load(GltfAssetLabel::Scene(2).from_asset("models/apple/apple.gltf")),
             death_sound: assets.load::<AudioSource>("audio/sound_effects/apple-death.wav"),
         }
     }
@@ -83,11 +89,11 @@ fn spawn_apple_event_handler(
                 Mass(APPLE_MASS),
                 ReplaceOnHotreload,
                 AnchoredUiNodes::spawn_one(healthbar(100.)),
-                SceneRoot(assets.apple.clone()),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
                 Transform::from_translation(position).with_scale(Vec3::splat(event.radius + 0.2)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
+                SceneRoot(assets.apple.clone()),
             ))
             .observe(
                 |trigger: Trigger<Death>,
@@ -132,6 +138,31 @@ fn despawn_apples_below_map(
     }
 }
 
+fn update_apple_mesh(
+    mut commands: Commands,
+    query: Query<(Entity, &Health), (With<Apple>, Changed<Health>)>,
+    assets: Res<AppleAssets>,
+) {
+    for (apple, health) in query {
+        println!("Apple health changed!");
+        // commands.entity(apple).remove::<SceneRoot>();
+        let health_percentage = health.percentage();
+        if health_percentage >= 80 {
+            commands
+                .entity(apple)
+                .insert(SceneRoot(assets.apple.clone()));
+        } else if health_percentage >= 40 {
+            commands
+                .entity(apple)
+                .insert(SceneRoot(assets.eaten_apple.clone()));
+        } else {
+            commands
+                .entity(apple)
+                .insert(SceneRoot(assets.eaten_apple_2.clone()));
+        }
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding apple plugin");
     app.load_resource::<AppleAssets>();
@@ -143,6 +174,7 @@ pub(super) fn plugin(app: &mut App) {
             spawn_apple_event_handler.run_if(in_state(Screen::InGame)),
             apply_apple_force.run_if(in_state(Screen::InGame)),
             despawn_apples_below_map.run_if(in_state(Screen::InGame)),
+            update_apple_mesh.run_if(in_state(Screen::InGame)),
         )
             .in_set(PausableSystems),
     );

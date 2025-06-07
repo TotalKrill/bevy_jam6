@@ -55,7 +55,7 @@ fn fire_turret(
     tractors: Query<&Children, With<Tractor>>,
     mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
 ) {
-    info!("start firing!");
+    debug!("start firing!");
     let action_target = trigger.target();
 
     let Ok(tractor_children) = tractors.get(action_target) else {
@@ -74,7 +74,7 @@ fn stop_firing_turret(
     tractors: Query<&Children, With<Tractor>>,
     mut attached_turrets: Query<(&ChildOf, &GlobalTransform, &mut Turret)>,
 ) {
-    info!("Stop firing!");
+    debug!("Stop firing!");
     let action_target = trigger.target();
 
     let Ok(tractor_children) = tractors.get(action_target) else {
@@ -138,6 +138,13 @@ fn tractor_move(
         }
     }
 
+    angular_velocity.x =
+        -transform.up().x * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
+    angular_velocity.y =
+        -transform.up().y * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
+    angular_velocity.z =
+        -transform.up().z * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
+
     if wheels_on_ground < 2 {
         return;
     }
@@ -148,11 +155,4 @@ fn tractor_move(
     let down_force = -Vec3::Y * TRACTOR_ACCELERATION * time.delta_secs();
 
     force.set_force(forward * apply_force + down_force);
-
-    angular_velocity.x =
-        -transform.up().x * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
-    angular_velocity.y =
-        -transform.up().y * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
-    angular_velocity.z =
-        -transform.up().z * trigger.value.x * time.delta_secs() * TRACTOR_TURN_RATE;
 }

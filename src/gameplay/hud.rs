@@ -1,11 +1,17 @@
 use core::fmt;
 
-use bevy::color::palettes::tailwind::*;
+use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem};
 
 use crate::{
     ReplaceOnHotreload,
-    gameplay::{apple::Apple, health::Health, score::ScoreCounter, tractor::Tractor, tree::Tree},
+    gameplay::{
+        apple::Apple, health::Health, score::ScoreCounter, tractor::Tractor, tree::Tree,
+        turret::TurretDamage,
+    },
+    theme::widget,
 };
+
+use Val::*;
 
 use super::*;
 
@@ -59,6 +65,77 @@ fn update_healthbar(
 pub fn spawn_hud(commands: &mut Commands) {
     commands.spawn(stat_tracker());
     commands.spawn(healthbar());
+    commands.spawn(update_hud());
+}
+
+#[derive(Component)]
+struct TurretUpdateCounter;
+
+fn update_hud() -> impl Bundle {
+    (
+        ReplaceOnHotreload,
+        Node {
+            left: Val::Percent(15.),
+            bottom: Val::Percent(6.5),
+            padding: UiRect::all(Val::Px(4.)),
+            column_gap: Val::Px(10.),
+            position_type: PositionType::Absolute,
+            flex_direction: FlexDirection::Row,
+            ..Default::default()
+        },
+        children![
+            update_button("Turret", TurretUpdateCounter, update_turret),
+            // update_button("Turret", TurretUpdateCounter, update_turret),
+        ],
+    )
+}
+
+fn update_button<E, B, M, I, C>(name: impl Into<String>, marker: C, click_evt: I) -> impl Bundle
+where
+    E: Event,
+    B: Bundle,
+    I: IntoObserverSystem<E, B, M>,
+    C: Component,
+{
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+        BorderRadius::all(Val::Px(4.)),
+        children![
+            (widget::label(format!("{}", name.into())),),
+            (widget::button_base_marked(
+                "1",
+                marker,
+                click_evt,
+                Node {
+                    width: Px(80.0),
+                    height: Px(60.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+            ),)
+        ],
+    )
+}
+
+fn update_turret(
+    _trigger: Trigger<Pointer<Click>>,
+    mut upd_counters: Query<&mut Text, With<TurretUpdateCounter>>,
+    mut turrets: Query<&mut TurretDamage>,
+) {
+    println!("Update!!");
+    for mut turret in turrets.iter_mut() {
+        turret.0 += 1;
+        for mut upd_counter in upd_counters.iter_mut() {
+            *upd_counter = Text::new(format!("{}", turret.0));
+        }
+    }
 }
 
 fn stat_tracker() -> impl Bundle {
