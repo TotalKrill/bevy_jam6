@@ -35,6 +35,7 @@ pub mod healthbars;
 /// contains the heads up display during game;
 pub mod hud;
 mod seed;
+mod upgrades;
 
 pub mod damage_indicator {
     use std::time::Duration;
@@ -173,4 +174,5 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(damage_indicator::plugin);
     app.add_plugins(saw::plugin);
     app.add_plugins(healthbars::plugin);
+    app.add_plugins(upgrades::plugin);
 }
