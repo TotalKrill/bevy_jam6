@@ -45,6 +45,7 @@ pub struct Tree {
 pub struct TreeSpawnEvent {
     pub(crate) position: Vec2,
     pub(crate) active: bool,
+    pub(crate) scale: f32,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -140,7 +141,11 @@ fn spawn_tree(
                     SceneRoot(tree_assets.tree.clone()),
                     RigidBody::Static,
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
-                    Transform::from_translation(position),
+                    Transform {
+                        translation: position,
+                        scale: vec3(event.scale, event.scale, event.scale),
+                        ..Default::default()
+                    },
                     Animator::new(tween),
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
@@ -163,7 +168,16 @@ fn spawn_tree_timer(
 ) {
     config.timer.tick(time.delta());
 
-    if config.timer.finished() || (trees.iter().count() < MINIMUM_TREES_ON_MAP) {
+    let num_trees = trees.iter().count();
+    if num_trees < DEFAULT_TREE_LOCATIONS.len() {
+        commands.send_event(TreeSpawnEvent {
+            position: DEFAULT_TREE_LOCATIONS[num_trees],
+            active: false,
+            scale: 1.0,
+        });
+    }
+
+    if config.timer.finished() {
         let x =
             rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
         let z =
@@ -172,6 +186,7 @@ fn spawn_tree_timer(
         commands.send_event(TreeSpawnEvent {
             position: Vec2::new(x, z),
             active: false,
+            scale: 0.0,
         });
     }
 }
