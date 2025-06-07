@@ -6,11 +6,7 @@ use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
-use crate::{
-    ReplaceOnHotreload,
-    gameplay::{tractor::Tractor, tree::Tree},
-    screens::*,
-};
+use crate::{ReplaceOnHotreload, gameplay::tractor::Tractor, screens::*};
 use avian3d::prelude::*;
 use bevy::prelude::*;
 

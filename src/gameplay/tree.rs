@@ -25,7 +25,6 @@ const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
-const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 30;
 
 const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
@@ -41,6 +40,7 @@ pub struct Tree {
 impl Tree {
     const SCALE_PER_LEVEL: f32 = 0.5;
     const SCALE_DURATION_MS: u64 = 1500;
+    const LEVEL_UP_TIME: u64 = 10;
 }
 
 #[derive(Event)]
@@ -122,7 +122,7 @@ fn spawn_tree(
                         apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
                         last_apple_spawn: 0.0,
                         timer: Timer::new(
-                            Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
+                            Duration::from_secs(Tree::LEVEL_UP_TIME),
                             TimerMode::Repeating,
                         ),
                         level: event.startlevel,
@@ -191,6 +191,12 @@ fn level_up_trees(
         tree.timer.tick(time.delta());
 
         if tree.timer.just_finished() {
+            if tree_health.current == tree_health.max {
+                // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
+                tree_health.increase_max(TREE_HEALTH_INCREASE_TICK);
+                tree.level += 1;
+            }
+
             let startscale = tree_t.scale;
             let scale = Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL;
             let tween = Tween::new(
@@ -208,12 +214,6 @@ fn level_up_trees(
                 },
             );
             commands.entity(ent).insert(Animator::new(tween));
-
-            if tree_health.current == tree_health.max {
-                // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
-                tree_health.increase_max(TREE_HEALTH_INCREASE_TICK);
-                tree.level += 1;
-            }
         }
     }
 }
