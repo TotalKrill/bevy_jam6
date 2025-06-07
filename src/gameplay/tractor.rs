@@ -1,12 +1,13 @@
 use std::time::Duration;
 
-use avian3d::prelude::*;
-
 use super::*;
 use crate::gameplay::apple::Apple;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
+use avian3d::prelude::*;
+use bevy_tweening::lens::{TransformPositionLens, TransformRotateXLens};
+use bevy_tweening::{Animator, RepeatCount, RepeatStrategy, Sequence, Tween};
 
 pub const TRACTOR_WIDTH: f32 = 1.0;
 pub const TRACTOR_HEIGHT: f32 = 2.0;
@@ -224,11 +225,36 @@ pub fn tractor_body(assets: &TractorAssets) -> impl Bundle {
 }
 
 pub fn spawn_tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &mut Commands) {
+    let animation_length_x = 1.5;
+
     let saw_pos = Vec3::new(
         -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE),
         0.0,
         -(TRACTOR_LENGTH / 2.0),
     );
+
+    let saw_pos_1 = Vec3::new(
+        -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE) + animation_length_x / 2.,
+        0.0,
+        0.0//-(TRACTOR_LENGTH / 2.0),
+    );
+    let saw_pos_2 = Vec3::new(
+        -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE) - animation_length_x / 2.,
+        0.0,
+        0.0//-(TRACTOR_LENGTH / 2.0),
+    );
+
+    let animation = Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(200),
+        TransformPositionLens {
+            start: saw_pos_1,
+            end: saw_pos_2,
+        },
+    )
+    .with_repeat_strategy(RepeatStrategy::MirroredRepeat)
+    .with_repeat_count(RepeatCount::Infinite);
+
     let saw = commands
         .spawn((
             TractorSaw {
@@ -239,9 +265,13 @@ pub fn spawn_tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &
             CollisionEventsEnabled,
             Name::new("TractorSaw"),
             RigidBody::Dynamic,
-            SceneRoot(assets.saw.clone()),
             Transform::from_translation(saw_pos),
             Collider::cuboid((TRACTOR_WIDTH + WHEEL_RADIE * 2.0) * 2.0 - 1.0, 0.5, 0.5),
+            children![(
+                SceneRoot(assets.saw.clone()),
+                Animator::new(animation),
+                Transform::from_translation(saw_pos_1),
+            )],
         ))
         .id();
 
