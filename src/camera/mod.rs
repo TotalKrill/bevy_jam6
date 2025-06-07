@@ -6,30 +6,30 @@ use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
 use bevy_editor_cam::prelude::zoom::ZoomLimits;
 use bevy_editor_cam::prelude::{EditorCam, OrbitConstraint};
+use bevy_rts_camera::RtsCamera;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
-    app.add_systems(Update, (move_gameplay_camera, toggle_camera));
+    app.add_systems(Update, (toggle_camera, move_rts_camera));
 }
 
-const CAMERA_DECAY_RATE: f32 = 25.0;
-const CAMERA_HEIGHT_MIN: f32 = 30.0; // Height above the player
-const CAMERA_HEIGHT_MAX: f32 = 60.0; // Height above the player
-const CAMERA_OFFSET_MIN: f32 = 20.0; // How far back the camera sits from the player
-const CAMERA_OFFSET_MAX: f32 = 30.0; // How far back the camera sits from the player
-const CAMERA_ANGLE: f32 = -65.0; // Looking down at an angle (in degrees)
-const VELOCITY_FILTER_WEIGHT: f32 = 0.10;
-#[derive(Component)]
-pub struct GameplayCamera;
-
-#[derive(Default)]
-struct PlayerVelocity {
-    value: f32,
+fn move_rts_camera(
+    mut camera: Single<&mut RtsCamera>,
+    player: Single<(&Transform, &LinearVelocity), With<Tractor>>,
+) {
+    camera.target_focus.translation = player.0.translation;
+    camera.snap = true;
+    camera.target_zoom = 1. - (player.1.length().abs() / TRACTOR_MAX_SPEED).clamp(0.01, 0.99);
 }
 
 pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
-        GameplayCamera,
+        RtsCamera {
+            height_min: 30.,
+            height_max: 90.,
+            smoothness: 0.6,
+            ..Default::default()
+        },
         Camera3d::default(),
         Name::new("GameplayCamera"),
         AtmosphereCamera::default(),
@@ -42,46 +42,6 @@ pub fn spawn_camera(mut commands: Commands) {
         Transform::from_xyz(0.0, 10.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         RayCaster::default(),
     ));
-}
-
-fn move_gameplay_camera(
-    mut camera: Single<&mut Transform, (With<GameplayCamera>, Without<Tractor>)>,
-    player: Single<(&Transform, &LinearVelocity), (With<Tractor>, Without<GameplayCamera>)>,
-    time: Res<Time>,
-    mut player_velocity_old: Local<PlayerVelocity>,
-) {
-    // TODO Sample event N millisecond?
-    // TODO Higher order low pass filtering?
-
-    let (transform, velocity) = player.into_inner();
-
-    let Vec3 { x, z, .. } = transform.translation; // Use x and z for horizontal movement
-
-    let player_velocity_new = velocity.length() / TRACTOR_MAX_SPEED;
-
-    let vel_ratio = VELOCITY_FILTER_WEIGHT * player_velocity_new
-        + (1.0 - VELOCITY_FILTER_WEIGHT) * player_velocity_old.value;
-
-    let camera_height = vel_ratio * (CAMERA_HEIGHT_MAX - CAMERA_HEIGHT_MIN) + CAMERA_HEIGHT_MIN;
-
-    let camera_offset = vel_ratio * (CAMERA_OFFSET_MAX - CAMERA_OFFSET_MIN) + CAMERA_OFFSET_MIN;
-
-    let vel_old = player_velocity_old.value;
-
-    // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, rat = {vel_ratio}, camera_height={camera_height}");
-    // let diff = vel_old - player_velocity_new;
-
-    // println!("player_velocity_new: {player_velocity_new}, player_velocity_old: {vel_old}, diff = {diff}");
-
-    player_velocity_old.value = vel_ratio;
-
-    let target_position = Vec3::new(x, camera_height, z + camera_offset);
-
-    camera
-        .translation
-        .smooth_nudge(&target_position, CAMERA_DECAY_RATE, time.delta_secs());
-
-    camera.rotation = Quat::from_rotation_x(CAMERA_ANGLE.to_radians());
 }
 
 #[derive(Default)]
@@ -116,7 +76,13 @@ fn toggle_camera(
 
         match *local {
             CamState::Gameplay => {
-                ec.insert(GameplayCamera).remove::<EditorCam>();
+                ec.insert(RtsCamera {
+                    height_min: 30.,
+                    height_max: 90.,
+                    smoothness: 0.6,
+                    ..Default::default()
+                })
+                .remove::<EditorCam>();
             }
             CamState::Debug => {
                 ec.insert(EditorCam {
@@ -136,7 +102,7 @@ fn toggle_camera(
                     },
                     ..Default::default()
                 })
-                .remove::<GameplayCamera>();
+                .remove::<RtsCamera>();
             }
         }
     }

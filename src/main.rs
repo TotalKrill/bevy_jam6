@@ -66,6 +66,7 @@ impl Plugin for AppPlugin {
 
         app.add_plugins(PhysicsPlugins::default());
         app.add_plugins(bevy_ui_anchor::AnchorUiPlugin::<Camera>::new());
+        app.add_plugins(bevy_rts_camera::RtsCameraPlugin);
 
         app.add_plugins(PhysicsDebugPlugin::default());
         // Overwrite default debug rendering configuration so its off (optional)

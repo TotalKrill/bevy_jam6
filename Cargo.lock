@@ -1431,6 +1431,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_rts_camera"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "447ceba9fe059053ce383604a09d6a073df234bf3d0ac0f8f51256fa81f07475"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_scene"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4149,6 +4158,7 @@ dependencies = [
  "bevy_enhanced_input",
  "bevy_jornet",
  "bevy_mod_lookat",
+ "bevy_rts_camera",
  "bevy_simple_subsecond_system",
  "bevy_tweening",
  "bevy_ui_anchor",
