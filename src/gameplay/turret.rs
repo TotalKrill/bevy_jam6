@@ -7,28 +7,50 @@ pub const BARREL_RADIE: f32 = 0.2;
 pub const BODY_RADIE: f32 = 0.5;
 
 pub fn turret_plugin(app: &mut App) {
+    app.register_type::<Turret>();
+    app.register_type::<TurretDamage>();
     app.add_systems(Update, tick_and_fire_turret);
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Turret {
     pub rate_of_fire: Timer,
     pub firing: bool,
 }
 
+#[derive(Component, Reflect)]
+pub struct TurretDamage(pub u32);
+impl Default for TurretDamage {
+    fn default() -> Self {
+        Self(1)
+    }
+}
+
+#[derive(Component, Reflect)]
+pub struct TurretBulletSplitProbability(pub f32);
+
+impl Default for TurretBulletSplitProbability {
+    fn default() -> Self {
+        Self(0.5)
+    }
+}
+
 use crate::gameplay::bullet::BulletSpawnEvent;
-use crate::gameplay::upgrades::BulletUpgrades;
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn tick_and_fire_turret(
     time: Res<Time>,
-    mut turrets: Query<(&mut Turret, &GlobalTransform)>,
+    mut turrets: Query<(
+        &mut Turret,
+        &GlobalTransform,
+        &TurretDamage,
+        &TurretBulletSplitProbability,
+    )>,
     mut fire_bullet_evt: EventWriter<BulletSpawnEvent>,
-    bullet_upgrades: Res<BulletUpgrades>
 ) {
     use crate::gameplay::bullet::Bullet;
 
-    for (mut turret, transform) in turrets.iter_mut() {
+    for (mut turret, transform, turret_damage, turret_split_probability) in turrets.iter_mut() {
         turret.rate_of_fire.tick(time.delta());
         if turret.rate_of_fire.finished() && turret.firing {
             turret.rate_of_fire.reset();
@@ -38,7 +60,7 @@ fn tick_and_fire_turret(
                 at: bullet_spawnpoint,
                 dir: forward,
                 speed: 50.,
-                bullet: Bullet::new(bullet_upgrades.damage, bullet_upgrades.split_probability),
+                bullet: Bullet::new(turret_damage.0, turret_split_probability.0),
             });
         }
     }
@@ -60,6 +82,8 @@ pub fn turret(
         Mesh3d(meshes.add(Sphere::new(BODY_RADIE))),
         MeshMaterial3d(materials.add(StandardMaterial::from_color(BLACK))),
         Transform::from_translation(pos),
+        TurretBulletSplitProbability::default(),
+        TurretDamage::default(),
         children![(
             Transform::from_rotation(Quat::from_rotation_x(-90f32.to_radians())),
             children![(

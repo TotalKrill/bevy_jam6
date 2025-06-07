@@ -24,7 +24,7 @@ const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
 const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
-const TREE_HEALTH_INCREASE_TICK: u32 = 1;
+const TREE_HEALTH_INCREASE_TICK: f32 = 1.5;
 
 const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
@@ -191,8 +191,8 @@ fn level_up_trees(
         if tree.timer.just_finished() {
             if tree_health.current == tree_health.max {
                 // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
-                tree_health.increase_max(TREE_HEALTH_INCREASE_TICK);
                 tree.level += 1;
+                tree_health.set_max_to(1 + (TREE_HEALTH_INCREASE_TICK * tree.level as f32) as u32);
             }
 
             let startscale = tree_t.scale;
