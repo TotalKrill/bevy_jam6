@@ -70,7 +70,8 @@ impl FromWorld for TractorAssets {
         Self {
             tractor: assets
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
-            wheelball: assets.load(GltfAssetLabel::Scene(0).from_asset("models/wheelball.glb")),
+            wheelball: assets
+                .load(GltfAssetLabel::Scene(0).from_asset("models/wheelball/wheelball.glb")),
             saw: assets.load(GltfAssetLabel::Scene(0).from_asset("models/saw/saw.glb")),
             sound_hurt: assets.load::<AudioSource>("audio/sound_effects/tractor-damage.wav"),
         }

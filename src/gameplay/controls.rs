@@ -145,7 +145,7 @@ fn tractor_move(
     let apply_force = -trigger.value.z * time.delta_secs() * TRACTOR_ACCELERATION;
     let forward = transform.forward().normalize();
 
-    let down_force = -transform.up() * TRACTOR_ACCELERATION * time.delta_secs();
+    let down_force = -Vec3::Y * TRACTOR_ACCELERATION * time.delta_secs();
 
     force.set_force(forward * apply_force + down_force);
 
