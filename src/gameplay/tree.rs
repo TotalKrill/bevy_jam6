@@ -9,9 +9,10 @@ use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_tweening::lens::TransformScaleLens;
-use bevy_tweening::{AnimationSystem, Animator, Tween, component_animator_system};
+use bevy_tweening::lens::{TransformRotateXLens, TransformRotateZLens, TransformScaleLens};
+use bevy_tweening::{AnimationSystem, Animator, Sequence, Tween, component_animator_system};
 use bevy_ui_anchor::AnchoredUiNodes;
+use std::f32::consts::PI;
 use std::time::Duration;
 
 const TREE_STARTING_RADIUS: f32 = 0.5;
@@ -41,6 +42,9 @@ impl Tree {
     const SCALE_PER_LEVEL: f32 = 0.5;
     const SCALE_DURATION_MS: u64 = 1500;
     const LEVEL_UP_TIME: u64 = 10;
+    const SCALE_SHAKE_DURATION_MS: u64 = 50;
+    const SCALE_SHAKE_ANGLE_RADIAN: f32 = PI / 9.0;
+    const SCALE_SHAKE_COUNT: u32 = 10;
 }
 
 #[derive(Event)]
@@ -68,15 +72,61 @@ pub struct TreeSpawnConfig {
     pub timer: Timer,
 }
 
-fn level_up_animation(start: Vec3, end: Vec3) -> Tween<Transform> {
-    Tween::new(
+fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
+    let mut sequence = Sequence::with_capacity(7);
+
+    sequence = sequence.then(Tween::new(
         EaseFunction::Linear,
         Duration::from_millis(Tree::SCALE_DURATION_MS),
-        TransformScaleLens {
-            start,
-            end,
+        TransformScaleLens { start, end },
+    ));
+
+    let mut rotations = 0;
+    let mut rotation = Tree::SCALE_SHAKE_ANGLE_RADIAN;
+    let mut duration = Tree::SCALE_SHAKE_DURATION_MS as f32;
+
+    sequence = sequence.then(Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(duration as u64),
+        TransformRotateXLens {
+            start: 0.0,
+            end: rotation,
         },
-    )
+    ));
+
+    while rotations < Tree::SCALE_SHAKE_COUNT {
+        let new_rotation = -1. * rotation / 1.618033988;
+        let new_duration = duration / 1.618033988;
+
+        // println!("rot = {}, new rot = {}, duration = {} new duration = {}", rotation, new_rotation, duration, new_duration);
+
+        if rotations % 2 == 0 {
+            sequence = sequence.then(Tween::new(
+                EaseFunction::Linear,
+                Duration::from_millis(new_duration as u64),
+                TransformRotateXLens {
+                    start: rotation,
+                    end: new_rotation,
+                },
+            ));
+        } else {
+            sequence = sequence.then(Tween::new(
+                EaseFunction::Linear,
+                Duration::from_millis(new_duration as u64),
+                TransformRotateZLens {
+                    start: rotation,
+                    end: new_rotation,
+                },
+            ));
+        };
+
+        rotation = new_rotation;
+        duration = new_duration;
+
+        rotations += 1;
+    }
+
+    sequence
 }
 
 fn spawn_tree(
@@ -135,7 +185,9 @@ fn spawn_tree(
                     },
                     Animator::new(level_up_animation(
                         Vec3::splat(0.01),
-                        Vec3::splat(Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL),
+                        Vec3::splat(
+                            Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL,
+                        ),
                     )),
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
@@ -188,15 +240,16 @@ fn level_up_trees(
 
         if tree.timer.just_finished() {
             if tree_health.current == tree_health.max {
-
                 tree.level += 1;
                 tree_health.set_max_to(1 + (TREE_HEALTH_INCREASE_TICK * tree.level as f32) as u32);
             }
 
-            commands.entity(ent).insert(Animator::new(level_up_animation(
-                tree_t.scale,
-                Vec3::splat(Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL)
-            )));
+            commands
+                .entity(ent)
+                .insert(Animator::new(level_up_animation(
+                    tree_t.scale,
+                    Vec3::splat(Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL),
+                )));
         }
     }
 }
