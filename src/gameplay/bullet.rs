@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::{
     PausableSystems,
-    audio::{SoundEffectType, SoundEffects},
+    audio::sound_effect,
     gameplay::apple::{APPLE_RADIUS, Apple},
 };
 
@@ -28,6 +28,7 @@ pub struct BulletSplitEvent {
 pub struct BulletAssets {
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
+    sound: Handle<AudioSource>,
 }
 const SIZE: f32 = 0.15;
 
@@ -38,11 +39,20 @@ impl FromWorld for BulletAssets {
         let mut materials = world
             .get_resource_mut::<Assets<StandardMaterial>>()
             .unwrap();
+
         let material = materials.add(material);
 
         let mut meshes = world.get_resource_mut::<Assets<Mesh>>().unwrap();
         let mesh = meshes.add(Sphere::new(SIZE));
-        Self { material, mesh }
+
+        let assets: &AssetServer = world.resource::<AssetServer>();
+        let sound = assets.load::<AudioSource>("audio/sound_effects/gunfire.wav");
+
+        Self {
+            material,
+            mesh,
+            sound,
+        }
     }
 }
 
@@ -66,7 +76,6 @@ fn fire_bullet_event_handler(
     mut commands: Commands,
     assets: Res<BulletAssets>,
     mut spawnevent: EventReader<BulletSpawnEvent>,
-    sound_effects: Res<SoundEffects>,
 ) {
     for evt in spawnevent.read() {
         commands.spawn(bullet(
@@ -76,7 +85,7 @@ fn fire_bullet_event_handler(
             evt.dir,
             evt.speed,
         ));
-        sound_effects.play_sound(&mut commands, SoundEffectType::Fire);
+        commands.spawn(sound_effect(assets.sound.clone()));
     }
 }
 

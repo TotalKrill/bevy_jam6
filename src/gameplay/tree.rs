@@ -3,6 +3,7 @@ use crate::gameplay::WorldAssets;
 use crate::gameplay::apple::AppleStrength;
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
+use crate::gameplay::level::Ground;
 use crate::gameplay::saw::Sawable;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
@@ -28,6 +29,9 @@ const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 10;
 const TREE_ACTIVE_THRESHOLD_SEC: f32 = 5.; // sec until tree starts spawning apples
+const MINIMUM_TREES_ON_MAP: usize = 3;
+
+const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
 #[derive(Component)]
 pub struct Tree {
@@ -69,6 +73,7 @@ fn spawn_tree(
     mut raycast: MeshRayCast,
     world_assets: Res<WorldAssets>,
     asset_server: Res<AssetServer>,
+    ground: Single<Entity, With<Ground>>,
 ) {
     if !asset_server.is_loaded(world_assets.ground.id()) {
         println!("World is not loaded yet, skipping tree spawn");
@@ -83,16 +88,9 @@ fn spawn_tree(
 
         let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
 
-        let Some((_e, hit)) = hits.first() else {
-            return;
-        };
+        if let Some((_, hit)) = hits.into_iter().find(|(entity, _)| *entity == *ground) {
+            println!("Spawngin tree gound found {:?}", hit.point);
 
-        if hit.point.y < -500.0 {
-            commands.send_event(TreeSpawnEvent {
-                position: event.position,
-                active: false,
-            });
-        } else {
             let position = vec3(
                 event.position.x,
                 hit.point.y + TREE_STARTING_HEIGHT / 2.0,
@@ -151,14 +149,21 @@ fn spawn_tree(
                         .unwrap()
                         .despawn();
                 });
+        } else {
+            log::error!("Ground not found when spawning tree");
         }
     }
 }
 
-fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<TreeSpawnConfig>) {
+fn spawn_tree_timer(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut config: ResMut<TreeSpawnConfig>,
+    trees: Query<&Tree>,
+) {
     config.timer.tick(time.delta());
 
-    if config.timer.finished() {
+    if config.timer.finished() || (trees.iter().count() < MINIMUM_TREES_ON_MAP) {
         let x =
             rand::random::<f32>() * (RANDOM_SPAWN_X_MAX - RANDOM_SPAWN_X_MIN) + RANDOM_SPAWN_X_MIN;
         let z =

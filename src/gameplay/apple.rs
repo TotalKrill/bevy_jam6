@@ -1,11 +1,12 @@
 use crate::PausableSystems;
 use crate::asset_tracking::LoadResource;
+use crate::audio::sound_effect;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
-use crate::gameplay::tree::{TREE_STARTING_HEIGHT};
+use crate::gameplay::tree::TREE_STARTING_HEIGHT;
 use crate::{
     ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
@@ -61,6 +62,7 @@ impl AppleStrength {
 #[reflect(Resource)]
 pub struct AppleAssets {
     apple: Handle<Scene>,
+    death_sound: Handle<AudioSource>,
 }
 
 impl FromWorld for AppleAssets {
@@ -68,6 +70,7 @@ impl FromWorld for AppleAssets {
         let assets: &AssetServer = world.resource::<AssetServer>();
         Self {
             apple: assets.load(GltfAssetLabel::Scene(0).from_asset("models/apple/apple.glb")),
+            death_sound: assets.load::<AudioSource>("audio/sound_effects/apple-death.wav"),
         }
     }
 }
@@ -108,11 +111,13 @@ fn spawn_apple_event_handler(
             .observe(
                 |trigger: Trigger<Death>,
                  mut commands: Commands,
+                 assets: Res<AppleAssets>,
                  mut eventwriter: EventWriter<SeedSpawnEvent>,
                  query: Query<(Entity, &Transform), With<Apple>>| {
                     if let Ok(apple) = query.get(trigger.target()) {
                         eventwriter.write(SeedSpawnEvent::new(apple.1.translation));
                     }
+                    commands.spawn(sound_effect(assets.death_sound.clone()));
 
                     commands
                         .get_entity(trigger.target().entity())
@@ -128,8 +133,8 @@ fn apply_apple_force(
     tractor: Single<&Transform, With<Tractor>>,
 ) {
     for (mut apple_force, apple_transform, apple_strength) in query.iter_mut() {
-        let force =
-            (tractor.translation - apple_transform.translation).normalize() * apple_strength.speed as f32;
+        let force = (tractor.translation - apple_transform.translation).normalize()
+            * apple_strength.speed as f32;
 
         apple_force.set_force(force);
     }

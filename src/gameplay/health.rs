@@ -1,5 +1,5 @@
 use crate::PausableSystems;
-use crate::audio::{SoundEffectType, SoundEffects};
+use crate::audio::sound_effect;
 use crate::gameplay::apple::{Apple, AppleStrength};
 use crate::gameplay::bullet::{Bullet, BulletSplitEvent};
 use crate::gameplay::tractor::{LeftWheels, RightWheels, Tractor};
@@ -10,7 +10,24 @@ use std::collections::HashSet;
 
 use super::*;
 
+#[derive(Resource)]
+struct HealthAssets {
+    tractor_damage_sound: Handle<AudioSource>,
+}
+
+impl FromWorld for HealthAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets: &AssetServer = world.resource::<AssetServer>();
+        Self {
+            tractor_damage_sound: assets
+                .load::<AudioSource>("audio/sound_effects/tractor-damage.wav"),
+        }
+    }
+}
+
 pub fn plugin(app: &mut App) {
+    app.init_resource::<HealthAssets>();
+
     app.add_event::<DamageEvent>()
         .add_event::<Death>()
         .add_systems(
@@ -32,7 +49,7 @@ pub struct Health {
 
 impl Health {
     pub fn percentage(&self) -> u32 {
-        ((self.current  as f32 / self.max as f32) * 100.) as u32
+        ((self.current as f32 / self.max as f32) * 100.) as u32
     }
     pub fn new(health: u32) -> Self {
         Self {
@@ -56,7 +73,7 @@ fn damage_health(
     mut event_reader: EventReader<DamageEvent>,
     mut health_query: Query<&mut Health>,
     tractor: Single<Entity, With<Tractor>>,
-    sound_effects: Res<SoundEffects>,
+    assets: Res<HealthAssets>,
 ) {
     for event in event_reader.read() {
         if let Ok(mut health) = health_query.get_mut(event.entity) {
@@ -67,7 +84,7 @@ fn damage_health(
             }
 
             if event.entity == *tractor {
-                sound_effects.play_sound(&mut commands, SoundEffectType::Hurt);
+                commands.spawn(sound_effect(assets.tractor_damage_sound.clone()));
             }
         }
     }

@@ -1,46 +1,8 @@
 use bevy::prelude::*;
 
-use crate::asset_tracking::LoadResource;
-
-#[derive(Resource)]
-pub struct SoundEffects {
-    fire: Handle<AudioSource>,
-    hurt: Handle<AudioSource>,
-}
-
-impl SoundEffects {
-    pub fn play_sound(&self, commands: &mut Commands, sound: SoundEffectType) {
-        match sound {
-            SoundEffectType::Fire => {
-                commands.spawn(sound_effect(self.fire.clone()));
-            }
-            SoundEffectType::Hurt => {
-                commands.spawn(sound_effect(self.hurt.clone()));
-            }
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub enum SoundEffectType {
-    Fire,
-    Hurt,
-}
-
-impl FromWorld for SoundEffects {
-    fn from_world(world: &mut World) -> Self {
-        let assets: &AssetServer = world.resource::<AssetServer>();
-        Self {
-            fire: assets.load::<AudioSource>("audio/sound_effects/gunfire.wav"),
-            hurt: assets.load::<AudioSource>("audio/sound_effects/tractor-damage.wav"),
-        }
-    }
-}
-
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Music>();
     app.register_type::<SoundEffect>();
-    app.init_resource::<SoundEffects>();
 
     app.add_systems(
         Update,

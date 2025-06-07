@@ -61,6 +61,7 @@ pub struct TractorAssets {
     tractor: Handle<Scene>,
     wheelball: Handle<Scene>,
     saw: Handle<Scene>,
+    sound_hurt: Handle<AudioSource>,
 }
 
 impl FromWorld for TractorAssets {
@@ -71,6 +72,7 @@ impl FromWorld for TractorAssets {
                 .load(GltfAssetLabel::Scene(0).from_asset("models/tractor/tractor_scaled.glb")),
             wheelball: assets.load(GltfAssetLabel::Scene(0).from_asset("models/wheelball.glb")),
             saw: assets.load(GltfAssetLabel::Scene(0).from_asset("models/saw/saw.glb")),
+            sound_hurt: assets.load::<AudioSource>("audio/sound_effects/tractor-damage.wav"),
         }
     }
 }
