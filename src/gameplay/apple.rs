@@ -51,10 +51,13 @@ impl AppleStrength {
             speed: APPLE_SPEED_INIT,
         }
     }
-    pub fn increase(&mut self) {
-        self.health += APPLE_HEALTH_INCREASE_TICK;
-        self.damage += APPLE_DAMAGE_INCREASE_TICK;
-        self.speed += APPLE_SPEED_INCREASE_TICK;
+
+    pub fn from_level(level: u32) -> Self {
+        AppleStrength {
+            health: level,
+            damage: level,
+            speed: level,
+        }
     }
 }
 
@@ -132,7 +135,8 @@ fn apply_apple_force(
 ) {
     for (mut apple_force, apple_transform, apple_strength) in query.iter_mut() {
         let force = (tractor.translation - apple_transform.translation).normalize()
-            * apple_strength.speed as f32;
+            * apple_strength.speed as f32
+            * 1.3;
 
         apple_force.set_force(force);
     }

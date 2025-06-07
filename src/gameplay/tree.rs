@@ -134,7 +134,6 @@ fn spawn_tree(
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
                     Health::new(TREE_HEALTH_INIT),
-                    AppleStrength::new(),
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
@@ -189,8 +188,8 @@ fn spawn_tree_timer(
     }
 }
 
-fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut AppleStrength, &mut Tree)>) {
-    for (mut health, mut apple_strength, mut tree) in trees.iter_mut() {
+fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut Tree)>) {
+    for (mut health, mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
 
         if tree.timer.finished() {
@@ -200,8 +199,6 @@ fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut AppleStre
                 health.current += TREE_HEALTH_INCREASE_TICK;
                 health.max = TREE_HEALTH_INCREASE_TICK;
                 tree.level += 1;
-
-                apple_strength.increase();
             }
         }
     }
@@ -209,11 +206,11 @@ fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut AppleStre
 
 fn trees_spawn_apples(
     mut commands: Commands,
-    mut query: Query<(&AppleStrength, &mut Tree, &Transform)>,
+    mut query: Query<(&mut Tree, &Transform)>,
     time: Res<Time>,
 ) {
     let elapsed_time = time.elapsed_secs();
-    for (apple_strength, mut tree, tree_t) in query.iter_mut() {
+    for (mut tree, tree_t) in query.iter_mut() {
         if tree.level > 0 && elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
             tree.last_apple_spawn = elapsed_time;
             let spawn_pos =
@@ -221,7 +218,7 @@ fn trees_spawn_apples(
 
             commands.send_event(AppleSpawnEvent {
                 at: spawn_pos,
-                apple_strength: apple_strength.clone(),
+                apple_strength: AppleStrength::from_level(tree.level),
                 radius: 1.0, // TODO make const?
             });
         }
