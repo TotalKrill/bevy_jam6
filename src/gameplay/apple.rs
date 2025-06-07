@@ -144,21 +144,16 @@ fn update_apple_mesh(
     assets: Res<AppleAssets>,
 ) {
     for (apple, health) in query {
-        println!("Apple health changed!");
         // commands.entity(apple).remove::<SceneRoot>();
-        let health_percentage = health.percentage();
-        if health_percentage >= 80 {
-            commands
-                .entity(apple)
-                .insert(SceneRoot(assets.apple.clone()));
-        } else if health_percentage >= 40 {
-            commands
-                .entity(apple)
-                .insert(SceneRoot(assets.eaten_apple.clone()));
-        } else {
-            commands
-                .entity(apple)
-                .insert(SceneRoot(assets.eaten_apple_2.clone()));
+        if let Ok(mut entity_commands) = commands.get_entity(apple) {
+            let health_percentage = health.percentage();
+            if health_percentage >= 90 {
+                entity_commands.try_insert(SceneRoot(assets.apple.clone()));
+            } else if health_percentage >= 40 {
+                entity_commands.try_insert(SceneRoot(assets.eaten_apple.clone()));
+            } else if health.current > 0 {
+                entity_commands.try_insert(SceneRoot(assets.eaten_apple_2.clone()));
+            }
         }
     }
 }
