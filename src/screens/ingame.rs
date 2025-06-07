@@ -10,7 +10,6 @@ use crate::{
 use avian3d::math::PI;
 use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
-use iyes_perf_ui::prelude::PerfUiAllEntries;
 
 pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
@@ -47,6 +46,7 @@ use crate::{
     gameplay::{controls::InTractor, level, turret_aiming},
 };
 
+use crate::gameplay::{hud, score::Currency};
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 pub fn setup_gamescreen(
     mut commands: Commands,
@@ -54,15 +54,16 @@ pub fn setup_gamescreen(
     world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut currency: ResMut<Currency>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
-    use crate::gameplay::hud;
-
     for e in query.iter() {
         commands.entity(e).despawn();
     }
+
+    currency.reset();
     commands.spawn((ReplaceOnHotreload, turret_aiming::sight()));
 
     log::info!("spawning tractor");

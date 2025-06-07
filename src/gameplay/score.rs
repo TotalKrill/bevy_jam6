@@ -13,6 +13,9 @@ pub struct ScoreCounter {
 #[derive(Resource, Default)]
 pub struct Currency(u32);
 impl Currency {
+    pub fn reset(&mut self) {
+        self.0 = 0;
+    }
     pub fn add(&mut self, val: u32) {
         self.0 += val;
     }
