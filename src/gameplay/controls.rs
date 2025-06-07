@@ -94,6 +94,7 @@ fn tractor_break(
     mut angular_velocity: Query<&mut AngularVelocity>,
     mut torque: Query<&mut ExternalTorque>,
     query: Query<(&Tractor, &LeftWheels, &RightWheels)>,
+    // mut tractor: Single<&mut ExternalForce, With<Tractor>>,
 ) {
     if keyboard.any_pressed([KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyD, KeyCode::KeyA]) {
         return;
@@ -154,5 +155,7 @@ fn tractor_move(
 
     let down_force = -Vec3::Y * TRACTOR_ACCELERATION * time.delta_secs();
 
-    force.set_force(forward * apply_force + down_force);
+    force
+        .set_force(forward * apply_force + down_force)
+        .with_persistence(false);
 }
