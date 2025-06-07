@@ -82,6 +82,8 @@ fn spawn_apple_event_handler(
         let apple_rotation =
             rot.mul_vec3((tractor.translation - position).normalize()) * APPLE_INITIAL_ROTATION;
 
+        let apple_radius = event.radius + 0.1 * event.radius * (event.apple_strength.health - 1) as f32;
+
         commands
             .spawn((
                 Apple,
@@ -94,7 +96,7 @@ fn spawn_apple_event_handler(
                 AnchoredUiNodes::spawn_one(healthbar(100.)),
                 RigidBody::Dynamic,
                 Collider::sphere(APPLE_RADIUS),
-                Transform::from_translation(position).with_scale(Vec3::splat(event.radius + 0.2)),
+                Transform::from_translation(position).with_scale(Vec3::splat(apple_radius)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
                 AngularVelocity(apple_rotation),
                 SceneRoot(assets.apple.clone()),
