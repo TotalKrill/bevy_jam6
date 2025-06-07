@@ -136,6 +136,7 @@ fn damage_tractor(
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_apple_collision_damage(
+    mut commands: Commands,
     mut collision_event_reader: EventReader<CollisionStarted>,
     bullets: Query<(Entity, &Bullet)>,
     apples: Query<(Entity, &Transform), With<Apple>>,
@@ -144,7 +145,7 @@ fn bullet_apple_collision_damage(
 ) {
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
-            if let (Ok((apple, apple_t)), Ok((_bullet_e, bullet))) =
+            if let (Ok((apple, apple_t)), Ok((bullet_e, bullet))) =
                 (apples.get(apple_candidate), bullets.get(bullet_candidate))
             {
                 event_writer.write(DamageEvent {
@@ -152,13 +153,20 @@ fn bullet_apple_collision_damage(
                     entity: apple,
                 });
 
+                if let Ok(mut ec) = commands.get_entity(bullet_e) {
+                    ec.despawn();
+                }
+
                 let percent: f32 = rand::random();
                 if percent < bullet.split_probability {
                     info!("splitting bullet!");
-                    bullet_split.write(BulletSplitEvent {
-                        center: apple_t.translation,
-                        bullet: bullet.half(),
-                    });
+                    let bullet = bullet.half();
+                    if bullet.damage > 0 {
+                        bullet_split.write(BulletSplitEvent {
+                            center: apple_t.translation,
+                            bullet,
+                        });
+                    }
                 }
                 break; // Only need to damage once per collision
             }

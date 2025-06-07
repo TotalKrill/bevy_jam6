@@ -1,16 +1,22 @@
 use crate::PausableSystems;
+use crate::audio::sound_effect;
 use crate::gameplay::WorldAssets;
 use crate::gameplay::apple::{APPLE_RADIUS, AppleSpawnEvent, AppleStrength};
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::Ground;
 use crate::gameplay::saw::Sawable;
+use crate::gameplay::tractor::Tractor;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_tweening::lens::{TransformRotateXLens, TransformRotateZLens, TransformScaleLens};
-use bevy_tweening::{AnimationSystem, Animator, Sequence, Tween, component_animator_system};
+use bevy_tweening::lens::{
+    TransformPositionLens, TransformRotateXLens, TransformRotateZLens, TransformScaleLens,
+};
+use bevy_tweening::{
+    AnimationSystem, Animator, RepeatStrategy, Sequence, Tween, component_animator_system,
+};
 use bevy_ui_anchor::AnchoredUiNodes;
 use std::f32::consts::PI;
 use std::time::Duration;
@@ -72,20 +78,13 @@ pub struct TreeSpawnConfig {
     pub timer: Timer,
 }
 
-fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
-    let mut sequence = Sequence::with_capacity(7);
-
-    sequence = sequence.then(Tween::new(
-        EaseFunction::Linear,
-        Duration::from_millis(Tree::SCALE_DURATION_MS),
-        TransformScaleLens { start, end },
-    ));
-
+pub fn shake_tree() -> Sequence<Transform> {
+    let shakes = Tree::SCALE_SHAKE_COUNT as usize;
     let mut rotations = 0;
     let mut rotation = Tree::SCALE_SHAKE_ANGLE_RADIAN;
     let mut duration = Tree::SCALE_SHAKE_DURATION_MS as f32;
 
-    sequence = sequence.then(Tween::new(
+    let mut sequence = Sequence::with_capacity(shakes + 1).then(Tween::new(
         EaseFunction::Linear,
         Duration::from_millis(duration as u64),
         TransformRotateXLens {
@@ -94,11 +93,9 @@ fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
         },
     ));
 
-    while rotations < Tree::SCALE_SHAKE_COUNT {
+    while rotations < shakes - 1 {
         let new_rotation = -1. * rotation / 1.618033988;
         let new_duration = duration / 1.618033988;
-
-        // println!("rot = {}, new rot = {}, duration = {} new duration = {}", rotation, new_rotation, duration, new_duration);
 
         if rotations % 2 == 0 {
             sequence = sequence.then(Tween::new(
@@ -127,6 +124,18 @@ fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
     }
 
     sequence
+}
+
+fn level_up_animation(start: Vec3, end: Vec3) -> Sequence<Transform> {
+    let mut sequence = Sequence::with_capacity(7);
+
+    sequence = sequence.then(Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(Tree::SCALE_DURATION_MS),
+        TransformScaleLens { start, end },
+    ));
+
+    sequence.then(shake_tree())
 }
 
 fn spawn_tree(
@@ -254,6 +263,22 @@ fn level_up_trees(
     }
 }
 
+fn shake_sawning_trees(
+    mut commands: Commands,
+    mut event_reader: EventReader<DamageEvent>,
+    query: Query<Entity, With<Tree>>,
+) {
+    for event in event_reader.read() {
+        if let Ok(entity) = query.get(event.entity) {
+            if let Ok(mut entity) = commands.get_entity(entity) {
+                entity.insert(Animator::new(shake_tree()));
+            }
+
+            break;
+        }
+    }
+}
+
 fn trees_spawn_apples(
     mut commands: Commands,
     mut query: Query<(&mut Tree, &Transform)>,
@@ -289,7 +314,12 @@ pub(super) fn plugin(app: &mut App) {
         ),
     });
 
-    
+    app.add_systems(
+        Update,
+        (shake_sawning_trees
+            .run_if(in_state(Screen::InGame))
+            .in_set(PausableSystems),),
+    );
 
     app.add_systems(
         FixedUpdate,
