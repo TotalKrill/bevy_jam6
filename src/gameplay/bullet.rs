@@ -92,7 +92,7 @@ fn fire_bullet_event_handler(
     }
 }
 
-pub const BULLET_SPEED: f32 = 75.;
+pub const BULLET_SPEED: f32 = 50.;
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(

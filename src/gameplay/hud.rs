@@ -7,7 +7,7 @@ use crate::{
     gameplay::{
         apple::Apple,
         health::Health,
-        score::ScoreCounter,
+        score::{Currency, ScoreCounter},
         tractor::{Tractor, TractorSaw},
         tree::Tree,
         turret::TurretDamage,
@@ -47,6 +47,7 @@ pub fn hud_plugin(app: &mut App) {
             update_healthbar,
             update_apple_counter,
             update_tree_counter,
+            update_upgrade_counter,
         ),
     );
     app.add_systems(Update, (keybind_updates).in_set(PausableSystems));
@@ -122,8 +123,41 @@ fn update_hud() -> impl Bundle {
             ..Default::default()
         },
         children![
+            upgrades_counter(),
             update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret"),
             update_button::<SawUpdateEvent, SawUpdateCounter>("Saw"),
+        ],
+    )
+}
+
+#[derive(Component)]
+struct UpgradeCounter;
+
+fn update_upgrade_counter(
+    currency: Res<Currency>,
+    mut upg_counts: Query<&mut Text, With<UpgradeCounter>>,
+) {
+    for mut upg_count in upg_counts.iter_mut() {
+        *upg_count = Text::new(format!("{}", currency.get()));
+    }
+}
+
+fn upgrades_counter() -> impl Bundle {
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        children![
+            (
+                Node {
+                    //
+                    ..Default::default()
+                },
+                Text::new("Upgrades"),
+            ),
+            (Text::new("-"), UpgradeCounter,)
         ],
     )
 }
@@ -131,12 +165,14 @@ fn update_hud() -> impl Bundle {
 fn upgrade_turret(
     mut upd_counters: Query<&mut Text, With<TurretUpdateCounter>>,
     mut turrets: Query<&mut TurretDamage>,
+    mut currency: ResMut<Currency>,
 ) {
-    println!("Update!!");
-    for mut turret in turrets.iter_mut() {
-        turret.0 += 1;
-        for mut upd_counter in upd_counters.iter_mut() {
-            *upd_counter = Text::new(format!("{}", turret.0));
+    if currency.spend(1) {
+        for mut turret in turrets.iter_mut() {
+            turret.0 += 1;
+            for mut upd_counter in upd_counters.iter_mut() {
+                *upd_counter = Text::new(format!("{}", turret.0));
+            }
         }
     }
 }
@@ -144,12 +180,14 @@ fn upgrade_turret(
 fn upgrade_saw(
     mut upd_counters: Query<&mut Text, With<SawUpdateCounter>>,
     mut saws: Query<&mut TractorSaw>,
+    mut currency: ResMut<Currency>,
 ) {
-    println!("Update!!");
-    for mut saw in saws.iter_mut() {
-        saw.damage += 1;
-        for mut upd_counter in upd_counters.iter_mut() {
-            *upd_counter = Text::new(format!("{}", saw.damage));
+    if currency.spend(1) {
+        for mut saw in saws.iter_mut() {
+            saw.damage += 1;
+            for mut upd_counter in upd_counters.iter_mut() {
+                *upd_counter = Text::new(format!("{}", saw.damage));
+            }
         }
     }
 }
