@@ -121,7 +121,7 @@ pub fn spawn_tractor<T: Bundle>(
         ))
         .id();
 
-    tractor_saw(assets, tractor_id, commands);
+    spawn_tractor_saw(assets, tractor_id, commands);
 
     let wheel_offset_x = TRACTOR_WIDTH / 2.0 + 0.2 + WHEEL_RADIE;
     let wheel_offset_z = TRACTOR_LENGTH / 2.0 - WHEEL_RADIE - 0.2;
