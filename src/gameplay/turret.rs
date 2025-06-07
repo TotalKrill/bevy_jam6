@@ -17,11 +17,14 @@ pub struct Turret {
 }
 
 use crate::gameplay::bullet::BulletSpawnEvent;
+use crate::gameplay::upgrades::BulletUpgrades;
+
 #[cfg_attr(feature = "dev_native", hot)]
 fn tick_and_fire_turret(
     time: Res<Time>,
     mut turrets: Query<(&mut Turret, &GlobalTransform)>,
     mut fire_bullet_evt: EventWriter<BulletSpawnEvent>,
+    bullet_upgrades: Res<BulletUpgrades>
 ) {
     use crate::gameplay::bullet::Bullet;
 
@@ -35,7 +38,7 @@ fn tick_and_fire_turret(
                 at: bullet_spawnpoint,
                 dir: forward,
                 speed: 50.,
-                bullet: Bullet::new(1, 1.0),
+                bullet: Bullet::new(bullet_upgrades.damage, bullet_upgrades.split_probability),
             });
         }
     }

@@ -1,5 +1,8 @@
-use crate::gameplay::{App, Component};
+use crate::gameplay::{App, Commands, IntoScheduleConfigs, Res, Time, Timer, TimerMode, in_state};
+use crate::screens::Screen;
+use bevy::app::FixedUpdate;
 use bevy::prelude::{Event, ResMut, Resource, Trigger};
+use std::time::Duration;
 
 #[derive(Resource, Clone)]
 pub struct BulletUpgrades {
@@ -8,11 +11,11 @@ pub struct BulletUpgrades {
     pub speed: f32,
 }
 
-#[derive(Event, Clone)]
+#[derive(Event, Clone, Debug)]
 pub enum UpgradeBulletEvent {
     Damage,
     SplitProbability,
-    Speed,
+    Speed, // TOOO not yet mapped correctly
 }
 
 impl BulletUpgrades {
@@ -25,6 +28,7 @@ impl BulletUpgrades {
     }
 
     pub fn upgrade(&mut self, event: &UpgradeBulletEvent) {
+        println!("upgrade: {:?}", event);
         match event {
             UpgradeBulletEvent::Damage => {
                 self.damage += 1;
@@ -47,7 +51,8 @@ pub struct TractorUpgrades {
     pub saw_damage: u32,
 }
 
-#[derive(Event, Clone)]
+// TODO change to component?
+#[derive(Event, Clone, Debug)]
 pub enum UpgradeTractorEvent {
     Health,
     Acceleration,
@@ -66,6 +71,7 @@ impl TractorUpgrades {
     }
 
     pub fn upgrade(&mut self, event: &UpgradeTractorEvent) {
+        println!("upgrade: {:?}", event);
         match event {
             UpgradeTractorEvent::Health => self.health += 1,
             UpgradeTractorEvent::Acceleration => {
@@ -81,9 +87,31 @@ impl TractorUpgrades {
     }
 }
 
+#[derive(Resource, Debug)]
+pub struct AutoUpgrade {
+    timer: Timer,
+}
+fn auto_upgrade_bullet_damage(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut auto_upgrade: ResMut<AutoUpgrade>,
+) {
+    auto_upgrade.timer.tick(time.delta());
+
+    if auto_upgrade.timer.finished() {
+        commands.trigger(UpgradeBulletEvent::Damage);
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
+    app.insert_resource(AutoUpgrade {
+        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating),
+    });
     app.insert_resource(BulletUpgrades::new());
     app.insert_resource(TractorUpgrades::new());
+
+    app.add_event::<UpgradeBulletEvent>();
+    app.add_event::<UpgradeTractorEvent>();
 
     app.add_observer(
         |trigger: Trigger<UpgradeTractorEvent>, mut upgrades: ResMut<TractorUpgrades>| {
@@ -95,5 +123,10 @@ pub(super) fn plugin(app: &mut App) {
         |trigger: Trigger<UpgradeBulletEvent>, mut upgrades: ResMut<BulletUpgrades>| {
             upgrades.upgrade(trigger.event());
         },
+    );
+
+    app.add_systems(
+        FixedUpdate,
+        auto_upgrade_bullet_damage.run_if(in_state(Screen::InGame)),
     );
 }
