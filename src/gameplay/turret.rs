@@ -26,31 +26,17 @@ impl Default for TurretDamage {
     }
 }
 
-#[derive(Component, Reflect)]
-pub struct TurretBulletSplitProbability(pub f32);
-
-impl Default for TurretBulletSplitProbability {
-    fn default() -> Self {
-        Self(0.5)
-    }
-}
-
 use crate::gameplay::bullet::BulletSpawnEvent;
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn tick_and_fire_turret(
     time: Res<Time>,
-    mut turrets: Query<(
-        &mut Turret,
-        &GlobalTransform,
-        &TurretDamage,
-        &TurretBulletSplitProbability,
-    )>,
+    mut turrets: Query<(&mut Turret, &GlobalTransform, &TurretDamage)>,
     mut fire_bullet_evt: EventWriter<BulletSpawnEvent>,
 ) {
     use crate::gameplay::bullet::Bullet;
 
-    for (mut turret, transform, turret_damage, turret_split_probability) in turrets.iter_mut() {
+    for (mut turret, transform, turret_damage) in turrets.iter_mut() {
         turret.rate_of_fire.tick(time.delta());
         if turret.rate_of_fire.finished() && turret.firing {
             turret.rate_of_fire.reset();
@@ -60,7 +46,7 @@ fn tick_and_fire_turret(
                 at: bullet_spawnpoint,
                 dir: forward,
                 speed: 50.,
-                bullet: Bullet::new(turret_damage.0, turret_split_probability.0),
+                bullet: Bullet::new(turret_damage.0, 1.0),
             });
         }
     }
@@ -82,7 +68,6 @@ pub fn turret(
         Mesh3d(meshes.add(Sphere::new(BODY_RADIE))),
         MeshMaterial3d(materials.add(StandardMaterial::from_color(BLACK))),
         Transform::from_translation(pos),
-        TurretBulletSplitProbability::default(),
         TurretDamage::default(),
         children![(
             Transform::from_rotation(Quat::from_rotation_x(-90f32.to_radians())),
