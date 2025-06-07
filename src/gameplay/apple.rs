@@ -52,7 +52,7 @@ impl AppleStrength {
         }
     }
 
-    pub fn from_level(level: u32) -> Self {
+    pub fn from_tree_level(level: u32) -> Self {
         AppleStrength {
             health: level,
             damage: level,
