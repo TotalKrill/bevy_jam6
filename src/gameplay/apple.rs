@@ -31,7 +31,7 @@ pub struct Apple;
 
 #[derive(Event)]
 pub struct AppleSpawnEvent {
-    pub tree: Entity,
+    pub at: Vec3,
     pub apple_strength: AppleStrength,
     pub radius: f32,
 }
@@ -86,9 +86,7 @@ fn spawn_apple_event_handler(
         // let radii = rand::random::<f32>() * event.max_radius;
         // let angle = rand::random::<f32>() * std::f32::consts::PI * 2.0;
 
-        let tree_transform = trees.get(event.tree).unwrap();
-        let spawn_height = TREE_STARTING_HEIGHT * tree_transform.scale.y + APPLE_RADIUS * 2.0;
-        let position = tree_transform.translation + Vec3::Y * spawn_height;
+        let position = event.at;
         let towards_player =
             ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
 
@@ -139,23 +137,6 @@ fn apply_apple_force(
         apple_force.set_force(force);
     }
 }
-fn spawn_apples(
-    mut commands: Commands,
-    mut query: Query<((Entity, &AppleStrength), &mut Tree)>,
-    time: Res<Time>,
-) {
-    let elapsed_time = time.elapsed_secs();
-    for ((entity, apple_strength), mut tree) in query.iter_mut() {
-        if tree.active && elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
-            tree.last_apple_spawn = elapsed_time;
-            commands.send_event(AppleSpawnEvent {
-                tree: entity,
-                apple_strength: apple_strength.clone(),
-                radius: 1.0, // TODO make const?
-            });
-        }
-    }
-}
 
 fn despawn_apples_below_map(
     mut commands: Commands,
@@ -177,7 +158,6 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             spawn_apple_event_handler.run_if(in_state(Screen::InGame)),
-            spawn_apples.run_if(in_state(Screen::InGame)),
             apply_apple_force.run_if(in_state(Screen::InGame)),
             despawn_apples_below_map.run_if(in_state(Screen::InGame)),
         )

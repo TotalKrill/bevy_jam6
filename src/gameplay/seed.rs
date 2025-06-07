@@ -1,13 +1,11 @@
-use crate::gameplay::health::Health;
-use crate::gameplay::tree::TreeSpawnEvent;
-use crate::gameplay::{
-    App, Assets, Commands, Entity, Event, Mesh, Mesh3d, MeshMaterial3d, Name, Query, Res, ResMut,
-    Sphere, StandardMaterial, Time, Timer, TimerMode, Transform, Vec3,
+use crate::{
+    PausableSystems, ReplaceOnHotreload,
+    gameplay::{health::Health, tree::TreeSpawnEvent},
 };
-use crate::{PausableSystems, ReplaceOnHotreload};
+
+use super::*;
 use avian3d::prelude::{Collider, LinearDamping, LinearVelocity, Mass, RigidBody};
 use bevy::color::palettes::basic::BLACK;
-use bevy::prelude::*;
 use std::time::Duration;
 
 const SEED_RADIUS: f32 = 0.1;
@@ -108,7 +106,7 @@ fn despawn_seeds(
             if rand::random::<f32>() < SEED_SPAWN_TREE_PROBABILITY {
                 commands.send_event(TreeSpawnEvent {
                     position: Vec2::new(transform.translation.x, transform.translation.z),
-                    active: false,
+                    startlevel: 0,
                     scale: 0.0,
                 });
             }

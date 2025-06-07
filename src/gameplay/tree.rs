@@ -1,6 +1,6 @@
 use crate::PausableSystems;
 use crate::gameplay::WorldAssets;
-use crate::gameplay::apple::AppleStrength;
+use crate::gameplay::apple::{APPLE_RADIUS, AppleSpawnEvent, AppleStrength};
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::Ground;
@@ -36,13 +36,14 @@ pub struct Tree {
     pub apple_spawn_time_sec: f32,
     pub last_apple_spawn: f32,
     pub timer: Timer,
-    pub active: bool,
+    // level progression
+    pub level: u32,
 }
 
 #[derive(Event)]
 pub struct TreeSpawnEvent {
     pub(crate) position: Vec2,
-    pub(crate) active: bool,
+    pub(crate) startlevel: u32,
     pub(crate) scale: f32,
 }
 
@@ -128,7 +129,7 @@ fn spawn_tree(
                             Duration::from_secs(TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC),
                             TimerMode::Repeating,
                         ),
-                        active: event.active,
+                        level: 0,
                     },
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
@@ -169,7 +170,7 @@ fn spawn_tree_timer(
     if num_trees < DEFAULT_TREE_LOCATIONS.len() {
         commands.send_event(TreeSpawnEvent {
             position: DEFAULT_TREE_LOCATIONS[num_trees],
-            active: false,
+            startlevel: 0,
             scale: 1.0,
         });
     }
@@ -182,22 +183,15 @@ fn spawn_tree_timer(
 
         commands.send_event(TreeSpawnEvent {
             position: Vec2::new(x, z),
-            active: false,
             scale: 0.0,
+            startlevel: 0,
         });
     }
 }
 
-fn increase_tree_strength(
-    time: Res<Time>,
-    mut trees: Query<((&mut Health, &mut AppleStrength), &mut Tree)>,
-) {
-    for ((mut health, mut apple_strength), mut tree) in trees.iter_mut() {
+fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut AppleStrength, &mut Tree)>) {
+    for (mut health, mut apple_strength, mut tree) in trees.iter_mut() {
         tree.timer.tick(time.delta());
-
-        if !tree.active && tree.timer.elapsed_secs() > TREE_ACTIVE_THRESHOLD_SEC {
-            tree.active = true;
-        }
 
         if tree.timer.finished() {
             if health.current == health.max {
@@ -205,9 +199,31 @@ fn increase_tree_strength(
 
                 health.current += TREE_HEALTH_INCREASE_TICK;
                 health.max = TREE_HEALTH_INCREASE_TICK;
+                tree.level += 1;
 
                 apple_strength.increase();
             }
+        }
+    }
+}
+
+fn spawn_apples(
+    mut commands: Commands,
+    mut query: Query<(&AppleStrength, &mut Tree, &Transform)>,
+    time: Res<Time>,
+) {
+    let elapsed_time = time.elapsed_secs();
+    for (apple_strength, mut tree, tree_t) in query.iter_mut() {
+        if tree.level > 0 && elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
+            tree.last_apple_spawn = elapsed_time;
+            let spawn_pos =
+                tree_t.translation + TREE_STARTING_HEIGHT * tree_t.scale.y + APPLE_RADIUS * 2.0;
+
+            commands.send_event(AppleSpawnEvent {
+                at: spawn_pos,
+                apple_strength: apple_strength.clone(),
+                radius: 1.0, // TODO make const?
+            });
         }
     }
 }
@@ -227,19 +243,14 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            spawn_tree
-                .run_if(in_state(Screen::InGame))
-                .after(setup_gamescreen),
-            spawn_tree_timer.run_if(in_state(Screen::InGame)),
-            component_animator_system::<Tree>
-                .in_set(AnimationSystem::AnimationUpdate)
-                .run_if(in_state(Screen::InGame)),
+            spawn_tree.after(setup_gamescreen),
+            spawn_tree_timer,
+            component_animator_system::<Tree>.in_set(AnimationSystem::AnimationUpdate),
+            spawn_apples,
         )
+            .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),
     );
 
-    app.add_systems(
-        FixedUpdate,
-        increase_tree_strength.run_if(in_state(Screen::InGame)),
-    );
+    app.add_systems(FixedUpdate, level_up_trees.run_if(in_state(Screen::InGame)));
 }
