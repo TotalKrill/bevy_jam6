@@ -90,5 +90,26 @@ fn setup_devscreen(
         level::level(world_assets, meshes, materials),
     ));
 
+    // Spawn the Sun
+    commands.spawn((
+        ReplaceOnHotreload,
+        DirectionalLight {
+            illuminance: light_consts::lux::AMBIENT_DAYLIGHT / 2.0,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }
+            .build(),
+    ));
+
     // commands.spawn(PerfUiAllEntries::default());
 }
