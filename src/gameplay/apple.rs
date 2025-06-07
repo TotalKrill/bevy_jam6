@@ -13,6 +13,7 @@ use bevy::prelude::*;
 const APPLE_MASS: f32 = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
+const APPLE_INITIAL_ROTATION: f32 = 5.0;
 use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
@@ -72,12 +73,14 @@ fn spawn_apple_event_handler(
     tractor: Single<&Transform, With<Tractor>>,
 ) {
     for event in events.read() {
-        // let radii = rand::random::<f32>() * event.max_radius;
-        // let angle = rand::random::<f32>() * std::f32::consts::PI * 2.0;
-
         let position = event.at;
         let towards_player =
             ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
+
+        let rot = Quat::from_rotation_y(90_f32.to_radians());
+
+        let apple_rotation =
+            rot.mul_vec3((tractor.translation - position).normalize()) * APPLE_INITIAL_ROTATION;
 
         commands
             .spawn((
@@ -93,6 +96,7 @@ fn spawn_apple_event_handler(
                 Collider::sphere(APPLE_RADIUS),
                 Transform::from_translation(position).with_scale(Vec3::splat(event.radius + 0.2)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
+                AngularVelocity(apple_rotation),
                 SceneRoot(assets.apple.clone()),
             ))
             .observe(
