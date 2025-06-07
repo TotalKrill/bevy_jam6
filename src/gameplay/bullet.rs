@@ -107,7 +107,7 @@ fn bullet_split_event_handler(
                     .distance_squared(evt.center)
                     .total_cmp(&t2.translation.distance_squared(evt.center))
             })
-            .take(2)
+            .take(3)
         {
             let apple_target = apple_t.translation
                 + apple_v.0 * (apple_t.translation.distance(evt.center) / BULLET_SPEED);
