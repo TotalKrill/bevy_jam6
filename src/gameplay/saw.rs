@@ -1,4 +1,5 @@
 use crate::{
+    audio::sound_effect,
     gameplay::{health::DamageEvent, tractor::TractorSaw},
     screens::Screen,
 };
@@ -18,11 +19,26 @@ impl Default for Sawable {
     }
 }
 
+#[derive(Resource)]
+struct SawAssets {
+    damage_sound: Handle<AudioSource>,
+}
+
+impl FromWorld for SawAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets: &AssetServer = world.resource::<AssetServer>();
+        Self {
+            damage_sound: assets.load::<AudioSource>("audio/sound_effects/chainsaw.wav"),
+        }
+    }
+}
+
 fn check_saw_colitions(
     collisions: Collisions,
     sawables: Query<(Entity, &mut Sawable)>,
     saw: Single<(Entity, &TractorSaw)>,
     mut commands: Commands,
+    assets: Res<SawAssets>,
 ) {
     let (saw_entity, saw) = saw.into_inner();
 
@@ -36,6 +52,8 @@ fn check_saw_colitions(
             // Update rate of fire
             sawable.timer.set_duration(saw.rate_of_fire);
             sawable.timer.reset();
+
+            commands.spawn(sound_effect(assets.damage_sound.clone()));
         }
     }
 }
@@ -47,6 +65,7 @@ fn check_sawable_timers(mut sawables: Query<&mut Sawable>, time: Res<Time>) {
 }
 
 pub fn plugin(app: &mut App) {
+    app.init_resource::<SawAssets>();
     app.add_systems(
         Update,
         (
