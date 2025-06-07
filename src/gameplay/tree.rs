@@ -147,10 +147,9 @@ fn spawn_tree(
                     Animator::new(tween),
                 ))
                 .observe(|trigger: Trigger<Death>, mut commands: Commands| {
-                    commands
-                        .get_entity(trigger.target().entity())
-                        .unwrap()
-                        .despawn();
+                    if let Ok(mut ec) = commands.get_entity(trigger.target().entity()) {
+                        ec.despawn();
+                    }
                 });
         } else {
             log::error!("Ground not found when spawning tree");
