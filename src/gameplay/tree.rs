@@ -8,9 +8,8 @@ use crate::gameplay::saw::Sawable;
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
-use bevy::asset::uuid::Timestamp;
 use bevy::prelude::*;
-use bevy_tweening::lens::{TransformPositionLens, TransformScaleLens};
+use bevy_tweening::lens::TransformScaleLens;
 use bevy_tweening::{AnimationSystem, Animator, Tween, component_animator_system};
 use bevy_ui_anchor::AnchoredUiNodes;
 use std::time::Duration;
@@ -29,7 +28,6 @@ const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 10;
 const TREE_ACTIVE_THRESHOLD_SEC: f32 = 5.; // sec until tree starts spawning apples
-const MINIMUM_TREES_ON_MAP: usize = 3;
 
 const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
