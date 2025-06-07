@@ -6,7 +6,6 @@ use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
-use crate::gameplay::tree::TREE_STARTING_HEIGHT;
 use crate::{
     ReplaceOnHotreload,
     gameplay::{tractor::Tractor, tree::Tree},
@@ -17,12 +16,6 @@ use bevy::prelude::*;
 
 const APPLE_MASS: f32 = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
-const APPLE_HEALTH_INIT: u32 = 1;
-const APPLE_HEALTH_INCREASE_TICK: u32 = 1;
-const APPLE_DAMAGE_INIT: u32 = 1;
-const APPLE_DAMAGE_INCREASE_TICK: u32 = 1;
-const APPLE_SPEED_INIT: u32 = 5;
-const APPLE_SPEED_INCREASE_TICK: u32 = 1;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 use bevy_ui_anchor::AnchoredUiNodes;
 
@@ -44,14 +37,6 @@ pub struct AppleStrength {
 }
 
 impl AppleStrength {
-    pub fn new() -> Self {
-        Self {
-            health: APPLE_HEALTH_INIT,
-            damage: APPLE_DAMAGE_INIT,
-            speed: APPLE_SPEED_INIT,
-        }
-    }
-
     pub fn from_tree_level(level: u32) -> Self {
         AppleStrength {
             health: level,
@@ -82,7 +67,6 @@ fn spawn_apple_event_handler(
     mut events: EventReader<AppleSpawnEvent>,
     mut commands: Commands,
     assets: Res<AppleAssets>,
-    trees: Query<&Transform, With<Tree>>,
     tractor: Single<&Transform, With<Tractor>>,
 ) {
     for event in events.read() {
@@ -135,8 +119,7 @@ fn apply_apple_force(
 ) {
     for (mut apple_force, apple_transform, apple_strength) in query.iter_mut() {
         let force = (tractor.translation - apple_transform.translation).normalize()
-            * apple_strength.speed as f32
-            * 1.3;
+            * (apple_strength.speed as f32 * 1.3 + 5.);
 
         apple_force.set_force(force);
     }

@@ -23,21 +23,24 @@ const RANDOM_SPAWN_X_MAX: f32 = 150.0;
 const RANDOM_SPAWN_Z_MIN: f32 = -150.0;
 const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
-const TREE_GROWTH_DURATION_SEC: u64 = 180;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: u32 = 1;
-const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 10;
-const TREE_ACTIVE_THRESHOLD_SEC: f32 = 5.; // sec until tree starts spawning apples
+const TREE_HEALTH_INCREASE_TICK_INTERVAL_SEC: u64 = 30;
 
 const DEFAULT_TREE_LOCATIONS: [Vec2; 3] = [vec2(22.0, 20.0), vec2(-15.0, -10.0), vec2(34.0, -20.0)];
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Tree {
     pub apple_spawn_time_sec: f32,
     pub last_apple_spawn: f32,
     pub timer: Timer,
     // level progression
     pub level: u32,
+}
+
+impl Tree {
+    const SCALE_PER_LEVEL: f32 = 0.5;
+    const SCALE_DURATION_MS: u64 = 1500;
 }
 
 #[derive(Event)]
@@ -96,18 +99,19 @@ fn spawn_tree(
                 hit.distance
             );
 
+            let scale = Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL;
             let tween = Tween::new(
                 // Use a quadratic easing on both endpoints.
                 EaseFunction::Linear,
                 // Animation time (one way only; for ping-pong it takes 2 seconds
                 // to come back to start).
-                Duration::from_secs(TREE_GROWTH_DURATION_SEC),
+                Duration::from_millis(Tree::SCALE_DURATION_MS),
                 // The lens gives the Animator access to the Transform component,
                 // to animate it. It also contains the start and end values associated
                 // with the animation ratios 0. and 1.
                 TransformScaleLens {
-                    start: Vec3::new(0.01, 0.01, 0.01),
-                    end: Vec3::new(3., 3., 3.),
+                    start: Vec3::splat(0.01),
+                    end: Vec3::splat(scale),
                 },
             );
 
@@ -133,7 +137,7 @@ fn spawn_tree(
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform {
                         translation: position,
-                        scale: Vec3::splat(event.startlevel as f32),
+                        scale: Vec3::splat(0.01),
                         ..Default::default()
                     },
                     Animator::new(tween),
@@ -178,14 +182,36 @@ fn spawn_tree_timer(
     }
 }
 
-fn level_up_trees(time: Res<Time>, mut trees: Query<(&mut Health, &mut Tree)>) {
-    for (mut health, mut tree) in trees.iter_mut() {
+fn level_up_trees(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut trees: Query<(Entity, &mut Health, &mut Tree, &Transform)>,
+) {
+    for (ent, mut tree_health, mut tree, tree_t) in trees.iter_mut() {
         tree.timer.tick(time.delta());
 
-        if tree.timer.finished() {
-            if health.current == health.max {
+        if tree.timer.just_finished() {
+            let startscale = tree_t.scale;
+            let scale = Tree::SCALE_PER_LEVEL + tree.level as f32 * Tree::SCALE_PER_LEVEL;
+            let tween = Tween::new(
+                // Use a quadratic easing on both endpoints.
+                EaseFunction::Linear,
+                // Animation time (one way only; for ping-pong it takes 2 seconds
+                // to come back to start).
+                Duration::from_millis(Tree::SCALE_DURATION_MS),
+                // The lens gives the Animator access to the Transform component,
+                // to animate it. It also contains the start and end values associated
+                // with the animation ratios 0. and 1.
+                TransformScaleLens {
+                    start: startscale,
+                    end: Vec3::splat(scale),
+                },
+            );
+            commands.entity(ent).insert(Animator::new(tween));
+
+            if tree_health.current == tree_health.max {
                 // println!("increased tree strength: {:?}", tree.timer.elapsed_secs());
-                health.increase_max(TREE_HEALTH_INCREASE_TICK);
+                tree_health.increase_max(TREE_HEALTH_INCREASE_TICK);
                 tree.level += 1;
             }
         }
@@ -215,6 +241,8 @@ fn trees_spawn_apples(
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<TreeAssets>();
+
+    app.register_type::<Tree>();
 
     app.add_event::<TreeSpawnEvent>();
 
