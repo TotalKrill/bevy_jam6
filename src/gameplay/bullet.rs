@@ -176,7 +176,7 @@ pub fn bullet(
         Mesh3d(bulletasset.mesh.clone()),
         MeshMaterial3d(bulletasset.material.clone()),
         RigidBody::Dynamic,
-        Mass(20.),
+        Mass(bullet.damage as f32),
         Collider::sphere(SIZE),
         LinearVelocity(direction * speed),
         Transform::from_rotation(Quat::from_rotation_x(90f32.to_radians())).with_translation(at), // .rotate_local_x(90f32.to_radians()),
