@@ -17,7 +17,9 @@ const APPLE_INITIAL_ROTATION: f32 = 5.0;
 use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
-pub struct Apple;
+pub struct Apple {
+    pub radius: f32
+}
 
 #[derive(Event)]
 pub struct AppleSpawnEvent {
@@ -86,7 +88,9 @@ fn spawn_apple_event_handler(
 
         commands
             .spawn((
-                Apple,
+                Apple {
+                    radius: apple_radius,
+                },
                 Sawable::default(),
                 Name::new("Apple"),
                 Health::new(event.apple_strength.health),
@@ -95,7 +99,7 @@ fn spawn_apple_event_handler(
                 ReplaceOnHotreload,
                 AnchoredUiNodes::spawn_one(healthbar(100.)),
                 RigidBody::Dynamic,
-                Collider::sphere(APPLE_RADIUS),
+                Collider::sphere(apple_radius),
                 Transform::from_translation(position).with_scale(Vec3::splat(apple_radius)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
                 AngularVelocity(apple_rotation),

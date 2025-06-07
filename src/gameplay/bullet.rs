@@ -1,5 +1,5 @@
 use std::time::Duration;
-
+use bevy_inspector_egui::egui::debug_text::print;
 use crate::{
     PausableSystems,
     audio::sound_effect,
@@ -22,6 +22,8 @@ pub struct BulletSplitEvent {
     pub center: Vec3,
     // which bullets
     pub bullet: Bullet,
+    // apple radius
+    pub radius: f32,
 }
 
 #[derive(Resource)]
@@ -100,27 +102,37 @@ fn bullet_split_event_handler(
     mut spawn_writer: EventWriter<BulletSpawnEvent>,
 ) {
     for evt in split_event.read() {
-        for (apple_t, apple_v) in apples
+        
+        let apples = apples
             .iter()
             .sort_by::<&Transform>(|t1, t2| {
                 t1.translation
                     .distance_squared(evt.center)
                     .total_cmp(&t2.translation.distance_squared(evt.center))
             })
-            .take(3)
-        {
+            .take(3);
+
+        for (apple_t, apple_v) in apples {
+
             let apple_target = apple_t.translation
                 + apple_v.0 * (apple_t.translation.distance(evt.center) / BULLET_SPEED);
 
-            if let Ok(dir) = (apple_target - evt.center).normalize().try_into() {
-                info!("Spawning new bullet!");
-                spawn_writer.write(BulletSpawnEvent {
-                    at: evt.center + dir * APPLE_RADIUS,
-                    dir,
-                    bullet: evt.bullet.clone(),
-                    speed: BULLET_SPEED,
-                });
+            let distance = (apple_t.translation - evt.center).length_squared();
+
+            if distance > evt.radius + 0.0005 {
+                if let Ok(dir) = (apple_target - evt.center).normalize().try_into() {
+                    info!("Spawning new bullet!");
+
+                    spawn_writer.write(BulletSpawnEvent {
+                        at: evt.center + dir * evt.radius,
+                        dir,
+                        bullet: evt.bullet.clone(),
+                        speed: BULLET_SPEED,
+                    //     TODO Add apple entity spawning the new bullet so we can later can check so it is not killed by the new bullet 
+                    });
+                }
             }
+
         }
     }
 }
