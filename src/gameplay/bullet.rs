@@ -78,14 +78,16 @@ fn fire_bullet_event_handler(
     mut spawnevent: EventReader<BulletSpawnEvent>,
 ) {
     for evt in spawnevent.read() {
-        commands.spawn(bullet(
-            &assets,
-            evt.bullet.clone(),
-            evt.at,
-            evt.dir,
-            evt.speed,
-        ));
-        commands.spawn(sound_effect(assets.sound.clone()));
+        if evt.bullet.damage > 0 {
+            commands.spawn(bullet(
+                &assets,
+                evt.bullet.clone(),
+                evt.at,
+                evt.dir,
+                evt.speed,
+            ));
+            commands.spawn(sound_effect(assets.sound.clone()));
+        }
     }
 }
 
