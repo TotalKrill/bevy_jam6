@@ -18,10 +18,6 @@ struct MoveEvent;
 
 #[derive(Debug, InputAction)]
 #[input_action(output = bool)]
-struct BreakEvent;
-
-#[derive(Debug, InputAction)]
-#[input_action(output = bool)]
 pub struct FireEvent;
 
 #[derive(InputContext)]
@@ -46,7 +42,7 @@ fn bind_actions(trigger: Trigger<Binding<InTractor>>, mut actions: Query<&mut Ac
     actions
         .bind::<MoveEvent>()
         .to(Spatial::wasd_and(KeyCode::ArrowUp, KeyCode::ArrowDown));
-    actions.bind::<BreakEvent>().to(KeyCode::Space);
+    actions.bind::<FireEvent>().to(KeyCode::Space);
     actions.bind::<FireEvent>().to(MouseButton::Left);
 }
 
