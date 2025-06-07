@@ -73,8 +73,6 @@ fn spawn_tree(
     mut commands: Commands,
     tree_assets: Res<TreeAssets>,
     mut raycast: MeshRayCast,
-    world_assets: Res<WorldAssets>,
-    asset_server: Res<AssetServer>,
     ground: Single<Entity, With<Ground>>,
 ) {
     for event in events.read() {
