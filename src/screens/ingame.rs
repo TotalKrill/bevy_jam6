@@ -91,7 +91,7 @@ pub fn setup_gamescreen(
     commands.spawn((
         ReplaceOnHotreload,
         DirectionalLight {
-            illuminance: light_consts::lux::OVERCAST_DAY,
+            illuminance: light_consts::lux::AMBIENT_DAYLIGHT / 2.0,
             shadows_enabled: true,
             ..default()
         },
