@@ -64,10 +64,11 @@ pub fn bullet_plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            despawn_bullets,
             fire_bullet_event_handler,
             bullet_split_event_handler,
+            despawn_bullets,
         )
+            .chain()
             .in_set(PausableSystems),
     );
 }

@@ -1,9 +1,9 @@
 use core::fmt;
 
-use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem};
+use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem, input::keyboard};
 
 use crate::{
-    ReplaceOnHotreload,
+    PausableSystems, ReplaceOnHotreload,
     gameplay::{
         apple::Apple,
         health::Health,
@@ -19,19 +19,27 @@ use Val::*;
 
 use super::*;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct PointCounter;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct AppleCounter;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct TreeCounter;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Healthbar;
 
+#[derive(Event, Default)]
+struct TurretUpdateEvent;
+#[derive(Event, Default)]
+struct SawUpdateEvent;
+
 pub fn hud_plugin(app: &mut App) {
+    app.add_event::<SawUpdateEvent>();
+    app.add_event::<TurretUpdateEvent>();
+
     app.add_systems(
         Update,
         (
@@ -41,6 +49,29 @@ pub fn hud_plugin(app: &mut App) {
             update_tree_counter,
         ),
     );
+    app.add_systems(Update, (keybind_updates).in_set(PausableSystems));
+
+    app.add_systems(
+        Update,
+        (
+            upgrade_saw.run_if(on_event::<SawUpdateEvent>),
+            upgrade_turret.run_if(on_event::<TurretUpdateEvent>),
+        )
+            .in_set(PausableSystems),
+    );
+}
+
+fn keybind_updates(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut turrw: EventWriter<TurretUpdateEvent>,
+    mut saww: EventWriter<SawUpdateEvent>,
+) {
+    if keyboard.just_pressed(KeyCode::Digit1) {
+        turrw.write(TurretUpdateEvent);
+    }
+    if keyboard.just_pressed(KeyCode::Digit2) {
+        saww.write(SawUpdateEvent);
+    }
 }
 
 fn update_tree_counter(tree: Query<&Tree>, mut counter: Single<&mut Text, With<TreeCounter>>) {
@@ -72,10 +103,10 @@ pub fn spawn_hud(commands: &mut Commands) {
     commands.spawn(update_hud());
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct TurretUpdateCounter;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct SawUpdateCounter;
 
 fn update_hud() -> impl Bundle {
@@ -91,48 +122,13 @@ fn update_hud() -> impl Bundle {
             ..Default::default()
         },
         children![
-            update_button("Turret", TurretUpdateCounter, upgrade_turret),
-            update_button("Saw", SawUpdateCounter, upgrade_saw),
-        ],
-    )
-}
-
-fn update_button<E, B, M, I, C>(name: impl Into<String>, marker: C, click_evt: I) -> impl Bundle
-where
-    E: Event,
-    B: Bundle,
-    I: IntoObserverSystem<E, B, M>,
-    C: Component,
-{
-    (
-        Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        },
-        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
-        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-        BorderRadius::all(Val::Px(4.)),
-        children![
-            (widget::label(format!("{}", name.into())),),
-            (widget::button_base_marked(
-                "1",
-                marker,
-                click_evt,
-                Node {
-                    width: Px(80.0),
-                    height: Px(60.0),
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-            ),)
+            update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret"),
+            update_button::<SawUpdateEvent, SawUpdateCounter>("Saw"),
         ],
     )
 }
 
 fn upgrade_turret(
-    _trigger: Trigger<Pointer<Click>>,
     mut upd_counters: Query<&mut Text, With<TurretUpdateCounter>>,
     mut turrets: Query<&mut TurretDamage>,
 ) {
@@ -146,7 +142,6 @@ fn upgrade_turret(
 }
 
 fn upgrade_saw(
-    _trigger: Trigger<Pointer<Click>>,
     mut upd_counters: Query<&mut Text, With<SawUpdateCounter>>,
     mut saws: Query<&mut TractorSaw>,
 ) {
@@ -257,4 +252,43 @@ fn healthbar() -> impl Bundle {
             },
         )),)),
     )
+}
+
+fn update_button<E, C>(name: impl Into<String>) -> impl Bundle
+where
+    E: Event + Default,
+    C: Component + Default,
+{
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+        BorderRadius::all(Val::Px(4.)),
+        children![
+            (widget::label(format!("{}", name.into())),),
+            (widget::button_base_marked(
+                "1",
+                C::default(),
+                trigg_event::<E>,
+                Node {
+                    width: Px(80.0),
+                    height: Px(60.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+            ),)
+        ],
+    )
+}
+
+fn trigg_event<E>(_t: Trigger<Pointer<Click>>, mut evtw: EventWriter<E>)
+where
+    E: Event + Default,
+{
+    evtw.write(E::default());
 }
