@@ -288,8 +288,8 @@ fn trees_spawn_apples(
     for (mut tree, tree_t) in query.iter_mut() {
         if tree.level > 0 && elapsed_time > (tree.last_apple_spawn + tree.apple_spawn_time_sec) {
             tree.last_apple_spawn = elapsed_time;
-            let spawn_pos =
-                tree_t.translation + TREE_STARTING_HEIGHT * tree_t.scale.y + APPLE_RADIUS * 2.0;
+            let spawn_pos = tree_t.translation
+                + (Vec3::Y * TREE_STARTING_HEIGHT * tree_t.scale.y + APPLE_RADIUS * 2.0);
 
             commands.send_event(AppleSpawnEvent {
                 at: spawn_pos,
