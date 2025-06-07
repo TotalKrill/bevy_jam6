@@ -5,7 +5,11 @@ use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem};
 use crate::{
     ReplaceOnHotreload,
     gameplay::{
-        apple::Apple, health::Health, score::ScoreCounter, tractor::Tractor, tree::Tree,
+        apple::Apple,
+        health::Health,
+        score::ScoreCounter,
+        tractor::{Tractor, TractorSaw},
+        tree::Tree,
         turret::TurretDamage,
     },
     theme::widget,
@@ -71,6 +75,9 @@ pub fn spawn_hud(commands: &mut Commands) {
 #[derive(Component)]
 struct TurretUpdateCounter;
 
+#[derive(Component)]
+struct SawUpdateCounter;
+
 fn update_hud() -> impl Bundle {
     (
         ReplaceOnHotreload,
@@ -84,8 +91,8 @@ fn update_hud() -> impl Bundle {
             ..Default::default()
         },
         children![
-            update_button("Turret", TurretUpdateCounter, update_turret),
-            // update_button("Turret", TurretUpdateCounter, update_turret),
+            update_button("Turret", TurretUpdateCounter, upgrade_turret),
+            update_button("Saw", SawUpdateCounter, upgrade_saw),
         ],
     )
 }
@@ -124,7 +131,7 @@ where
     )
 }
 
-fn update_turret(
+fn upgrade_turret(
     _trigger: Trigger<Pointer<Click>>,
     mut upd_counters: Query<&mut Text, With<TurretUpdateCounter>>,
     mut turrets: Query<&mut TurretDamage>,
@@ -134,6 +141,20 @@ fn update_turret(
         turret.0 += 1;
         for mut upd_counter in upd_counters.iter_mut() {
             *upd_counter = Text::new(format!("{}", turret.0));
+        }
+    }
+}
+
+fn upgrade_saw(
+    _trigger: Trigger<Pointer<Click>>,
+    mut upd_counters: Query<&mut Text, With<SawUpdateCounter>>,
+    mut saws: Query<&mut TractorSaw>,
+) {
+    println!("Update!!");
+    for mut saw in saws.iter_mut() {
+        saw.damage += 1;
+        for mut upd_counter in upd_counters.iter_mut() {
+            *upd_counter = Text::new(format!("{}", saw.damage));
         }
     }
 }
