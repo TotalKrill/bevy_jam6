@@ -139,18 +139,18 @@ fn bullet_apple_collision_damage(
     mut commands: Commands,
     mut collision_event_reader: EventReader<CollisionStarted>,
     bullets: Query<(Entity, &Bullet)>,
-    apples: Query<(Entity, &Transform), With<Apple>>,
+    apples: Query<(Entity, &Transform, &Apple), With<Apple>>,
     mut event_writer: EventWriter<DamageEvent>,
     mut bullet_split: EventWriter<BulletSplitEvent>,
 ) {
     for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
         for (apple_candidate, bullet_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
-            if let (Ok((apple, apple_t)), Ok((bullet_e, bullet))) =
+            if let (Ok((apple_entity, apple_t, apple)), Ok((bullet_e, bullet))) =
                 (apples.get(apple_candidate), bullets.get(bullet_candidate))
             {
                 event_writer.write(DamageEvent {
                     value: bullet.damage,
-                    entity: apple,
+                    entity: apple_entity,
                 });
 
                 if let Ok(mut ec) = commands.get_entity(bullet_e) {
@@ -164,6 +164,7 @@ fn bullet_apple_collision_damage(
                     if bullet.damage > 0 {
                         bullet_split.write(BulletSplitEvent {
                             center: apple_t.translation,
+                            radius: apple.radius,
                             bullet,
                         });
                     }
