@@ -4,6 +4,11 @@
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
 use avian3d::prelude::*;
+use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy_firework::plugin::ParticleSystemPlugin;
+#[cfg(feature = "dev_native")]
+use bevy_simple_subsecond_system::prelude::*;
+use bevy_tweening::TweeningPlugin;
 
 mod asset_tracking;
 mod audio;
@@ -19,8 +24,6 @@ mod theme;
 
 mod camera;
 mod leaderboard;
-
-use bevy::{asset::AssetMetaCheck, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -55,15 +58,12 @@ impl Plugin for AppPlugin {
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());
 
-        #[cfg(not(target_family = "wasm"))]
-        {
-            use bevy_atmosphere::prelude::*;
-            app.add_plugins(AtmospherePlugin);
-        }
-
         app.add_plugins(PhysicsPlugins::default());
         app.add_plugins(bevy_ui_anchor::AnchorUiPlugin::<Camera>::new());
         app.add_plugins(bevy_rts_camera::RtsCameraPlugin);
+
+        app.add_plugins(ParticleSystemPlugin::default());
+        app.add_plugins(TweeningPlugin);
 
         app.add_plugins(PhysicsDebugPlugin::default());
         // Overwrite default debug rendering configuration so its off (optional)
@@ -97,7 +97,6 @@ impl Plugin for AppPlugin {
             screens::plugin,
             theme::plugin,
             gameplay::plugin,
-            TweeningPlugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:
@@ -155,8 +154,3 @@ struct Pause(pub bool);
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
-
-#[cfg(feature = "dev_native")]
-use bevy_simple_subsecond_system::prelude::*;
-use bevy_tweening::TweeningPlugin;
-use iyes_perf_ui::PerfUiPlugin;

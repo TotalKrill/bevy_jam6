@@ -14,11 +14,12 @@ const APPLE_MASS: f32 = 1.0;
 pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 const APPLE_INITIAL_ROTATION: f32 = 5.0;
+use bevy_firework::core::ParticleSpawner;
 use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
 pub struct Apple {
-    pub radius: f32
+    pub radius: f32,
 }
 
 #[derive(Event)]
@@ -112,15 +113,23 @@ fn spawn_apple_event_handler(
                  assets: Res<AppleAssets>,
                  mut eventwriter: EventWriter<SeedSpawnEvent>,
                  query: Query<(Entity, &Transform), With<Apple>>| {
-                    if let Ok(apple) = query.get(trigger.target()) {
-                        eventwriter.write(SeedSpawnEvent::new(apple.1.translation));
+                    if let Ok((_apple_e, apple_t)) = query.get(trigger.target()) {
+                        eventwriter.write(SeedSpawnEvent::new(apple_t.translation));
+
+                        commands.spawn((
+                            Name::new("particles"),
+                            ParticleSpawner {
+                                one_shot: true,
+                                ..Default::default()
+                            },
+                            Transform::from_translation(apple_t.translation),
+                        ));
                     }
                     commands.spawn(sound_effect(assets.death_sound.clone()));
 
-                    commands
-                        .get_entity(trigger.target().entity())
-                        .unwrap()
-                        .despawn();
+                    if let Ok(mut ec) = commands.get_entity(trigger.target()) {
+                        ec.despawn();
+                    }
                 },
             );
     }
