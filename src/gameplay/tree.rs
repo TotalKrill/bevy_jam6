@@ -342,8 +342,7 @@ fn trees_spawn_apples(
 
             commands.send_event(AppleSpawnEvent {
                 at: spawn_pos,
-                apple_strength: AppleStrength::from_tree_level(tree.level),
-                radius: 1.0, // TODO make const?
+                apple_strength: AppleStrength::from_tree_level(tree.level + 10),
             });
         }
     }

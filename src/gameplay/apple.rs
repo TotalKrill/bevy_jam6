@@ -12,7 +12,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 const APPLE_MASS: f32 = 1.0;
-pub const APPLE_RADIUS: f32 = 1.0;
+pub const APPLE_RADIUS: f32 = 1.2;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 const APPLE_INITIAL_ROTATION: f32 = 5.0;
 const APPLE_SEED_PROBABILITY: f32 = 0.35;
@@ -28,7 +28,6 @@ pub struct Apple {
 pub struct AppleSpawnEvent {
     pub at: Vec3,
     pub apple_strength: AppleStrength,
-    pub radius: f32,
 }
 
 #[derive(Component, Clone, Debug)]
@@ -93,13 +92,15 @@ fn spawn_apple_event_handler(
         let apple_rotation =
             rot.mul_vec3((tractor.translation - position).normalize()) * APPLE_INITIAL_ROTATION;
 
-        let apple_radius =
-            event.radius + 0.1 * event.radius * (event.apple_strength.health - 1) as f32;
+        let new_apple_radius =
+            APPLE_RADIUS + 0.1 * APPLE_RADIUS * (event.apple_strength.health - 1) as f32;
+
+        let scale = new_apple_radius / APPLE_RADIUS;
 
         commands
             .spawn((
                 Apple {
-                    radius: apple_radius,
+                    radius: new_apple_radius,
                 },
                 Sawable::default(),
                 Name::new("Apple"),
@@ -109,8 +110,8 @@ fn spawn_apple_event_handler(
                 ReplaceOnHotreload,
                 AnchoredUiNodes::spawn_one(healthbar(100.)),
                 RigidBody::Dynamic,
-                Collider::sphere(apple_radius),
-                Transform::from_translation(position).with_scale(Vec3::splat(apple_radius)),
+                Collider::sphere(APPLE_RADIUS),
+                Transform::from_translation(position).with_scale(Vec3::splat(scale)),
                 LinearVelocity(towards_player * APPLE_INITIAL_VELOCITY),
                 AngularVelocity(apple_rotation),
                 SceneRoot(assets.apple.clone()),
