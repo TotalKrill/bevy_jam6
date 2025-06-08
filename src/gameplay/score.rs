@@ -81,8 +81,8 @@ pub fn plugin(app: &mut App) {
                 commands.spawn(sound_effect(assets.sound.clone()));
             }
 
-            if let Ok(_tree) = trees.get(trigger.target()) {
-                for _ in 0..5 {
+            if let Ok(tree) = trees.get(trigger.target()) {
+                for _ in 0..tree.level {
                     score.points += 1;
                     if score.points % 10 == 0 {
                         currency.add(1);
