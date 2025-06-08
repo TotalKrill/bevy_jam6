@@ -1,6 +1,6 @@
 use crate::{
     PausableSystems, ReplaceOnHotreload,
-    gameplay::{health::Health, tree::TreeSpawnEvent},
+    gameplay::{health::Health, level::Ground, tree::TreeSpawnEvent},
 };
 
 use super::*;
@@ -37,9 +37,7 @@ impl FromWorld for SeedAssets {
 }
 
 #[derive(Debug, Component)]
-pub struct Seed {
-    pub timer: Timer,
-}
+pub struct Seed;
 
 #[derive(Debug, Event)]
 pub struct SeedSpawnEvent {
@@ -51,10 +49,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<SeedSpawnEvent>();
     app.init_resource::<SeedAssets>();
 
-    app.add_systems(Update, (spawn_seeds, despawn_seeds).in_set(PausableSystems));
+    app.add_systems(Update, (spawn_seed, plant_seed).in_set(PausableSystems));
 }
 
-fn spawn_seeds(
+fn spawn_seed(
     mut events: EventReader<SeedSpawnEvent>,
     mut commands: Commands,
     seedasset: Res<SeedAssets>,
@@ -63,61 +61,53 @@ fn spawn_seeds(
         let position = event.position + Vec3::new(0., 0.1, 0.);
 
         let up = Vec3::Y * event.velocity.length();
+        let angle = rand::random::<f32>() * 90.0 - 45.0;
+        let velocity =
+            (Quat::from_rotation_y(angle.to_radians()).mul_vec3(event.velocity) + up) / 2.0;
 
-        for vel in [
-            // Set seed initial velocity in the direction which the apple is moving with some randomness
-            Quat::from_rotation_y((rand::random::<f32>() * (0.0 - 40.0) + 40.0).to_radians())
-                .mul_vec3(event.velocity)
-                + up,
-            Quat::from_rotation_y((-rand::random::<f32>() * (0.0 - 40.0) + 40.0).to_radians())
-                .mul_vec3(event.velocity)
-                + up,
-            Quat::from_rotation_y((rand::random::<f32>() * (60.0 - 40.0) + 40.0).to_radians())
-                .mul_vec3(event.velocity)
-                + up,
-            Quat::from_rotation_y((-rand::random::<f32>() * (60.0 - 40.0) + 40.0).to_radians())
-                .mul_vec3(event.velocity)
-                + up,
-        ]
-        .into_iter()
-        {
-            commands.spawn((
-                Name::new("Seed"),
-                Health::new(1),
-                Mass(0.1),
-                Seed {
-                    timer: Timer::new(Duration::from_secs(SEED_DESPAWN_TIME_SEC), TimerMode::Once),
-                },
-                ReplaceOnHotreload,
-                Mesh3d(seedasset.mesh.clone()),
-                MeshMaterial3d(seedasset.material.clone()),
-                RigidBody::Dynamic,
-                Collider::sphere(SEED_RADIUS),
-                Transform::from_translation(position),
-                LinearVelocity(vel),
-                LinearDamping(2.0),
-            ));
-        }
+        commands.spawn((
+            Name::new("Seed"),
+            Health::new(1),
+            Mass(0.1),
+            CollisionEventsEnabled,
+            Seed,
+            ReplaceOnHotreload,
+            Mesh3d(seedasset.mesh.clone()),
+            MeshMaterial3d(seedasset.material.clone()),
+            RigidBody::Dynamic,
+            Collider::sphere(SEED_RADIUS),
+            Transform::from_translation(position),
+            LinearVelocity(velocity),
+            LinearDamping(2.0),
+        ));
     }
 }
 
-fn despawn_seeds(
+fn plant_seed(
     mut commands: Commands,
-    time: Res<Time>,
-    mut seeds: Query<(Entity, &Transform, &mut Seed)>,
+    mut collision_event_reader: EventReader<CollisionStarted>,
+    ground: Single<Entity, With<Ground>>,
+    seeds: Query<(Entity, &Transform), With<Seed>>,
 ) {
-    for (e, transform, mut seed) in seeds.iter_mut() {
-        seed.timer.tick(time.delta());
-        if seed.timer.just_finished() {
-            if rand::random::<f32>() < SEED_SPAWN_TREE_PROBABILITY {
-                commands.send_event(TreeSpawnEvent {
-                    position: Vec3::new(transform.translation.x, 1000.,  transform.translation.z),
-                    startlevel: 0,
-                    static_tree: false,
-                });
-            }
+    for CollisionStarted(entity1, entity2) in collision_event_reader.read() {
+        for (ground_candidate, seed_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
+            if ground_candidate == *ground {
+                if let Ok((seed, transform)) = seeds.get(seed_candidate) {
+                    commands.send_event(TreeSpawnEvent {
+                        position: Vec3::new(
+                            transform.translation.x,
+                            1000.,
+                            transform.translation.z,
+                        ),
+                        startlevel: 0,
+                        static_tree: false,
+                    });
 
-            commands.entity(e).despawn();
+                    if let Ok(mut ec) = commands.get_entity(seed) {
+                        ec.despawn();
+                    }
+                }
+            }
         }
     }
 }
