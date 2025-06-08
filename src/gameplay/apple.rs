@@ -16,7 +16,7 @@ pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 const APPLE_INITIAL_ROTATION: f32 = 5.0;
 const APPLE_SEED_PROBABILITY: f32 = 0.35;
-const MAXIMUM_APPLES: usize = 400;
+const MAXIMUM_APPLES: usize = 300;
 use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
