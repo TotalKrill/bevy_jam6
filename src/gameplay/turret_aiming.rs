@@ -7,6 +7,8 @@ use crate::{
 
 use super::*;
 
+const AIM_RADIE: f32 = 20.;
+
 pub fn plugin(app: &mut App) {
     app.add_systems(
         Update,
@@ -68,7 +70,7 @@ fn move_sight(
 
     let target = if let Some((apple_t, apple_v)) = apples
         .iter()
-        .filter(|(t, _v)| t.translation.distance_squared(hit.point) < 100.)
+        .filter(|(t, _v)| t.translation.distance_squared(hit.point) < AIM_RADIE.powi(2))
         .min_by(|(t1, _v1), (t2, _v2)| {
             t1.translation
                 .distance_squared(hit.point)
