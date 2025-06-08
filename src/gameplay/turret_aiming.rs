@@ -1,4 +1,3 @@
-use bevy::math::NormedVectorSpace;
 use bevy_mod_lookat::RotateTo;
 
 use crate::{

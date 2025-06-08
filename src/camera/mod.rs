@@ -2,7 +2,6 @@ use crate::gameplay::tractor::{TRACTOR_MAX_SPEED, Tractor};
 use avian3d::prelude::{LinearVelocity, RayCaster};
 use bevy::core_pipeline::bloom::Bloom;
 use bevy::prelude::*;
-use bevy_atmosphere::prelude::*;
 use bevy_editor_cam::controller::projections;
 use bevy_editor_cam::prelude::zoom::ZoomLimits;
 use bevy_editor_cam::prelude::{EditorCam, OrbitConstraint};
@@ -32,7 +31,6 @@ pub fn spawn_camera(mut commands: Commands) {
         },
         Camera3d::default(),
         Name::new("GameplayCamera"),
-        AtmosphereCamera::default(),
         Bloom::NATURAL,
         Camera {
             hdr: true,

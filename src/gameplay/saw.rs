@@ -36,11 +36,11 @@ impl FromWorld for SawAssets {
 fn check_saw_colitions(
     collisions: Collisions,
     sawables: Query<(Entity, &mut Sawable)>,
-    saw: Single<(Entity, &TractorSaw)>,
+    saw: Single<(Entity, &TractorSaw, &GlobalTransform)>,
     mut commands: Commands,
     assets: Res<SawAssets>,
 ) {
-    let (saw_entity, saw) = saw.into_inner();
+    let (saw_entity, saw, saw_gt) = saw.into_inner();
 
     for (sawable_entity, mut sawable) in sawables {
         if collisions.contains(sawable_entity, saw_entity) && sawable.timer.finished() {
@@ -54,8 +54,55 @@ fn check_saw_colitions(
             sawable.timer.reset();
 
             commands.spawn(sound_effect(assets.damage_sound.clone()));
+            commands.spawn((
+                sawdust_particles(),
+                Transform::from_translation(saw_gt.translation()),
+            ));
         }
     }
+}
+
+pub fn sawdust_particles() -> impl Bundle {
+    use bevy_firework::{
+        bevy_utilitarian::prelude::{RandF32, RandValue, RandVec3},
+        core::{BlendMode, ParticleSpawner},
+        curve::{FireworkCurve, FireworkGradient},
+        emission_shape::EmissionShape,
+    };
+    (
+        Name::new("SawDustParticleEffect"),
+        DespawnAfter::millis(750),
+        ParticleSpawner {
+            one_shot: true,
+            rate: 500.0,
+            emission_shape: EmissionShape::Circle {
+                normal: Vec3::Y,
+                radius: 0.85,
+            },
+            lifetime: RandF32::constant(0.75),
+            inherit_parent_velocity: true,
+            initial_velocity: RandVec3 {
+                magnitude: RandF32 { min: 0., max: 3.6 },
+                direction: Vec3::Y,
+                spread: 180. / 180. * std::f32::consts::PI,
+            },
+            initial_scale: RandF32 {
+                min: -0.5,
+                max: 0.2,
+            },
+            scale_curve: FireworkCurve::constant(1.),
+            color: FireworkGradient::uneven_samples(vec![
+                (0., LinearRgba::new(1.0, 0.6, 0.2, 1.0)),
+                (1., LinearRgba::new(0.1, 0.1, 0.1, 0.)),
+            ]),
+            acceleration: Vec3::new(0., -3., 0.),
+            blend_mode: BlendMode::Blend,
+            linear_drag: 5.0,
+            pbr: false,
+            spawn_transform_mode: bevy_firework::core::SpawnTransformMode::Local,
+            ..default()
+        },
+    )
 }
 
 fn check_sawable_timers(mut sawables: Query<&mut Sawable>, time: Res<Time>) {
