@@ -105,7 +105,6 @@ pub(super) fn plugin(app: &mut App) {
 
     app.register_type::<WorldAssets>();
     app.init_resource::<WorldAssets>();
-    app.init_resource::<LevelAssets>();
 
     app.add_event::<GameOver>();
 

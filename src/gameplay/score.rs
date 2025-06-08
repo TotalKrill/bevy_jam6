@@ -7,7 +7,7 @@ use crate::{
     screens::Screen,
 };
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Asset, Clone, Reflect)]
 pub struct ScoreCounter {
     pub points: usize,
 }
@@ -36,7 +36,7 @@ impl Currency {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Asset, Clone, Reflect)]
 struct ScoreAssets {
     sound: Handle<AudioSource>,
 }
@@ -51,11 +51,11 @@ impl FromWorld for ScoreAssets {
 }
 
 pub fn plugin(app: &mut App) {
-    app.init_resource::<ScoreCounter>();
+    app.load_resource::<ScoreCounter>();
 
     app.init_resource::<Currency>();
 
-    app.init_resource::<ScoreAssets>();
+    app.load_resource::<ScoreAssets>();
 
     app.add_systems(
         OnEnter(Screen::InGame),

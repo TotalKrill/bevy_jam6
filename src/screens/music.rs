@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::audio::{ChangeMusicEvent, Music, music};
+use crate::{
+    asset_tracking::LoadResource,
+    audio::{ChangeMusicEvent, Music, music},
+};
 
 use super::*;
 
@@ -10,7 +13,7 @@ struct FadeOut;
 #[derive(Component)]
 struct FadeIn;
 
-#[derive(Resource)]
+#[derive(Resource, Asset, Clone, Reflect)]
 struct MusicAssets {
     title: Handle<AudioSource>,
     in_game: Handle<AudioSource>,

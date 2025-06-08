@@ -2,6 +2,7 @@ use crate::{
     PausableSystems,
     audio::sound_effect,
     gameplay::apple::{APPLE_RADIUS, Apple},
+    screens::Screen,
 };
 use bevy_inspector_egui::egui::debug_text::print;
 use std::time::Duration;
@@ -26,7 +27,7 @@ pub struct BulletSplitEvent {
     pub radius: f32,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Asset, Clone, Reflect)]
 pub struct BulletAssets {
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
@@ -59,7 +60,7 @@ impl FromWorld for BulletAssets {
 }
 
 pub fn bullet_plugin(app: &mut App) {
-    app.init_resource::<BulletAssets>();
+    app.load_resource::<BulletAssets>();
     app.add_event::<BulletSpawnEvent>();
     app.add_event::<BulletSplitEvent>();
 
@@ -67,7 +68,8 @@ pub fn bullet_plugin(app: &mut App) {
         Update,
         (fire_bullet_event_handler, bullet_split_event_handler)
             .chain()
-            .in_set(PausableSystems),
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::InGame)),
     );
 }
 
