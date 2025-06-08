@@ -18,6 +18,7 @@ use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem, input:
 use bevy_tweening::*;
 use bevy_tweening::{Animator, Tween, lens::TransformPositionLens};
 use core::fmt;
+use crate::screens::Screen;
 
 const HUD_WIDTH_ELEMENT: f32 = 82.0;
 
@@ -106,6 +107,7 @@ pub fn spawn_hud(commands: &mut Commands) {
     let width = 100.;
 
     commands.spawn((
+        StateScoped(Screen::InGame),
         Node {
             left: Val::Percent(3.),
             top: Val::Percent(3.0),
@@ -163,6 +165,7 @@ struct SawUpdateCounter;
 
 fn update_hud() -> impl Bundle {
     (
+        StateScoped(Screen::InGame),
         ReplaceOnHotreload,
         Node {
             // width: Px(100. * 2. * 2. * 2.),
@@ -409,6 +412,7 @@ fn value_counter(key: impl fmt::Display, size: f32, marker: impl Component) -> i
 
 fn healthbar() -> impl Bundle {
     (
+        StateScoped(Screen::InGame),
         ReplaceOnHotreload,
         Name::new("healthbar"),
         Node {
