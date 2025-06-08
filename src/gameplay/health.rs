@@ -101,6 +101,7 @@ fn damage_health(
 }
 
 fn damage_tractor(
+    mut commands: Commands,
     mut collision_event_reader: EventReader<CollisionStarted>,
     tractor: Single<(Entity, &LeftWheels, &RightWheels), With<Tractor>>,
     apples: Query<(Entity, &AppleStrength), With<Apple>>,
@@ -117,10 +118,14 @@ fn damage_tractor(
         for (apple_candidate, tractor_candidate) in [(*entity1, *entity2), (*entity2, *entity1)] {
             if tractor_entities.contains(&tractor_candidate) {
                 if let Ok((apple, apple_strength)) = apples.get(apple_candidate) {
-                    event_writer.write(DamageEvent {
-                        value: 100,
-                        entity: apple,
-                    });
+                    // event_writer.write(DamageEvent {
+                    //     value: 100,
+                    //     entity: apple,
+                    // });
+
+                    if let Ok(mut ec) = commands.get_entity(apple) {
+                        ec.despawn();
+                    }
 
                     event_writer.write(DamageEvent {
                         value: apple_strength.damage,
