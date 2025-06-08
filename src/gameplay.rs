@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{asset_tracking::LoadResource, menus::Menu};
+use crate::{asset_tracking::LoadResource, gameplay::level::LevelAssets, menus::Menu};
 use avian3d::prelude::*;
 use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 pub use bevy::{color::palettes::css::*, prelude::*};
@@ -38,9 +38,9 @@ mod seed;
 
 pub mod damage_indicator;
 
+use crate::gameplay::tree::TreeAssets;
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
-use crate::gameplay::tree::TreeAssets;
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
@@ -77,7 +77,7 @@ pub(super) fn plugin(app: &mut App) {
     log::info!("Adding gameplay plugins");
 
     app.init_resource::<WorldAssets>();
-    // app.load_resource::<WorldAssets>();
+    app.init_resource::<LevelAssets>();
 
     app.add_event::<GameOver>();
 
@@ -98,6 +98,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_plugins(controls::plugin);
+    app.add_plugins(level::plugin);
     app.add_plugins(hud::hud_plugin);
     app.add_plugins(tractor::tractor_plugin);
     app.add_plugins(bullet::bullet_plugin);

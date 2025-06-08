@@ -111,9 +111,8 @@ fn despawn_seeds(
         if seed.timer.just_finished() {
             if rand::random::<f32>() < SEED_SPAWN_TREE_PROBABILITY {
                 commands.send_event(TreeSpawnEvent {
-                    position: Vec3::new(transform.translation.x, 1000.,  transform.translation.z),
+                    position: Vec3::new(transform.translation.x, 1000., transform.translation.z),
                     startlevel: 0,
-                    static_tree: false,
                 });
             }
 

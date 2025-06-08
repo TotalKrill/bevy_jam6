@@ -36,6 +36,7 @@ dirs = "6.0.0"
 bevy_ui_anchor = "0.7.0"
 bevy_rts_camera = "0.10.0"
 bevy_firework = "0.7.0"
+rand_chacha = "0.3"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
 # To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.

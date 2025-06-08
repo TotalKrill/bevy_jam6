@@ -1,22 +1,16 @@
 use crate::PausableSystems;
-use crate::audio::sound_effect;
+use crate::gameplay::DespawnAfter;
 use crate::gameplay::apple::{APPLE_RADIUS, AppleAssets, AppleSpawnEvent, AppleStrength};
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::{Ground, TERRAIN_HEIGHT};
 use crate::gameplay::saw::Sawable;
-use crate::gameplay::tractor::Tractor;
-use crate::gameplay::{DespawnAfter, WorldAssets};
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_tweening::lens::{
-    TransformPositionLens, TransformRotateXLens, TransformRotateZLens, TransformScaleLens,
-};
-use bevy_tweening::{
-    AnimationSystem, Animator, RepeatStrategy, Sequence, Tween, component_animator_system,
-};
+use bevy_tweening::lens::{TransformRotateXLens, TransformRotateZLens, TransformScaleLens};
+use bevy_tweening::{Animator, Sequence, Tween};
 use bevy_ui_anchor::AnchoredUiNodes;
 use std::f32::consts::PI;
 use std::time::Duration;
@@ -33,7 +27,11 @@ const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: f32 = 1.5;
 
-const DEFAULT_TREE_LOCATIONS: [Vec3; 3] = [vec3(22.0, 1000., 20.0), vec3(-15.0, 1000., -10.0), vec3(34.0, 1000., -20.0)];
+const DEFAULT_TREE_LOCATIONS: [Vec3; 3] = [
+    vec3(22.0, 1000., 20.0),
+    vec3(-15.0, 1000., -10.0),
+    vec3(34.0, 1000., -20.0),
+];
 
 #[derive(Component, Reflect)]
 pub struct Tree {
@@ -57,7 +55,6 @@ impl Tree {
 pub struct TreeSpawnEvent {
     pub(crate) position: Vec3,
     pub(crate) startlevel: u32,
-    pub(crate) static_tree: bool,
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -154,15 +151,12 @@ fn spawn_tree(
     mut events: EventReader<TreeSpawnEvent>,
     mut commands: Commands,
     tree_assets: Res<TreeAssets>,
-    apple_assets: Res<AppleAssets>,
     mut raycast: MeshRayCast,
     ground: Single<Entity, With<Ground>>,
 ) {
     for event in events.read() {
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
-        let ray_start = event.position.with_y(
-            event.position.y + TERRAIN_HEIGHT
-        );
+        let ray_start = event.position.with_y(event.position.y + TERRAIN_HEIGHT);
         // let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
 
         let ray = Ray3d::new(ray_start, Dir3::NEG_Y);
@@ -170,101 +164,86 @@ fn spawn_tree(
         let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
 
         if let Some((_, hit)) = hits.into_iter().find(|(entity, _)| *entity == *ground) {
-            if event.static_tree {
-                commands.spawn((
-                    Name::new("StaticTree"),
+            commands
+                .spawn((
+                    Name::new("Tree"),
+                    Tree {
+                        apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
+                        last_apple_spawn: 0.0,
+                        timer: Timer::new(
+                            Duration::from_secs(Tree::LEVEL_UP_TIME),
+                            TimerMode::Repeating,
+                        ),
+                        level: event.startlevel,
+                    },
+                    Sawable::default(),
+                    AnchoredUiNodes::spawn_one(healthbar(100.)),
+                    Health::new(TREE_HEALTH_INIT),
                     StateScoped(Screen::InGame),
+                    ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
                     RigidBody::Static,
+                    Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT * 2.0),
                     Transform {
                         translation: hit.point,
-                        scale: Vec3::splat(4.),
+                        scale: Vec3::splat(0.01),
                         ..Default::default()
                     },
-                ));
-            } else {
-                commands
-                    .spawn((
-                        Name::new("Tree"),
-                        Tree {
-                            apple_spawn_time_sec: DEFAULT_APPLE_SPAWN_TIME_SEC,
-                            last_apple_spawn: 0.0,
-                            timer: Timer::new(
-                                Duration::from_secs(Tree::LEVEL_UP_TIME),
-                                TimerMode::Repeating,
-                            ),
-                            level: event.startlevel,
-                        },
-                        Sawable::default(),
-                        AnchoredUiNodes::spawn_one(healthbar(100.)),
-                        Health::new(TREE_HEALTH_INIT),
-                        StateScoped(Screen::InGame),
-                        ReplaceOnHotreload,
-                        SceneRoot(tree_assets.tree.clone()),
-                        RigidBody::Static,
-                        Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT * 2.0),
-                        Transform {
-                            translation: hit.point,
-                            scale: Vec3::splat(0.01),
-                            ..Default::default()
-                        },
-                        Animator::new(level_up_animation(
-                            Vec3::splat(0.01),
-                            Vec3::splat(
-                                Tree::SCALE_PER_LEVEL
-                                    + event.startlevel as f32 * Tree::SCALE_PER_LEVEL,
-                            ),
-                        )),
-                        // children![
-                        //     TreeApple,
-                        //     Transform {
-                        //         translation: Vec3::Y * 500000.0,
-                        //         scale: Vec3::splat(1.0),
-                        //         ..default()
-                        //     },
-                        //     SceneRoot(apple_assets.apple.clone()),
-                        // ],
-                    ))
-                    .observe(
-                        |trigger: Trigger<Death>,
-                         mut commands: Commands,
-                         trees: Query<&Transform, With<Tree>>,
-                         tree_assets: Res<TreeAssets>| {
-                            let entity = trigger.target().entity();
+                    Animator::new(level_up_animation(
+                        Vec3::splat(0.01),
+                        Vec3::splat(
+                            Tree::SCALE_PER_LEVEL + event.startlevel as f32 * Tree::SCALE_PER_LEVEL,
+                        ),
+                    )),
+                    // children![
+                    //     TreeApple,
+                    //     Transform {
+                    //         translation: Vec3::Y * 500000.0,
+                    //         scale: Vec3::splat(1.0),
+                    //         ..default()
+                    //     },
+                    //     SceneRoot(apple_assets.apple.clone()),
+                    // ],
+                ))
+                .observe(
+                    |trigger: Trigger<Death>,
+                     mut commands: Commands,
+                     trees: Query<&Transform, With<Tree>>,
+                     tree_assets: Res<TreeAssets>| {
+                        let entity = trigger.target().entity();
 
-                            if let Ok(pos) = trees.get(entity) {
-                                for (i, trunk) in tree_assets.trunks.iter().enumerate() {
-                                    commands.spawn((
-                                        DespawnAfter::millis(3000),
-                                        RigidBody::Dynamic,
-                                        SceneRoot(trunk.clone()),
-                                        Transform::from_translation(pos.translation),
-                                        children![(
-                                            Collider::cylinder(
-                                                TREE_STARTING_RADIUS,
-                                                TREE_STARTING_HEIGHT / 3.0
+                        if let Ok(pos) = trees.get(entity) {
+                            for (i, trunk) in tree_assets.trunks.iter().enumerate() {
+                                commands.spawn((
+                                    DespawnAfter::millis(3000),
+                                    RigidBody::Dynamic,
+                                    SceneRoot(trunk.clone()),
+                                    Transform::from_translation(pos.translation),
+                                    children![(
+                                        Collider::cylinder(
+                                            TREE_STARTING_RADIUS,
+                                            TREE_STARTING_HEIGHT / 3.0
+                                        ),
+                                        Transform {
+                                            translation: vec3(
+                                                0.,
+                                                TREE_STARTING_HEIGHT / 3.0 * i as f32,
+                                                0.
                                             ),
-                                            Transform {
-                                                translation: vec3(
-                                                    0.,
-                                                    TREE_STARTING_HEIGHT / 3.0 * i as f32,
-                                                    0.
-                                                ),
-                                                scale: pos.scale,
-                                                ..default()
-                                            },
-                                            LinearVelocity(Vec3::splat(1.0))
-                                        )],
-                                    ));
-                                }
+                                            scale: pos.scale,
+                                            ..default()
+                                        },
+                                        LinearVelocity(Vec3::splat(1.0))
+                                    )],
+                                ));
                             }
+                        }
 
-                            if let Ok(mut ec) = commands.get_entity(entity) {
-                                ec.despawn();
-                            };
-                        },
-                    );
-            }
+                        if let Ok(mut ec) = commands.get_entity(entity) {
+                            ec.despawn();
+                        };
+                    },
+                );
         } else {
             log::error!("Ground not found when spawning tree at {:}", ray_start);
         }
@@ -283,53 +262,16 @@ fn spawn_tree_timer(mut commands: Commands, time: Res<Time>, mut config: ResMut<
         commands.send_event(TreeSpawnEvent {
             position: Vec3::new(x, 1000., z),
             startlevel: 0,
-            static_tree: false,
         });
     }
 }
 
-fn spawn_initial_trees(mut commands: Commands, ground: Single<&Ground>) {
+fn spawn_initial_trees(mut commands: Commands) {
     for pos in DEFAULT_TREE_LOCATIONS {
         commands.send_event(TreeSpawnEvent {
             position: pos,
             startlevel: 1,
-            static_tree: false,
         });
-    }
-
-
-
-    for edge in ground.edges.iter() {
-
-        for offset in [0., 10., 20., 30.] {
-
-            let position = if edge[2] < -140. {
-                Some(Vec3::new(edge[0], edge[1], edge[2] + offset))
-            } else if edge[2] > 140. {  // Changed condition - probably checking upper bound
-                Some(Vec3::new(edge[0], edge[1], edge[2] - offset))  // Changed to subtract offset
-            } else if edge[0] < -140. {
-                Some(Vec3::new(edge[0] + offset, edge[1], edge[2]))  // Changed to edge[0] + offset
-            } else if edge[0] > 140. {  // Changed condition - probably checking right bound
-                Some(Vec3::new(edge[0] - offset, edge[1], edge[2]))  // Changed to edge[0] - offset
-            } else {
-                None
-            };
-
-            if let Some(position) = position {
-                for i in 0..1 {
-                    commands.send_event(TreeSpawnEvent {
-                        position: position.with_x(
-                            position.x +(rand::random::<f32>() * 2. - 1.) * 25.
-                        ).with_z(
-                            position.z + (rand::random::<f32>() * 2. - 1.) * 25.
-                        ),
-                        startlevel: 10,
-                        static_tree: true,
-                    });
-                }
-            }
-
-        }
     }
 }
 

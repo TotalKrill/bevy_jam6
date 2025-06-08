@@ -2,10 +2,20 @@
 
 use bevy::prelude::*;
 
-use crate::{asset_tracking::ResourceHandles, menus::Menu, screens::Screen, theme::widget};
+use crate::{
+    asset_tracking::ResourceHandles,
+    gameplay::{
+        WorldAssets,
+        level::{self, LevelAssets},
+    },
+    menus::Menu,
+    screens::Screen,
+    theme::widget,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
+    app.add_systems(OnEnter(Menu::Main), setup_level);
 }
 
 fn spawn_main_menu(mut commands: Commands) {
@@ -53,6 +63,26 @@ fn spawn_main_menu(mut commands: Commands) {
             widget::button("Credits", open_credits_menu),
         ],
     ));
+}
+
+#[cfg(feature = "dev_native")]
+use bevy_simple_subsecond_system::hot;
+
+#[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch))]
+fn setup_level(
+    mut commands: Commands,
+    world_assets: Res<WorldAssets>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    level_assets: Res<LevelAssets>,
+) {
+    level::level(
+        &mut commands,
+        world_assets,
+        &mut meshes,
+        &mut materials,
+        &level_assets,
+    );
 }
 
 fn enter_loading_or_gameplay_screen(
