@@ -1,5 +1,6 @@
 use super::*;
 use crate::audio::sound_effect;
+use crate::gameplay::tree::Tree;
 use crate::leaderboard::AddUserScore;
 use crate::{
     gameplay::{apple::Apple, health::Death, tractor::Tractor},
@@ -69,6 +70,7 @@ pub fn plugin(app: &mut App) {
          mut score: ResMut<ScoreCounter>,
          mut currency: ResMut<Currency>,
          apples: Query<&Apple>,
+         trees: Query<&Tree>,
          tractor: Query<&Tractor>,
          assets: Res<ScoreAssets>| {
             if let Ok(_apple) = apples.get(trigger.target()) {
@@ -78,6 +80,17 @@ pub fn plugin(app: &mut App) {
                 }
                 commands.spawn(sound_effect(assets.sound.clone()));
             }
+
+            if let Ok(_tree) = trees.get(trigger.target()) {
+                for _ in 0..5 {
+                    score.points += 1;
+                    if score.points % 10 == 0 {
+                        currency.add(1);
+                    }
+                }
+                commands.spawn(sound_effect(assets.sound.clone()));
+            }
+
             if let Ok(_tractor) = tractor.get(trigger.target()) {
                 commands.trigger(AddUserScore {
                     value: score.points as f32,
