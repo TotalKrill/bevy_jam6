@@ -9,7 +9,9 @@ use bevy_rts_camera::RtsCamera;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
-    app.add_systems(Update, (toggle_camera, move_rts_camera));
+    #[cfg(feature = "dev")]
+    app.add_systems(Update, toggle_camera);
+    app.add_systems(Update, move_rts_camera);
 }
 
 fn move_rts_camera(
@@ -61,6 +63,7 @@ impl CamState {
     }
 }
 
+#[cfg(feature = "dev")]
 fn toggle_camera(
     kb_input: Res<ButtonInput<KeyCode>>,
     mut commands: Commands,
