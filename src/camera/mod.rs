@@ -30,6 +30,8 @@ pub fn spawn_camera(mut commands: Commands) {
             ..Default::default()
         },
         Camera3d::default(),
+        #[cfg(target_family = "wasm")]
+        Msaa::Off,
         Name::new("GameplayCamera"),
         Bloom::NATURAL,
         Camera {

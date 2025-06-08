@@ -8,7 +8,7 @@ mod music;
 mod splash;
 mod title;
 
-// #[cfg(feature = "dev_native")]
+#[cfg(feature = "dev")]
 mod dev_tractorbuild;
 
 use bevy::prelude::*;
@@ -36,5 +36,6 @@ pub enum Screen {
     Title,
     Loading,
     InGame,
+    #[cfg(feature = "dev")]
     TractorBuild,
 }

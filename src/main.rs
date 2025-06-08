@@ -54,6 +54,8 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+        // #[cfg(target_family = "wasm")]
+        // app.insert_resource(Msaa::Off);
 
         #[cfg(feature = "dev_native")]
         app.add_plugins(SimpleSubsecondPlugin::default());

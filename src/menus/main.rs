@@ -9,6 +9,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn spawn_main_menu(mut commands: Commands) {
+    #[cfg(feature = "dev")]
     commands.spawn((
         widget::ui_root("Main Menu"),
         GlobalZIndex(2),
@@ -16,7 +17,6 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(not(target_family = "wasm"))]
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),
-            #[cfg(feature = "dev")]
             widget::button("Dev", enter_loading_or_dev_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
@@ -26,8 +26,28 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(target_family = "wasm")]
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),
-            #[cfg(feature = "dev")]
             widget::button("Dev", enter_loading_or_dev_screen),
+            widget::button("Leaderboard", open_leaderboard_screen),
+            widget::button("Settings", open_settings_menu),
+            widget::button("Credits", open_credits_menu),
+        ],
+    ));
+    #[cfg(not(feature = "dev"))]
+    commands.spawn((
+        widget::ui_root("Main Menu"),
+        GlobalZIndex(2),
+        StateScoped(Menu::Main),
+        #[cfg(not(target_family = "wasm"))]
+        children![
+            widget::button("Play", enter_loading_or_gameplay_screen),
+            widget::button("Leaderboard", open_leaderboard_screen),
+            widget::button("Settings", open_settings_menu),
+            widget::button("Credits", open_credits_menu),
+            widget::button("Exit", exit_app),
+        ],
+        #[cfg(target_family = "wasm")]
+        children![
+            widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
             widget::button("Credits", open_credits_menu),
@@ -47,6 +67,7 @@ fn enter_loading_or_gameplay_screen(
     }
 }
 
+#[cfg(feature = "dev")]
 fn enter_loading_or_dev_screen(
     _: Trigger<Pointer<Click>>,
     resource_handles: Res<ResourceHandles>,

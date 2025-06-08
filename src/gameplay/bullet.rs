@@ -107,7 +107,7 @@ fn bullet_split_event_handler(
                     .distance_squared(evt.center)
                     .total_cmp(&t2.translation.distance_squared(evt.center))
             })
-            .take(3);
+            .take(2);
 
         for (apple_t, apple_v) in apples {
             let apple_target = apple_t.translation
@@ -146,10 +146,10 @@ impl Bullet {
         }
     }
     /// returns a bullet with half the values of the original
-    pub fn half(&self) -> Self {
+    pub fn split(&self) -> Self {
         Bullet {
-            damage: self.damage / 2,
-            split_probability: self.split_probability / 2.0,
+            damage: self.damage - 1,
+            split_probability: 1.,
         }
     }
 }

@@ -165,11 +165,11 @@ fn bullet_apple_collision_damage(
                 let percent: f32 = rand::random();
                 if percent < bullet.split_probability {
                     info!("splitting bullet!");
-                    let bullet = bullet.half();
+                    let bullet = bullet.split();
                     if bullet.damage > 0 {
                         bullet_split.write(BulletSplitEvent {
                             center: apple_t.translation,
-                            radius: apple.radius,
+                            radius: apple.radius * apple_t.scale.x,
                             bullet,
                         });
                     }
