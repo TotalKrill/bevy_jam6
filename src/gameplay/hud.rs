@@ -1,7 +1,3 @@
-use core::fmt;
-
-use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem, input::keyboard};
-
 use crate::{
     PausableSystems, ReplaceOnHotreload,
     gameplay::{
@@ -14,10 +10,14 @@ use crate::{
     },
     theme::widget,
 };
-
-use Val::*;
-
+use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem, input::keyboard};
+use bevy_tweening::*;
+use bevy_tweening::{Animator, Tween, lens::TransformPositionLens};
+use core::fmt;
+use bevy::window::Ime::Disabled;
 use super::*;
+use crate::theme::palette::{BUTTON_TEXT, LABEL_TEXT};
+use Val::*;
 
 #[derive(Component, Default)]
 pub struct PointCounter;
@@ -57,6 +57,7 @@ pub fn hud_plugin(app: &mut App) {
         (
             upgrade_saw.run_if(on_event::<SawUpdateEvent>),
             upgrade_turret.run_if(on_event::<TurretUpdateEvent>),
+            toggle_upgrade_indicators
         )
             .in_set(PausableSystems),
     );
@@ -100,12 +101,15 @@ fn update_healthbar(
 
 pub fn spawn_hud(commands: &mut Commands) {
     commands.spawn(stat_tracker());
+    commands.spawn(upgrade_tracker());
     commands.spawn(healthbar());
     commands.spawn(update_hud());
 }
 
 #[derive(Component, Default)]
 struct TurretUpdateCounter;
+#[derive(Component, Default)]
+struct TurretUpdateIndicator;
 
 #[derive(Component, Default)]
 struct SawUpdateCounter;
@@ -123,9 +127,11 @@ fn update_hud() -> impl Bundle {
             ..Default::default()
         },
         children![
-            upgrades_counter(),
-            update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret"),
-            update_button::<SawUpdateEvent, SawUpdateCounter>("Saw"),
+            // upgrades_counter(),
+            update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret", "Press 1"),
+            update_button::<SawUpdateEvent, SawUpdateCounter>("Saw", "Press 2"),
+            // update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret lvl 1", "Press 1"),
+            // update_button::<SawUpdateEvent, SawUpdateCounter>("Saw lvl 1", "Press 2"),
         ],
     )
 }
@@ -135,31 +141,17 @@ struct UpgradeCounter;
 
 fn update_upgrade_counter(
     currency: Res<Currency>,
-    mut upg_counts: Query<&mut Text, With<UpgradeCounter>>,
+    mut upg_counts: Query<(&mut Text, &mut TextColor), With<UpgradeCounter>>,
 ) {
-    for mut upg_count in upg_counts.iter_mut() {
-        *upg_count = Text::new(format!("{}", currency.get()));
+    for (mut upg_count, mut upg_color) in upg_counts.iter_mut() {
+        if currency.get() > 0 {
+            *upg_count = Text::new(format!("Upgrades: {}", currency.get()));
+            *upg_color = TextColor(LABEL_TEXT);
+        } else {
+            *upg_count = Text::new(format!("Upgrades: {}", currency.get()));
+            *upg_color = TextColor(BUTTON_TEXT);
+        }
     }
-}
-
-fn upgrades_counter() -> impl Bundle {
-    (
-        Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        },
-        children![
-            (
-                Node {
-                    //
-                    ..Default::default()
-                },
-                Text::new("Upgrades"),
-            ),
-            (Text::new("-"), UpgradeCounter,)
-        ],
-    )
 }
 
 fn upgrade_turret(
@@ -175,6 +167,27 @@ fn upgrade_turret(
             }
         }
     }
+}
+fn toggle_upgrade_indicators(
+    mut nodes: Query<&mut Visibility, With<TurretUpdateIndicator,>>,
+    currency: Res<Currency>,
+) {
+    for mut node in nodes.iter_mut() {
+        if currency.get() > 0 {
+            *node = Visibility::Visible;
+        } else {
+            *node = Visibility::Hidden;
+        }
+    }
+
+    // if currency.spend(1) {
+    //     for mut turret in turrets.iter_mut() {
+    //         turret.0 += 1;
+    //         for mut upd_counter in upd_counters.iter_mut() {
+    //             *upd_counter = Text::new(format!("{}", turret.0));
+    //         }
+    //     }
+    // }
 }
 
 fn upgrade_saw(
@@ -196,8 +209,9 @@ fn stat_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Node {
-            right: Val::Percent(5.),
+            left: Val::Percent(5.),
             top: Val::Percent(3.0),
+            width: Px(82.0 * 2.),
             padding: UiRect::all(Val::Px(4.)),
             position_type: PositionType::Absolute,
             flex_direction: FlexDirection::Column,
@@ -207,7 +221,7 @@ fn stat_tracker() -> impl Bundle {
         BorderRadius::all(Val::Px(4.)),
         Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
         Children::spawn((
-            Spawn(value_counter("Points", 32., PointCounter)),
+            Spawn(value_counter("Points", 30., PointCounter)),
             Spawn((
                 Node {
                     width: Val::Auto,
@@ -215,9 +229,35 @@ fn stat_tracker() -> impl Bundle {
                 },
                 Outline::new(Val::Px(1.), Val::Px(0.0), WHITE.into()),
             )),
-            Spawn(value_counter("Apples Alive", 18., AppleCounter)),
-            Spawn(value_counter("Trees Alive", 18., TreeCounter)),
+            Spawn(value_counter("Apples Alive", 16., AppleCounter)),
+            Spawn(value_counter("Trees Alive", 16., TreeCounter)),
         )),
+    )
+}
+
+fn upgrade_tracker() -> impl Bundle {
+    (
+        ReplaceOnHotreload,
+        Node {
+            left: Val::Percent(5.),
+            top: Val::Percent(3.0 + 15.),
+            width: Px(82.0 * 2.),
+            padding: UiRect::all(Val::Px(4.)),
+            position_type: PositionType::Absolute,
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        },
+        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+        BorderRadius::all(Val::Px(4.)),
+        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+        children![
+            (
+                Text::new("Upgrades:"),
+                UpgradeCounter,
+                TextColor(LABEL_TEXT),
+                TextFont::from_font_size(20.0),
+            )
+        ]
     )
 }
 
@@ -292,7 +332,81 @@ fn healthbar() -> impl Bundle {
     )
 }
 
-fn update_button<E, C>(name: impl Into<String>) -> impl Bundle
+fn update_button_dev<E, C>(name: impl Into<String>, upgrade_text: impl Into<String>) -> impl Bundle
+where
+    E: Event + Default,
+    C: Component + Default,
+{
+
+    let width = 100.0;
+
+    (
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        children![
+            (
+                Node {
+                    width: Px(width),
+                    height: Px(25.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                children![(
+                    Text(upgrade_text.into()),
+                    TextFont::from_font_size(18.0),
+                    TextColor(BUTTON_TEXT),
+                ),]
+            ),
+            (
+                Node {
+                    width: Px(width+10.),
+                    height: Px(25.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+                BorderRadius::all(Val::Px(4.)),
+                children![(
+                    Text("Upgrade".into()),
+                    TextFont::from_font_size(18.0),
+                    TextColor(LABEL_TEXT),
+                )]
+            ),
+            (Node {
+                width: Px(width),
+                height: Px(10.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },),
+            (
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+                BorderRadius::all(Val::Px(4.)),
+                children![
+                    (
+                        Text(name.into()),
+                        TextFont::from_font_size(20.0),
+                        TextColor(BUTTON_TEXT),
+                    ),
+                ],
+            )
+        ],
+    )
+}
+
+fn update_button<E, C>(name: impl Into<String>, upgrade_text: impl Into<String>) -> impl Bundle
 where
     E: Event + Default,
     C: Component + Default,
@@ -303,23 +417,76 @@ where
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
-        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-        BorderRadius::all(Val::Px(4.)),
         children![
-            (widget::label(format!("{}", name.into())),),
-            (widget::button_base_marked(
-                "1",
-                C::default(),
-                trigg_event::<E>,
+            (
+                TurretUpdateIndicator,
                 Node {
-                    width: Px(80.0),
-                    height: Px(60.0),
+                    width: Px(82.0),
+                    height: Px(25.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-            ),)
+                children![(
+                    Text(upgrade_text.into()),
+                    TextFont::from_font_size(18.0),
+                    TextColor(BUTTON_TEXT),
+                ),]
+            ),
+            (
+                TurretUpdateIndicator,
+                Node {
+                    width: Px(82.0),
+                    height: Px(25.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+                BorderRadius::all(Val::Px(4.)),
+                children![(
+                    Text("Upgrade".into()),
+                    TextFont::from_font_size(18.0),
+                    TextColor(LABEL_TEXT),
+                )]
+            ),
+            (Node {
+                width: Px(82.0),
+                height: Px(10.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },),
+            (
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
+                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+                BorderRadius::all(Val::Px(4.)),
+                children![
+                    (
+                        Text(name.into()),
+                        TextFont::from_font_size(20.0),
+                        TextColor(BUTTON_TEXT),
+                    ),
+                    (widget::button_base_marked(
+                        "1",
+                        C::default(),
+                        trigg_event::<E>,
+                        Node {
+                            width: Px(80.0),
+                            height: Px(40.0),
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        },
+                    ),)
+                ],
+            )
         ],
     )
 }
