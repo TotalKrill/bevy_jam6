@@ -1,12 +1,12 @@
 use crate::PausableSystems;
 use crate::audio::sound_effect;
-use crate::gameplay::WorldAssets;
 use crate::gameplay::apple::{APPLE_RADIUS, AppleAssets, AppleSpawnEvent, AppleStrength};
 use crate::gameplay::health::*;
 use crate::gameplay::healthbars::healthbar;
 use crate::gameplay::level::Ground;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::tractor::Tractor;
+use crate::gameplay::{DespawnAfter, WorldAssets};
 use crate::screens::ingame::setup_gamescreen;
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource, screens::*};
 use avian3d::prelude::*;
@@ -63,6 +63,8 @@ pub struct TreeSpawnEvent {
 #[reflect(Resource)]
 pub struct TreeAssets {
     pub tree: Handle<Scene>,
+    pub crown: Handle<Scene>,
+    pub trunks: [Handle<Scene>; 3],
 }
 
 #[derive(Component)]
@@ -72,7 +74,13 @@ impl FromWorld for TreeAssets {
     fn from_world(world: &mut World) -> Self {
         let assets: &AssetServer = world.resource::<AssetServer>();
         Self {
-            tree: assets.load(GltfAssetLabel::Scene(0).from_asset("models/tree/tree.glb")),
+            tree: assets.load("models/tree/tree.gltf#Scene1"),
+            crown: assets.load("models/tree/tree.gltf#Scene0"),
+            trunks: [
+                assets.load("models/tree/tree.gltf#Scene2"),
+                assets.load("models/tree/tree.gltf#Scene3"),
+                assets.load("models/tree/tree.gltf#Scene4"),
+            ],
         }
     }
 }
@@ -212,11 +220,45 @@ fn spawn_tree(
                     //     SceneRoot(apple_assets.apple.clone()),
                     // ],
                 ))
-                .observe(|trigger: Trigger<Death>, mut commands: Commands| {
-                    if let Ok(mut ec) = commands.get_entity(trigger.target().entity()) {
-                        ec.despawn();
-                    }
-                });
+                .observe(
+                    |trigger: Trigger<Death>,
+                     mut commands: Commands,
+                     trees: Query<&Transform, With<Tree>>,
+                     tree_assets: Res<TreeAssets>| {
+                        let entity = trigger.target().entity();
+
+                        if let Ok(pos) = trees.get(entity) {
+                            for (i, trunk) in tree_assets.trunks.iter().enumerate() {
+                                commands.spawn((
+                                    DespawnAfter::millis(3000),
+                                    RigidBody::Dynamic,
+                                    SceneRoot(trunk.clone()),
+                                    Transform::from_translation(pos.translation),
+                                    children![(
+                                        Collider::cylinder(
+                                            TREE_STARTING_RADIUS,
+                                            TREE_STARTING_HEIGHT / 3.0
+                                        ),
+                                        Transform {
+                                            translation: vec3(
+                                                0.,
+                                                TREE_STARTING_HEIGHT / 3.0 * i as f32,
+                                                0.
+                                            ),
+                                            scale: pos.scale,
+                                            ..default()
+                                        },
+                                        LinearVelocity(Vec3::splat(1.0))
+                                    )],
+                                ));
+                            }
+                        }
+
+                        if let Ok(mut ec) = commands.get_entity(entity) {
+                            ec.despawn();
+                        };
+                    },
+                );
         } else {
             log::error!("Ground not found when spawning tree at {:}", ray_start);
         }
