@@ -116,9 +116,12 @@ fn spawn_apple_event_handler(
                  mut commands: Commands,
                  assets: Res<AppleAssets>,
                  mut eventwriter: EventWriter<SeedSpawnEvent>,
-                 query: Query<(Entity, &Transform), With<Apple>>| {
-                    if let Ok((_apple_e, apple_t)) = query.get(trigger.target()) {
-                        eventwriter.write(SeedSpawnEvent::new(apple_t.translation));
+                 query: Query<(Entity, &Transform, &LinearVelocity), With<Apple>>| {
+                    if let Ok((_apple_e, apple_t, velocity)) = query.get(trigger.target()) {
+                        eventwriter.write(SeedSpawnEvent {
+                            position: apple_t.translation,
+                            velocity: **velocity,
+                        });
 
                         commands.spawn((
                             apple_death_particles(),

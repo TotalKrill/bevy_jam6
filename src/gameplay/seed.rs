@@ -43,13 +43,8 @@ pub struct Seed {
 
 #[derive(Debug, Event)]
 pub struct SeedSpawnEvent {
-    position: Vec3,
-}
-
-impl SeedSpawnEvent {
-    pub fn new(position: Vec3) -> Self {
-        Self { position }
-    }
+    pub position: Vec3,
+    pub velocity: Vec3,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -67,11 +62,22 @@ fn spawn_seeds(
     for event in events.read() {
         let position = event.position + Vec3::new(0., 0.1, 0.);
 
+        let up = Vec3::Y * event.velocity.length();
+
         for vel in [
-            Vec3::new(5., 5., 5.),
-            Vec3::new(5., 5., -5.),
-            Vec3::new(-5., 5., 5.),
-            Vec3::new(-5., 5., -5.),
+            // Set seed initial velocity in the direction which the apple is moving with some randomness
+            Quat::from_rotation_y((rand::random::<f32>() * (0.0 - 40.0) + 40.0).to_radians())
+                .mul_vec3(event.velocity)
+                + up,
+            Quat::from_rotation_y((-rand::random::<f32>() * (0.0 - 40.0) + 40.0).to_radians())
+                .mul_vec3(event.velocity)
+                + up,
+            Quat::from_rotation_y((rand::random::<f32>() * (60.0 - 40.0) + 40.0).to_radians())
+                .mul_vec3(event.velocity)
+                + up,
+            Quat::from_rotation_y((-rand::random::<f32>() * (60.0 - 40.0) + 40.0).to_radians())
+                .mul_vec3(event.velocity)
+                + up,
         ]
         .into_iter()
         {
