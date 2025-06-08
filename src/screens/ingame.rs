@@ -60,6 +60,8 @@ pub fn setup_gamescreen(
 ) {
     use bevy_enhanced_input::prelude::Actions;
 
+    use crate::gameplay::sun;
+
     for e in query.iter() {
         commands.entity(e).despawn();
     }
@@ -85,27 +87,7 @@ pub fn setup_gamescreen(
     // commands.spawn(PerfUiAllEntries::default());
 
     // Spawn the Sun
-    commands.spawn((
-        Name::new("sun"),
-        ReplaceOnHotreload,
-        StateScoped(Screen::InGame),
-        DirectionalLight {
-            illuminance: light_consts::lux::OVERCAST_DAY,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
-            ..default()
-        },
-        CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 4.0,
-            maximum_distance: 10.0,
-            ..default()
-        }
-        .build(),
-    ));
+    commands.spawn((sun(), StateScoped(Screen::InGame)));
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {

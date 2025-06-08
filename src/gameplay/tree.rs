@@ -367,12 +367,20 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (
-            // trees_spawn_apples,
-            spawn_tree.after(setup_gamescreen),
-            spawn_tree_timer,
-            level_up_trees,
-        )
+        spawn_tree
+            .after(setup_gamescreen)
+            .run_if(in_state(Screen::InGame)),
+    );
+    app.add_systems(
+        Update,
+        spawn_tree
+            .after(setup_gamescreen)
+            .run_if(in_state(Screen::TractorBuild)),
+    );
+
+    app.add_systems(
+        Update,
+        (trees_spawn_apples, spawn_tree_timer, level_up_trees)
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),
     );

@@ -127,7 +127,7 @@ pub fn level(
         ));
     }
 
-    let grass = world_assets.ground.clone();
+    let grass = world_assets.texture.clone();
     let material = StandardMaterial {
         base_color_texture: Some(grass.clone()),
         uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
