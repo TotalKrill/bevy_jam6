@@ -1,5 +1,6 @@
 use super::*;
 use crate::ReplaceOnHotreload;
+use crate::gameplay::tree::{TREE_STARTING_HEIGHT, Tree, TreeAssets, TreeSpawnEvent};
 use avian3d::prelude::{ColliderConstructor, Friction, RigidBody};
 use bevy::color::palettes::tailwind::{AMBER_800, GREEN_400};
 use bevy::math::Affine2;
@@ -7,12 +8,14 @@ use bevy::render::mesh::VertexAttributeValues;
 use noise::{BasicMulti, NoiseFn, Perlin};
 
 #[derive(Component)]
-pub struct Ground;
+pub struct Ground {
+    pub edges: Vec<[f32; 3]>
+}
 
 const SEED: u32 = 1135;
 pub const TERRAIN_HEIGHT: f32 = 40.;
-pub const PLANE_X_SIZE: f32 = 300.;
-pub const PLANE_Z_SIZE: f32 = 300.;
+pub const PLANE_X_SIZE: f32 = 400.;
+pub const PLANE_Z_SIZE: f32 = 400.;
 const PLANE_SUB_DIVISION_COUNT: u32 = 20;
 
 fn create_plane() -> Mesh {
@@ -24,9 +27,11 @@ fn create_plane() -> Mesh {
     )
 }
 
-fn create_terrain(mut terrain: Mesh) -> Mesh {
+fn create_terrain(mut terrain: Mesh) -> (Mesh, Vec<[f32; 3]>) {
     // TODO We can modify the noise type
     let noise = BasicMulti::<Perlin>::new(SEED);
+
+    let mut edges: Vec<[f32; 3]> = Vec::new();
 
     if let Some(VertexAttributeValues::Float32x3(positions)) =
         terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
@@ -38,6 +43,11 @@ fn create_terrain(mut terrain: Mesh) -> Mesh {
                 pos[2] as f64 / 300.,
             ]) as f32
                 * TERRAIN_HEIGHT;
+
+            if pos[0] < -140. || pos[0] > 140. || pos[2] < -140. || pos[2] > 140. {
+                edges.push(pos.clone());
+            }
+
         }
 
         let colors: Vec<[f32; 4]> = positions
@@ -68,16 +78,21 @@ fn create_terrain(mut terrain: Mesh) -> Mesh {
         terrain.compute_normals();
     }
 
-    terrain
+    // for edge in edges.clone() {
+    //     println!("pos = [{}, {}, {}]", edge[0], edge[1], edge[2]);
+    // }
+
+    (terrain, edges)
 }
 
 pub fn level(
+    mut commands: Commands,
     world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-) -> impl Bundle {
+) {
     let plane = create_plane();
-    let terrain = create_terrain(plane);
+    let (terrain, edges) = create_terrain(plane);
 
     let grass = world_assets.ground.clone();
     let material = StandardMaterial {
@@ -87,7 +102,7 @@ pub fn level(
         ..default()
     };
 
-    (
+    commands.spawn((
         ColliderConstructor::TrimeshFromMesh,
         Mesh3d(meshes.add(terrain)),
         MeshMaterial3d(materials.add(material)),
@@ -95,7 +110,7 @@ pub fn level(
         Transform::from_xyz(0., -2., 0.),
         RigidBody::Static,
         Friction::new(1.0),
-        Ground,
+        Ground {edges: edges.clone()},
         Name::new("Ground"),
-    )
+    ));
 }

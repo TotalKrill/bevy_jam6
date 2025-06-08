@@ -40,6 +40,7 @@ pub mod damage_indicator;
 
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
+use crate::gameplay::tree::TreeAssets;
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]

@@ -48,14 +48,15 @@ use crate::{
 };
 
 use crate::gameplay::{hud, score::Currency};
+use crate::gameplay::tree::TreeAssets;
 
 pub fn setup_level(
-    mut commands: Commands,
+    commands: Commands,
     world_assets: Res<WorldAssets>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(level::level(world_assets, meshes, materials));
+    level::level(commands, world_assets, meshes, materials);
 }
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
