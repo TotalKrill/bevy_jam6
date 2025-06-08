@@ -26,6 +26,7 @@ const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: f32 = 1.5;
+const MAXIMUM_TREES: usize = 50;
 
 const DEFAULT_TREE_LOCATIONS: [Vec3; 3] = [
     vec3(22.0, 1000., 20.0),
@@ -49,6 +50,10 @@ impl Tree {
     const SCALE_SHAKE_DURATION_MS: u64 = 50;
     const SCALE_SHAKE_ANGLE_RADIAN: f32 = PI / 9.0;
     const SCALE_SHAKE_COUNT: u32 = 10;
+}
+
+fn calculate_max_health(tree_level: u32) -> u32 {
+    return 1 + (TREE_HEALTH_INCREASE_TICK * tree_level as f32) as u32;
 }
 
 #[derive(Event)]
@@ -153,8 +158,14 @@ fn spawn_tree(
     tree_assets: Res<TreeAssets>,
     mut raycast: MeshRayCast,
     ground: Query<Entity, With<Ground>>,
+    trees: Query<&Tree>,
 ) {
     for event in events.read() {
+        let num_trees = trees.iter().len();
+        if num_trees >= MAXIMUM_TREES {
+            continue;
+        }
+
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
         let ray_start = event.position.with_y(event.position.y + TERRAIN_HEIGHT);
         // let ray_start = Vec3::new(event.position.x, 1000.0, event.position.y);
@@ -179,9 +190,9 @@ fn spawn_tree(
                         ),
                         level: event.startlevel,
                     },
+                    Health::new(calculate_max_health(event.startlevel)),
                     Sawable::default(),
                     AnchoredUiNodes::spawn_one(healthbar(100.)),
-                    Health::new(TREE_HEALTH_INIT),
                     StateScoped(Screen::InGame),
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
@@ -221,22 +232,21 @@ fn spawn_tree(
                                     DespawnAfter::millis(3000),
                                     RigidBody::Dynamic,
                                     SceneRoot(trunk.clone()),
-                                    Transform::from_translation(pos.translation),
+                                    pos.clone(),
+                                    LinearVelocity(Vec3::splat(2.0)),
                                     children![(
                                         Collider::cylinder(
-                                            TREE_STARTING_RADIUS,
-                                            TREE_STARTING_HEIGHT / 3.0
+                                            (TREE_STARTING_RADIUS) * 0.9,
+                                            (TREE_STARTING_HEIGHT / 3.0) * 0.9
                                         ),
                                         Transform {
                                             translation: vec3(
                                                 0.,
-                                                TREE_STARTING_HEIGHT / 3.0 * i as f32,
+                                                TREE_STARTING_HEIGHT / 3.0 * i as f32 + 0.1,
                                                 0.
                                             ),
-                                            scale: pos.scale,
                                             ..default()
                                         },
-                                        LinearVelocity(Vec3::splat(1.0))
                                     )],
                                 ));
                             }
@@ -289,7 +299,7 @@ fn level_up_trees(
         if tree.timer.just_finished() {
             if tree_health.current == tree_health.max {
                 tree.level += 1;
-                tree_health.set_max_to(1 + (TREE_HEALTH_INCREASE_TICK * tree.level as f32) as u32);
+                tree_health.set_max_to(calculate_max_health(tree.level));
             }
 
             commands
@@ -333,7 +343,6 @@ fn trees_spawn_apples(
             commands.send_event(AppleSpawnEvent {
                 at: spawn_pos,
                 apple_strength: AppleStrength::from_tree_level(tree.level),
-                radius: 1.0, // TODO make const?
             });
         }
     }
@@ -363,13 +372,21 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::InGame), spawn_initial_trees);
 
     app.add_systems(
-        FixedUpdate,
-        (
-            trees_spawn_apples,
-            spawn_tree.after(setup_gamescreen),
-            spawn_tree_timer,
-            level_up_trees,
-        )
+        Update,
+        spawn_tree
+            .after(setup_gamescreen)
+            .run_if(in_state(Screen::InGame)),
+    );
+    app.add_systems(
+        Update,
+        spawn_tree
+            .after(setup_gamescreen)
+            .run_if(in_state(Screen::TractorBuild)),
+    );
+
+    app.add_systems(
+        Update,
+        (trees_spawn_apples, spawn_tree_timer, level_up_trees)
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),
     );

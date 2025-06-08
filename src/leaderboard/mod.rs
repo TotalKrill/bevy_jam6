@@ -14,8 +14,8 @@ const GAME_NAME: &str = "newton-survivor";
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_plugins(JornetPlugin::with_leaderboard(
-        "22271519-ef22-40fd-a134-fa869d9f9d0a",
-        "68b3dc06-eca5-4c12-928a-e3b017b59610",
+        "b6cd7cbc-d05f-4d51-a942-d5c735efe74a",
+        "cc358714-99fb-46b0-80a5-9fd9e021d377",
     ))
     .add_event::<AddUserScore>()
     .add_systems(Startup, setup_local_storage)
