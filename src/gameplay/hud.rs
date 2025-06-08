@@ -19,6 +19,8 @@ use super::*;
 use crate::theme::palette::{BUTTON_TEXT, LABEL_TEXT};
 use Val::*;
 
+const HUD_WIDTH_ELEMENT: f32 = 82.0;
+
 #[derive(Component, Default)]
 pub struct PointCounter;
 
@@ -104,7 +106,7 @@ pub fn spawn_hud(commands: &mut Commands) {
         Node {
             left: Val::Percent(5.),
             top: Val::Percent(3.0),
-            width: Px(82.0 * 2.),
+            width: Px(HUD_WIDTH_ELEMENT * 2.),
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
             ..Default::default()
@@ -229,7 +231,7 @@ fn stat_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Node {
-            width: Px(82.0 * 2.),
+            width: Px(HUD_WIDTH_ELEMENT * 2.),
             padding: UiRect::all(Val::Px(4.)),
             flex_direction: FlexDirection::Column,
             ..Default::default()
@@ -256,7 +258,7 @@ fn upgrade_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Node {
-            width: Px(82.0 * 2.),
+            width: Px(HUD_WIDTH_ELEMENT * 2.),
             padding: UiRect::all(Val::Px(4.)),
             flex_direction: FlexDirection::Column,
             ..Default::default()
@@ -362,7 +364,7 @@ where
             (
                 TurretUpdateIndicator,
                 Node {
-                    width: Px(82.0),
+                    width: Px(HUD_WIDTH_ELEMENT),
                     height: Px(25.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
@@ -377,7 +379,7 @@ where
             (
                 TurretUpdateIndicator,
                 Node {
-                    width: Px(82.0),
+                    width: Px(HUD_WIDTH_ELEMENT),
                     height: Px(25.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
@@ -393,7 +395,7 @@ where
                 )]
             ),
             (Node {
-                width: Px(82.0),
+                width: Px(HUD_WIDTH_ELEMENT),
                 height: Px(10.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
