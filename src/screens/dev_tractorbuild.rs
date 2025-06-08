@@ -1,5 +1,7 @@
 use super::*;
 use crate::gameplay::WorldAssets;
+use crate::gameplay::tree::TreeSpawnEvent;
+use crate::gameplay::turret_aiming::Sight;
 use crate::gameplay::{
     tractor::{self, TractorAssets},
     turret_aiming,
@@ -19,12 +21,26 @@ pub(super) fn plugin(app: &mut App) {
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
-    // app.add_systems(
-    //     Update,
-    //     fire_bullets
-    //         .run_if(in_state(Screen::TractorBuild))
-    //         .run_if(on_timer(Duration::from_secs(1))),
-    // );
+    app.add_systems(
+        Update,
+        spawn_tree_on_click.run_if(in_state(Screen::TractorBuild)),
+    );
+}
+
+#[cfg_attr(feature = "dev_native", hot)]
+fn spawn_tree_on_click(
+    sight: Query<&Transform, With<Sight>>,
+    mut tree_w: EventWriter<TreeSpawnEvent>,
+    input: Res<ButtonInput<MouseButton>>,
+) {
+    if input.just_pressed(MouseButton::Middle) {
+        for sight in sight.iter() {
+            tree_w.write(TreeSpawnEvent {
+                position: sight.translation,
+                startlevel: 3,
+            });
+        }
+    }
 }
 
 use crate::{ReplaceOnHotreload, gameplay::controls::InTractor};
@@ -86,9 +102,9 @@ fn setup_devscreen(
 
     /// ui
     use crate::gameplay::{
-        apple::apple_death_particles,
         hud::{self, *},
         saw::sawdust_particles,
+        sun,
     };
     spawn_hud(&mut commands);
 
@@ -98,25 +114,7 @@ fn setup_devscreen(
     // ));
 
     // Spawn the Sun
-    commands.spawn((
-        ReplaceOnHotreload,
-        DirectionalLight {
-            illuminance: light_consts::lux::AMBIENT_DAYLIGHT / 2.0,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
-            ..default()
-        },
-        CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 4.0,
-            maximum_distance: 10.0,
-            ..default()
-        }
-        .build(),
-    ));
+    commands.spawn(sun());
 
     // commands.spawn(PerfUiAllEntries::default());
 }

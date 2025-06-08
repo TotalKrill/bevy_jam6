@@ -1,9 +1,14 @@
-use std::time::Duration;
+use std::{f32::consts::PI, time::Duration};
 
-use crate::{asset_tracking::LoadResource, gameplay::level::LevelAssets, menus::Menu};
+use crate::{
+    ReplaceOnHotreload, asset_tracking::LoadResource, gameplay::level::LevelAssets, menus::Menu,
+};
 use avian3d::prelude::*;
-use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
 pub use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{
+    image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor},
+    pbr::CascadeShadowConfigBuilder,
+};
 //all the gameplay stuff
 
 /// Event that is triggered when the game is over!
@@ -38,23 +43,22 @@ mod seed;
 
 pub mod damage_indicator;
 
-use crate::gameplay::tree::TreeAssets;
 #[cfg(feature = "dev_native")]
 use bevy_simple_subsecond_system::hot;
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct WorldAssets {
-    pub ground: Handle<Image>,
+    pub texture: Handle<Image>,
 }
 
 impl FromWorld for WorldAssets {
     fn from_world(world: &mut World) -> Self {
         let assets: &AssetServer = world.resource::<AssetServer>();
-        let path = "models/map/Grass_04-512x512.png";
+        let path = "models/map/Grass_04-512x512_gray.png";
         Self {
             // ground: assets.load(path)
-            ground: assets.load_with_settings(path, |s: &mut _| {
+            texture: assets.load_with_settings(path, |s: &mut _| {
                 *s = ImageLoaderSettings {
                     sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
                         // rewriting mode to repeat image,
@@ -73,9 +77,33 @@ fn to_gameover(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::GameOver);
 }
 
+pub fn sun() -> impl Bundle {
+    (
+        Name::new("sun"),
+        ReplaceOnHotreload,
+        DirectionalLight {
+            illuminance: 7000.,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }
+        .build(),
+    )
+}
+
 pub(super) fn plugin(app: &mut App) {
     log::info!("Adding gameplay plugins");
 
+    app.register_type::<WorldAssets>();
     app.init_resource::<WorldAssets>();
     app.init_resource::<LevelAssets>();
 
