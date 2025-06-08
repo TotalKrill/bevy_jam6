@@ -166,19 +166,6 @@ fn spawn_tree(
         let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
 
         if let Some((_, hit)) = hits.into_iter().find(|(entity, _)| *entity == *ground) {
-            let position = vec3(
-                event.position.x,
-                hit.point.y + TREE_STARTING_HEIGHT / 2.0,
-                event.position.y,
-            );
-
-            log::info!(
-                "Spawning tree at position: {:?} (from {:?}, distance: {:?})",
-                hit.point,
-                event.position,
-                hit.distance
-            );
-
             commands
                 .spawn((
                     Name::new("Tree"),
@@ -200,8 +187,8 @@ fn spawn_tree(
                     RigidBody::Static,
                     Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
                     Transform {
-                        translation: position,
-                        scale: Vec3::splat(9.01),
+                        translation: hit.point,
+                        scale: Vec3::splat(0.01),
                         ..Default::default()
                     },
                     Animator::new(level_up_animation(
