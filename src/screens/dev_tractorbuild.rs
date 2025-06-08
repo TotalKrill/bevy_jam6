@@ -1,8 +1,6 @@
 use super::*;
 use crate::gameplay::WorldAssets;
 use crate::gameplay::{
-    hud::spawn_hud,
-    level,
     tractor::{self, TractorAssets},
     turret_aiming,
 };
@@ -34,7 +32,6 @@ use crate::{ReplaceOnHotreload, gameplay::controls::InTractor};
 fn setup_devscreen(
     mut commands: Commands,
     tractor_assets: Res<TractorAssets>,
-    world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<Entity, With<ReplaceOnHotreload>>,
@@ -62,8 +59,14 @@ fn setup_devscreen(
         ),
     );
 
+    commands.spawn((
+        ReplaceOnHotreload,
+        Transform::from_translation(Vec3::Y * 3.),
+        apple_death_particles(),
+    ));
     // Spawn the Sun
     commands.spawn((
+        ReplaceOnHotreload,
         DirectionalLight {
             illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
@@ -82,7 +85,10 @@ fn setup_devscreen(
     ));
 
     /// ui
-    use crate::gameplay::hud::{self, *};
+    use crate::gameplay::{
+        apple::apple_death_particles,
+        hud::{self, *},
+    };
     spawn_hud(&mut commands);
 
     // commands.spawn((
