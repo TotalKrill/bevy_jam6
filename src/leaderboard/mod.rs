@@ -105,9 +105,9 @@ pub struct AddUserScore {
 }
 
 #[derive(Resource, Serialize, Deserialize, Debug, Default)]
-struct User {
-    name: String,
-    high_score: f32,
+pub struct User {
+    pub name: String,
+    pub high_score: f32,
     last_score: f32,
     id: Uuid,
     key: Uuid,
