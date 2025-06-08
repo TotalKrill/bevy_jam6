@@ -62,7 +62,7 @@ fn setup_devscreen(
     commands.spawn((
         ReplaceOnHotreload,
         Transform::from_translation(Vec3::Y * 3.),
-        apple_death_particles(),
+        sawdust_particles(),
     ));
     // Spawn the Sun
     commands.spawn((
@@ -88,6 +88,7 @@ fn setup_devscreen(
     use crate::gameplay::{
         apple::apple_death_particles,
         hud::{self, *},
+        saw::sawdust_particles,
     };
     spawn_hud(&mut commands);
 

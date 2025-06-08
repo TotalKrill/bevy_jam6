@@ -1,10 +1,10 @@
-use std::time::Duration;
-use bevy_inspector_egui::egui::debug_text::print;
 use crate::{
     PausableSystems,
     audio::sound_effect,
     gameplay::apple::{APPLE_RADIUS, Apple},
 };
+use bevy_inspector_egui::egui::debug_text::print;
+use std::time::Duration;
 
 use super::*;
 
@@ -65,16 +65,13 @@ pub fn bullet_plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (
-            fire_bullet_event_handler,
-            bullet_split_event_handler,
-            despawn_bullets,
-        )
+        (fire_bullet_event_handler, bullet_split_event_handler)
             .chain()
             .in_set(PausableSystems),
     );
 }
 
+#[cfg_attr(feature = "dev_native", hot)]
 fn fire_bullet_event_handler(
     mut commands: Commands,
     assets: Res<BulletAssets>,
@@ -94,7 +91,7 @@ fn fire_bullet_event_handler(
     }
 }
 
-pub const BULLET_SPEED: f32 = 100.;
+pub const BULLET_SPEED: f32 = 70.;
 
 #[cfg_attr(feature = "dev_native", hot)]
 fn bullet_split_event_handler(
@@ -103,7 +100,6 @@ fn bullet_split_event_handler(
     mut spawn_writer: EventWriter<BulletSpawnEvent>,
 ) {
     for evt in split_event.read() {
-        
         let apples = apples
             .iter()
             .sort_by::<&Transform>(|t1, t2| {
@@ -114,7 +110,6 @@ fn bullet_split_event_handler(
             .take(3);
 
         for (apple_t, apple_v) in apples {
-
             let apple_target = apple_t.translation
                 + apple_v.0 * (apple_t.translation.distance(evt.center) / BULLET_SPEED);
 
@@ -129,31 +124,16 @@ fn bullet_split_event_handler(
                         dir,
                         bullet: evt.bullet.clone(),
                         speed: BULLET_SPEED,
-                    //     TODO Add apple entity spawning the new bullet so we can later can check so it is not killed by the new bullet 
+                        //     TODO Add apple entity spawning the new bullet so we can later can check so it is not killed by the new bullet
                     });
                 }
             }
-
-        }
-    }
-}
-
-fn despawn_bullets(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut bullets: Query<(Entity, &mut Bullet)>,
-) {
-    for (e, mut bullet) in bullets.iter_mut() {
-        bullet.timer.tick(time.delta());
-        if bullet.timer.just_finished() {
-            commands.entity(e).despawn();
         }
     }
 }
 
 #[derive(Component, Clone)]
 pub struct Bullet {
-    pub timer: Timer,
     pub damage: u32,
     pub split_probability: f32,
 }
@@ -163,7 +143,6 @@ impl Bullet {
         Self {
             damage,
             split_probability,
-            timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
         }
     }
     /// returns a bullet with half the values of the original
@@ -171,7 +150,6 @@ impl Bullet {
         Bullet {
             damage: self.damage / 2,
             split_probability: self.split_probability / 2.0,
-            timer: self.timer.clone(),
         }
     }
 }
@@ -188,6 +166,7 @@ pub fn bullet(
         Name::new("Bullet"),
         Mesh3d(bulletasset.mesh.clone()),
         MeshMaterial3d(bulletasset.material.clone()),
+        DespawnAfter::millis(1000),
         RigidBody::Dynamic,
         Mass(bullet.damage as f32),
         Collider::sphere(SIZE),
