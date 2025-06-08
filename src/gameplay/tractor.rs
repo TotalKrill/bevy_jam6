@@ -3,7 +3,7 @@ use std::time::Duration;
 use super::*;
 use crate::gameplay::apple::Apple;
 use crate::gameplay::health::{Death, Health};
-use crate::gameplay::level::TERRAIN_HEIGHT;
+use crate::gameplay::level::{LevelManager};
 use crate::{ReplaceOnHotreload, asset_tracking::LoadResource};
 use avian3d::prelude::*;
 use bevy_tweening::lens::{TransformPositionLens, TransformRotateXLens};
@@ -302,7 +302,7 @@ fn kill_tractor_below_map(
     query: Query<(Entity, &Transform), With<Tractor>>,
 ) {
     for (entity, transform) in query.iter() {
-        if transform.translation.y < -1. * TERRAIN_HEIGHT {
+        if transform.translation.y < -1. * LevelManager::TERRAIN_HEIGHT {
             commands.trigger_targets(Death, entity);
         }
     }

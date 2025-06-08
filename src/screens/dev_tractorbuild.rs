@@ -18,6 +18,9 @@ pub(super) fn plugin(app: &mut App) {
     // Toggle pause on key press.
     app.add_systems(OnEnter(Screen::TractorBuild), setup_devscreen);
 
+    app.add_systems(OnEnter(Screen::TractorBuild), setup_level);
+    
+
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_debug_camera);
     // app.add_systems(OnEnter(Screen::TractorBuild), activate_gameplay_camera);
 
@@ -30,6 +33,8 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 use crate::{ReplaceOnHotreload, gameplay::controls::InTractor};
+use crate::gameplay::level::setup_level;
+
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 fn setup_devscreen(
     mut commands: Commands,

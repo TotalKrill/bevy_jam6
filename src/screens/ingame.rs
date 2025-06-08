@@ -29,6 +29,8 @@ pub(super) fn plugin(app: &mut App) {
         ),
     );
 
+    app.add_systems(OnEnter(Screen::InGame), crate::gameplay::level::setup_level);
+
     app.add_systems(OnExit(Screen::InGame), (close_menu, unpause));
 
     app.add_systems(
@@ -55,7 +57,7 @@ pub fn setup_level(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(level::level(world_assets, meshes, materials));
+    // commands.spawn(level::level(world_assets, meshes, materials));
 }
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]

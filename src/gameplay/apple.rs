@@ -3,7 +3,6 @@ use crate::asset_tracking::LoadResource;
 use crate::audio::sound_effect;
 use crate::gameplay::health::{Death, Health};
 use crate::gameplay::healthbars::healthbar;
-use crate::gameplay::level::TERRAIN_HEIGHT;
 use crate::gameplay::saw::Sawable;
 use crate::gameplay::seed::SeedSpawnEvent;
 use crate::{ReplaceOnHotreload, gameplay::tractor::Tractor, screens::*};
@@ -15,6 +14,7 @@ pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 const APPLE_INITIAL_ROTATION: f32 = 5.0;
 use bevy_ui_anchor::AnchoredUiNodes;
+use crate::gameplay::level::LevelManager;
 
 #[derive(Component)]
 pub struct Apple {
@@ -143,7 +143,7 @@ fn despawn_apples_below_map(
     query: Query<(Entity, &Transform), With<Apple>>,
 ) {
     for (entity, transform) in query.iter() {
-        if transform.translation.y < -1. * TERRAIN_HEIGHT {
+        if transform.translation.y < -1. * LevelManager::TERRAIN_HEIGHT {
             commands.entity(entity).despawn();
         }
     }

@@ -72,6 +72,8 @@ impl Plugin for AppPlugin {
         // Overwrite default debug rendering configuration so its off (optional)
         app.insert_gizmo_config(PhysicsGizmos::none(), GizmoConfig::default());
 
+        app.add_plugins(level::plugin);
+
         app.add_systems(
             OnEnter(Pause(true)),
             |mut physics: ResMut<Time<Physics>>| {
@@ -169,3 +171,4 @@ struct PausableSystems;
 use bevy_simple_subsecond_system::prelude::*;
 use bevy_tweening::TweeningPlugin;
 use iyes_perf_ui::PerfUiPlugin;
+use crate::gameplay::level;

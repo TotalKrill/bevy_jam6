@@ -304,7 +304,7 @@ where
             ..Default::default()
         },
         BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
-        Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
+        Outline::new(Val::Px(2.), Val::Px(0.), GOLD.into()),
         BorderRadius::all(Val::Px(4.)),
         children![
             (widget::label(format!("{}", name.into())),),

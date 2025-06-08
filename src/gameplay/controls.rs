@@ -116,7 +116,7 @@ fn tractor_move(
     trigger: Trigger<Fired<MoveEvent>>,
     tractor: Single<(&mut ExternalForce, &mut AngularVelocity, &Transform), With<Tractor>>,
     wheels: Query<Entity, With<Wheel>>,
-    ground_entity: Single<Entity, With<Ground>>,
+    ground_entities: Query<Entity, With<Ground>>,
     time: Res<Time>,
     collisions: Collisions,
 ) {
@@ -124,14 +124,17 @@ fn tractor_move(
 
     let mut wheels_on_ground = 0;
 
-    for wheel in wheels.iter() {
-        if let Some(collision) = collisions.get(*ground_entity, wheel) {
-            if collision.is_touching() {
-                wheels_on_ground += 1;
+    'loop_wheels: for wheel in wheels.iter() {
+
+        for ground_entity in ground_entities.iter() {
+            if let Some(collision) = collisions.get(ground_entity, wheel) {
+                if collision.is_touching() {
+                    wheels_on_ground += 1;
+                }
+            };
+            if wheels_on_ground >= 2 {
+                break 'loop_wheels;
             }
-        };
-        if wheels_on_ground >= 2 {
-            break;
         }
     }
 
