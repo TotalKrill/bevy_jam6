@@ -62,7 +62,7 @@ where
         (
             Node {
                 width: Px(380.0),
-                height: Px(80.0),
+                height: Px(60.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()

@@ -1,12 +1,16 @@
 //! The main menu (seen on the title screen).
 
-use bevy::prelude::*;
+use bevy::{
+    image::{ImageLoaderSettings, ImageSampler},
+    prelude::*,
+};
 
 use crate::{
     asset_tracking::ResourceHandles,
     gameplay::{
         WorldAssets,
         level::{self, Ground, LevelAssets},
+        sun,
     },
     menus::Menu,
     screens::Screen,
@@ -18,14 +22,30 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), setup_level);
 }
 
-fn spawn_main_menu(mut commands: Commands) {
+fn banner(asset_server: &AssetServer) -> impl Bundle {
+    (
+        Name::new("Splash image"),
+        Node {
+            width: Val::Percent(50.0),
+            ..default()
+        },
+        BackgroundColor::DEFAULT,
+        ImageNode::new(asset_server.load("images/banner.png")),
+    )
+}
+
+fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((sun(), StateScoped(Menu::Main)));
+
     #[cfg(feature = "dev")]
     commands.spawn((
         widget::ui_root("Main Menu"),
+        BackgroundColor::DEFAULT,
         GlobalZIndex(2),
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            banner(&asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Dev", enter_loading_or_dev_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
@@ -35,6 +55,7 @@ fn spawn_main_menu(mut commands: Commands) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            banner(&asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Dev", enter_loading_or_dev_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
@@ -49,6 +70,7 @@ fn spawn_main_menu(mut commands: Commands) {
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            banner(&asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
@@ -57,6 +79,7 @@ fn spawn_main_menu(mut commands: Commands) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            banner(&asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
