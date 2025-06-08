@@ -10,6 +10,11 @@ use bevy_firework::plugin::ParticleSystemPlugin;
 use bevy_simple_subsecond_system::prelude::*;
 use bevy_tweening::TweeningPlugin;
 
+use crate::gameplay::{
+    WorldAssets,
+    level::{self, LevelAssets},
+};
+
 mod asset_tracking;
 mod audio;
 
@@ -121,6 +126,8 @@ impl Plugin for AppPlugin {
             .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
             .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
             .add_plugins(bevy::render::diagnostic::RenderDiagnosticsPlugin);
+
+        // app.add_systems(Startup, setup_level);
     }
 }
 

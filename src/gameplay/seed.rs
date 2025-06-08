@@ -100,7 +100,6 @@ fn plant_seed(
                             transform.translation.z,
                         ),
                         startlevel: 0,
-                        static_tree: false,
                     });
 
                     if let Ok(mut ec) = commands.get_entity(seed) {

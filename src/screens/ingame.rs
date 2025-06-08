@@ -1,5 +1,6 @@
 //! The screen state for the main gameplay.
 
+use crate::gameplay::level::LevelAssets;
 use crate::gameplay::{WorldAssets, tree::TreeSpawnEvent};
 use crate::{
     Pause,
@@ -37,7 +38,6 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_systems(OnEnter(Screen::InGame), setup_gamescreen);
-    app.add_systems(Startup, setup_level);
 }
 
 use super::*;
@@ -48,22 +48,11 @@ use crate::{
 };
 
 use crate::gameplay::{hud, score::Currency};
-use crate::gameplay::tree::TreeAssets;
-
-pub fn setup_level(
-    commands: Commands,
-    world_assets: Res<WorldAssets>,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-) {
-    level::level(commands, world_assets, meshes, materials);
-}
 
 #[cfg_attr(feature = "dev_native", hot(rerun_on_hot_patch = true))]
 pub fn setup_gamescreen(
     mut commands: Commands,
     tractor_assets: Res<TractorAssets>,
-    world_assets: Res<WorldAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut currency: ResMut<Currency>,
