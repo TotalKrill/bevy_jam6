@@ -26,7 +26,7 @@ const RANDOM_SPAWN_Z_MAX: f32 = 150.0;
 const RANDOM_SPAWN_REPEAT_TIME_SEC: u64 = 10;
 const TREE_HEALTH_INIT: u32 = 1;
 const TREE_HEALTH_INCREASE_TICK: f32 = 1.5;
-const MAXIMUM_TREES: usize: 100;
+const MAXIMUM_TREES: usize = 100;
 
 const DEFAULT_TREE_LOCATIONS: [Vec3; 3] = [
     vec3(22.0, 1000., 20.0),
@@ -162,7 +162,7 @@ fn spawn_tree(
 ) {
     for event in events.read() {
         let num_trees = trees.iter().len();
-        if num_trees >= MAXIMUM_TREES{
+        if num_trees >= MAXIMUM_TREES {
             continue;
         }
 
