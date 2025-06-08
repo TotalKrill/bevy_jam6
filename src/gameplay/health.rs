@@ -164,7 +164,7 @@ fn bullet_apple_collision_damage(
 
                 let percent: f32 = rand::random();
                 if percent < bullet.split_probability {
-                    info!("splitting bullet!");
+                    // info!("splitting bullet!");
                     let bullet = bullet.split();
                     if bullet.damage > 0 {
                         bullet_split.write(BulletSplitEvent {

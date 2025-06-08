@@ -117,7 +117,7 @@ fn bullet_split_event_handler(
 
             if distance > evt.radius + 0.0005 {
                 if let Ok(dir) = (apple_target - evt.center).normalize().try_into() {
-                    info!("Spawning new bullet!");
+                    // info!("Spawning new bullet!");
 
                     spawn_writer.write(BulletSpawnEvent {
                         at: evt.center + dir * evt.radius,
