@@ -100,8 +100,28 @@ fn update_healthbar(
 }
 
 pub fn spawn_hud(commands: &mut Commands) {
-    commands.spawn(stat_tracker());
-    commands.spawn(upgrade_tracker());
+    commands.spawn((
+        Node {
+            left: Val::Percent(5.),
+            top: Val::Percent(3.0),
+            width: Px(82.0 * 2.),
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        children![
+            stat_tracker(),
+            (Node {
+                height: Px(20.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },),
+            upgrade_tracker()
+        ]
+    ));
+    // commands.spawn(stat_tracker());
+    // commands.spawn(upgrade_tracker());
     commands.spawn(healthbar());
     commands.spawn(update_hud());
 }
@@ -209,11 +229,8 @@ fn stat_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Node {
-            left: Val::Percent(5.),
-            top: Val::Percent(3.0),
             width: Px(82.0 * 2.),
             padding: UiRect::all(Val::Px(4.)),
-            position_type: PositionType::Absolute,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
@@ -239,11 +256,8 @@ fn upgrade_tracker() -> impl Bundle {
     (
         ReplaceOnHotreload,
         Node {
-            left: Val::Percent(5.),
-            top: Val::Percent(3.0 + 15.),
             width: Px(82.0 * 2.),
             padding: UiRect::all(Val::Px(4.)),
-            position_type: PositionType::Absolute,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
@@ -332,79 +346,6 @@ fn healthbar() -> impl Bundle {
     )
 }
 
-fn update_button_dev<E, C>(name: impl Into<String>, upgrade_text: impl Into<String>) -> impl Bundle
-where
-    E: Event + Default,
-    C: Component + Default,
-{
-
-    let width = 100.0;
-
-    (
-        Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        },
-        children![
-            (
-                Node {
-                    width: Px(width),
-                    height: Px(25.0),
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-                children![(
-                    Text(upgrade_text.into()),
-                    TextFont::from_font_size(18.0),
-                    TextColor(BUTTON_TEXT),
-                ),]
-            ),
-            (
-                Node {
-                    width: Px(width+10.),
-                    height: Px(25.0),
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
-                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-                BorderRadius::all(Val::Px(4.)),
-                children![(
-                    Text("Upgrade".into()),
-                    TextFont::from_font_size(18.0),
-                    TextColor(LABEL_TEXT),
-                )]
-            ),
-            (Node {
-                width: Px(width),
-                height: Px(10.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },),
-            (
-                Node {
-                    flex_direction: FlexDirection::Column,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
-                Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-                BorderRadius::all(Val::Px(4.)),
-                children![
-                    (
-                        Text(name.into()),
-                        TextFont::from_font_size(20.0),
-                        TextColor(BUTTON_TEXT),
-                    ),
-                ],
-            )
-        ],
-    )
-}
 
 fn update_button<E, C>(name: impl Into<String>, upgrade_text: impl Into<String>) -> impl Bundle
 where
