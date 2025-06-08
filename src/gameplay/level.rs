@@ -14,6 +14,7 @@ pub struct Ground;
 #[derive(Resource, Asset, Clone, Reflect)]
 pub struct LevelAssets {
     tree: Handle<Scene>,
+    rock: Handle<Scene>,
 }
 
 impl FromWorld for LevelAssets {
@@ -21,7 +22,8 @@ impl FromWorld for LevelAssets {
         let assets: &AssetServer = world.resource::<AssetServer>();
         let tree =
             assets.load(GltfAssetLabel::Scene(0).from_asset("models/tree/harmless_tree.glb"));
-        Self { tree: tree }
+        let rock = assets.load(GltfAssetLabel::Scene(0).from_asset("models/tree/rock.glb"));
+        Self { tree, rock }
     }
 }
 
@@ -104,7 +106,8 @@ pub fn level(
     const LEVEL_OFFSET: f32 = -2.0;
     const EDGE_START: f32 = 140.;
 
-    let mut seeded_rng = rand_chacha::ChaCha8Rng::seed_from_u64(19878367467712);
+    const DETAILS_SEED: u64 = 2;
+    let mut seeded_rng = rand_chacha::ChaCha8Rng::seed_from_u64(DETAILS_SEED);
     let distribution = UniformMeshSampler::try_new(terrain.triangles().unwrap()).unwrap();
     // Add sample points as children of the sphere:
 
@@ -137,6 +140,27 @@ pub fn level(
                     translation: position,
                     scale: Vec3::splat(4.),
                     ..Default::default()
+                },
+            ));
+        }
+    }
+
+    let distribution = UniformMeshSampler::try_new(terrain.triangles().unwrap()).unwrap();
+    for position in distribution.sample_iter(&mut seeded_rng).take(25) {
+        if position.x.abs() < EDGE_START || position.z.abs() < EDGE_START {
+            let mut position = position;
+            position.y += LEVEL_OFFSET;
+
+            commands.spawn((
+                // ReplaceOnHotreload,
+                Name::new("Rock"),
+                SceneRoot(level_assets.rock.clone()),
+                Collider::sphere(0.9),
+                RigidBody::Static,
+                Transform {
+                    translation: position,
+                    scale: Vec3::splat(4.),
+                    rotation: rand::random(),
                 },
             ));
         }
