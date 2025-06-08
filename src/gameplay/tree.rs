@@ -363,7 +363,7 @@ pub(super) fn plugin(app: &mut App) {
     });
 
     app.add_systems(
-        Update,
+        PostUpdate,
         (shake_sawning_trees
             .run_if(in_state(Screen::InGame))
             .in_set(PausableSystems),),
@@ -377,6 +377,7 @@ pub(super) fn plugin(app: &mut App) {
             .after(setup_gamescreen)
             .run_if(in_state(Screen::InGame)),
     );
+    #[cfg(feature = "dev")]
     app.add_systems(
         Update,
         spawn_tree
