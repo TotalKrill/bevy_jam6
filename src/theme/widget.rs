@@ -61,8 +61,8 @@ where
         action,
         (
             Node {
-                width: Px(380.0),
-                height: Px(80.0),
+                width: Px(280.0),
+                height: Px(40.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()
@@ -122,7 +122,7 @@ where
                     children![(
                         Name::new("Button Text"),
                         Text(text),
-                        TextFont::from_font_size(40.0),
+                        TextFont::from_font_size(32.0),
                         TextColor(BUTTON_TEXT),
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
