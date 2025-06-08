@@ -16,6 +16,7 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(not(target_family = "wasm"))]
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),
+            #[cfg(feature = "dev")]
             widget::button("Dev", enter_loading_or_dev_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
@@ -25,6 +26,7 @@ fn spawn_main_menu(mut commands: Commands) {
         #[cfg(target_family = "wasm")]
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),
+            #[cfg(feature = "dev")]
             widget::button("Dev", enter_loading_or_dev_screen),
             widget::button("Leaderboard", open_leaderboard_screen),
             widget::button("Settings", open_settings_menu),
