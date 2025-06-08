@@ -6,7 +6,7 @@ use crate::{
     asset_tracking::ResourceHandles,
     gameplay::{
         WorldAssets,
-        level::{self, LevelAssets},
+        level::{self, Ground, LevelAssets},
     },
     menus::Menu,
     screens::Screen,
@@ -75,14 +75,17 @@ fn setup_level(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     level_assets: Res<LevelAssets>,
+    query: Query<Entity, With<Ground>>, // use this to make sure there isnt already a ground
 ) {
-    level::level(
-        &mut commands,
-        world_assets,
-        &mut meshes,
-        &mut materials,
-        &level_assets,
-    );
+    if query.is_empty() {
+        level::level(
+            &mut commands,
+            world_assets,
+            &mut meshes,
+            &mut materials,
+            &level_assets,
+        );
+    }
 }
 
 fn enter_loading_or_gameplay_screen(

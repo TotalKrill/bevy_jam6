@@ -368,9 +368,9 @@ pub(super) fn plugin(app: &mut App) {
             trees_spawn_apples,
             spawn_tree.after(setup_gamescreen),
             spawn_tree_timer,
-            level_up_trees
-                .run_if(in_state(Screen::InGame))
-                .in_set(PausableSystems),
-        ),
+            level_up_trees,
+        )
+            .run_if(in_state(Screen::InGame))
+            .in_set(PausableSystems),
     );
 }

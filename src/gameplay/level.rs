@@ -155,7 +155,7 @@ pub fn level(
                 // ReplaceOnHotreload,
                 Name::new("Rock"),
                 SceneRoot(level_assets.rock.clone()),
-                Collider::sphere(0.9),
+                Collider::sphere(0.8),
                 RigidBody::Static,
                 Transform {
                     translation: position,

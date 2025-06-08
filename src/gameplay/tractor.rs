@@ -236,12 +236,12 @@ pub fn spawn_tractor_saw(assets: &TractorAssets, tractor_id: Entity, commands: &
     let saw_pos_1 = Vec3::new(
         -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE) + animation_length_x / 2.,
         0.0,
-        0.0//-(TRACTOR_LENGTH / 2.0),
+        0.0, //-(TRACTOR_LENGTH / 2.0),
     );
     let saw_pos_2 = Vec3::new(
         -(TRACTOR_WIDTH / 2.0 - WHEEL_RADIE) - animation_length_x / 2.,
         0.0,
-        0.0//-(TRACTOR_LENGTH / 2.0),
+        0.0, //-(TRACTOR_LENGTH / 2.0),
     );
 
     let animation = Tween::new(

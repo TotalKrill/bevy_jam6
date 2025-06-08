@@ -87,6 +87,7 @@ pub fn setup_gamescreen(
     // Spawn the Sun
     commands.spawn((
         ReplaceOnHotreload,
+        StateScoped(Screen::InGame),
         DirectionalLight {
             illuminance: light_consts::lux::AMBIENT_DAYLIGHT / 2.0,
             shadows_enabled: true,
