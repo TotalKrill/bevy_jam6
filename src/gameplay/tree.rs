@@ -185,7 +185,7 @@ fn spawn_tree(
                     ReplaceOnHotreload,
                     SceneRoot(tree_assets.tree.clone()),
                     RigidBody::Static,
-                    Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT),
+                    Collider::cylinder(TREE_STARTING_RADIUS, TREE_STARTING_HEIGHT * 2.0),
                     Transform {
                         translation: hit.point,
                         scale: Vec3::splat(0.01),
