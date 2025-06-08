@@ -16,6 +16,7 @@ pub const APPLE_RADIUS: f32 = 1.0;
 const APPLE_INITIAL_VELOCITY: f32 = 10.0;
 const APPLE_INITIAL_ROTATION: f32 = 5.0;
 const APPLE_SEED_PROBABILITY: f32 = 0.35;
+const MAXIMUM_APPLES: usize = 400;
 use bevy_ui_anchor::AnchoredUiNodes;
 
 #[derive(Component)]
@@ -75,8 +76,14 @@ fn spawn_apple_event_handler(
     mut commands: Commands,
     assets: Res<AppleAssets>,
     tractor: Single<&Transform, With<Tractor>>,
+    apples: Query<&Apple>,
 ) {
     for event in events.read() {
+        let num_apples = apples.iter().len();
+        if num_apples >= MAXIMUM_APPLES {
+            continue;
+        }
+
         let position = event.at;
         let towards_player =
             ((tractor.translation - position).normalize() + Vec3::Y * 2.0).normalize();
