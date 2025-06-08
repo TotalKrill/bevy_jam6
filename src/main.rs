@@ -20,10 +20,7 @@ mod theme;
 mod camera;
 mod leaderboard;
 
-use bevy::input::common_conditions::input_toggle_active;
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use bevy_inspector_egui::bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -96,12 +93,6 @@ impl Plugin for AppPlugin {
             audio::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
-            #[cfg(feature = "dev")]
-            EguiPlugin {
-                enable_multipass_for_primary_context: true,
-            },
-            #[cfg(feature = "dev")]
-            WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Digit0)),
             menus::plugin,
             screens::plugin,
             theme::plugin,

@@ -23,6 +23,7 @@ pub(super) fn plugin(app: &mut App) {
         title::plugin,
         music::plugin,
     ));
+    #[cfg(feature = "dev")]
     app.add_plugins(dev_tractorbuild::plugin);
 }
 
