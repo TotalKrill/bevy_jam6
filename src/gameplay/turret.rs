@@ -69,7 +69,7 @@ fn tick_and_fire_turret(
             fire_bullet_evt.write(BulletSpawnEvent {
                 at: bullet_spawnpoint,
                 dir: forward,
-                speed: 50.,
+                speed: bullet::BULLET_SPEED,
                 bullet: Bullet::new(turret_damage.0, 1.0),
             });
         }
