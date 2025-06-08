@@ -366,9 +366,9 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::InGame), spawn_initial_trees);
 
     app.add_systems(
-        FixedUpdate,
+        Update,
         (
-            trees_spawn_apples,
+            // trees_spawn_apples,
             spawn_tree.after(setup_gamescreen),
             spawn_tree_timer,
             level_up_trees,

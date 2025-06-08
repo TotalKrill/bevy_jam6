@@ -107,9 +107,12 @@ fn bullet_split_event_handler(
                     .distance_squared(evt.center)
                     .total_cmp(&t2.translation.distance_squared(evt.center))
             })
-            .take(2);
+            .take(3);
 
-        for (apple_t, apple_v) in apples {
+        let mut iter = apples.into_iter();
+        iter.next();
+
+        for (apple_t, apple_v) in iter {
             let apple_target = apple_t.translation
                 + apple_v.0 * (apple_t.translation.distance(evt.center) / BULLET_SPEED);
 
@@ -117,8 +120,6 @@ fn bullet_split_event_handler(
 
             if distance > evt.radius + 0.0005 {
                 if let Ok(dir) = (apple_target - evt.center).normalize().try_into() {
-                    // info!("Spawning new bullet!");
-
                     spawn_writer.write(BulletSpawnEvent {
                         at: evt.center + dir * evt.radius,
                         dir,
@@ -148,7 +149,7 @@ impl Bullet {
     /// returns a bullet with half the values of the original
     pub fn split(&self) -> Self {
         Bullet {
-            damage: self.damage - 1,
+            damage: self.damage / 2,
             split_probability: 1.,
         }
     }

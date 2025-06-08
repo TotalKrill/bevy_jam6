@@ -44,7 +44,7 @@ use super::*;
 
 use crate::{
     ReplaceOnHotreload,
-    gameplay::{controls::InTractor, level, turret_aiming},
+    gameplay::{controls::InTractor, turret_aiming},
 };
 
 use crate::gameplay::{hud, score::Currency};
@@ -86,10 +86,11 @@ pub fn setup_gamescreen(
 
     // Spawn the Sun
     commands.spawn((
+        Name::new("sun"),
         ReplaceOnHotreload,
         StateScoped(Screen::InGame),
         DirectionalLight {
-            illuminance: light_consts::lux::AMBIENT_DAYLIGHT / 2.0,
+            illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },

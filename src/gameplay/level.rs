@@ -127,6 +127,28 @@ pub fn level(
         ));
     }
 
+    let grass = world_assets.ground.clone();
+    let material = StandardMaterial {
+        base_color_texture: Some(grass.clone()),
+        uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
+        reflectance: 0.05,
+        ..default()
+    };
+
+    let id = commands
+        .spawn((
+            ColliderConstructor::TrimeshFromMesh,
+            Mesh3d(meshes.add(terrain.clone())),
+            MeshMaterial3d(materials.add(material)),
+            // TODO Where should we spawn the tractor?
+            Transform::from_xyz(0., LEVEL_OFFSET, 0.),
+            RigidBody::Static,
+            Friction::new(1.0),
+            Ground,
+            Name::new("Ground"),
+        ))
+        .id();
+
     for position in distribution.sample_iter(&mut seeded_rng).take(7000) {
         if position.x.abs() > EDGE_START || position.z.abs() > EDGE_START {
             let mut position = position;
@@ -135,6 +157,7 @@ pub fn level(
             commands.spawn((
                 // ReplaceOnHotreload,
                 Name::new("StaticTree"),
+                ChildOf(id),
                 SceneRoot(level_assets.tree.clone()),
                 Transform {
                     translation: position,
@@ -153,6 +176,7 @@ pub fn level(
 
             commands.spawn((
                 // ReplaceOnHotreload,
+                ChildOf(id),
                 Name::new("Rock"),
                 SceneRoot(level_assets.rock.clone()),
                 Collider::sphere(0.8),
@@ -165,24 +189,4 @@ pub fn level(
             ));
         }
     }
-
-    let grass = world_assets.ground.clone();
-    let material = StandardMaterial {
-        base_color_texture: Some(grass.clone()),
-        uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
-        reflectance: 0.05,
-        ..default()
-    };
-
-    commands.spawn((
-        ColliderConstructor::TrimeshFromMesh,
-        Mesh3d(meshes.add(terrain)),
-        MeshMaterial3d(materials.add(material)),
-        // TODO Where should we spawn the tractor?
-        Transform::from_xyz(0., LEVEL_OFFSET, 0.),
-        RigidBody::Static,
-        Friction::new(1.0),
-        Ground,
-        Name::new("Ground"),
-    ));
 }

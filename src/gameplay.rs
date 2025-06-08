@@ -51,7 +51,7 @@ pub struct WorldAssets {
 impl FromWorld for WorldAssets {
     fn from_world(world: &mut World) -> Self {
         let assets: &AssetServer = world.resource::<AssetServer>();
-        let path = "models/map/Grass_04-512x512.png";
+        let path = "models/map/Grass_04-512x512_gray.png";
         Self {
             // ground: assets.load(path)
             ground: assets.load_with_settings(path, |s: &mut _| {
