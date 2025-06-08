@@ -1,6 +1,4 @@
 use super::*;
-use crate::ReplaceOnHotreload;
-use crate::gameplay::tree::{TREE_STARTING_HEIGHT, Tree, TreeAssets, TreeSpawnEvent};
 use avian3d::prelude::{ColliderConstructor, Friction, RigidBody};
 use bevy::color::palettes::tailwind::{AMBER_800, GREEN_400};
 use bevy::math::Affine2;
@@ -11,9 +9,7 @@ use rand::prelude::Distribution;
 use rand_chacha::rand_core::SeedableRng;
 
 #[derive(Component)]
-pub struct Ground {
-    pub edges: Vec<[f32; 3]>,
-}
+pub struct Ground;
 
 #[derive(Resource, Asset, Clone, Reflect)]
 pub struct LevelAssets {
@@ -48,47 +44,9 @@ fn create_plane() -> Mesh {
     )
 }
 
-fn spawn_edge_trees(commands: &mut Commands, level_assets: &LevelAssets, ground: &Ground) {
-    for edge in ground.edges.iter() {
-        for offset in [0., 10., 20., 30.] {
-            let position = if edge[2] < -140. {
-                Some(Vec3::new(edge[0], edge[1], edge[2] + offset))
-            } else if edge[2] > 140. {
-                // Changed condition - probably checking upper bound
-                Some(Vec3::new(edge[0], edge[1], edge[2] - offset)) // Changed to subtract offset
-            } else if edge[0] < -140. {
-                Some(Vec3::new(edge[0] + offset, edge[1], edge[2])) // Changed to edge[0] + offset
-            } else if edge[0] > 140. {
-                // Changed condition - probably checking right bound
-                Some(Vec3::new(edge[0] - offset, edge[1], edge[2])) // Changed to edge[0] - offset
-            } else {
-                None
-            };
-
-            if let Some(position) = position {
-                commands.spawn((
-                    // ReplaceOnHotreload,
-                    Name::new("StaticTree"),
-                    SceneRoot(level_assets.tree.clone()),
-                    RigidBody::Static,
-                    Transform {
-                        translation: position
-                            .with_x(position.x + (rand::random::<f32>() * 2. - 1.) * 25.)
-                            .with_z(position.z + (rand::random::<f32>() * 2. - 1.) * 25.),
-                        scale: Vec3::splat(4.),
-                        ..Default::default()
-                    },
-                ));
-            }
-        }
-    }
-}
-
-fn create_terrain(mut terrain: Mesh, seed: u32) -> (Mesh, Vec<[f32; 3]>) {
+fn create_terrain(mut terrain: Mesh, seed: u32) -> Mesh {
     // TODO We can modify the noise type
     let noise = BasicMulti::<Perlin>::new(seed);
-
-    let mut edges: Vec<[f32; 3]> = Vec::new();
 
     if let Some(VertexAttributeValues::Float32x3(positions)) =
         terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
@@ -100,10 +58,6 @@ fn create_terrain(mut terrain: Mesh, seed: u32) -> (Mesh, Vec<[f32; 3]>) {
                 pos[2] as f64 / 300.,
             ]) as f32
                 * TERRAIN_HEIGHT;
-
-            if pos[0] < -140. || pos[0] > 140. || pos[2] < -140. || pos[2] > 140. {
-                edges.push(pos.clone());
-            }
         }
 
         let colors: Vec<[f32; 4]> = positions
@@ -134,11 +88,7 @@ fn create_terrain(mut terrain: Mesh, seed: u32) -> (Mesh, Vec<[f32; 3]>) {
         terrain.compute_normals();
     }
 
-    // for edge in edges.clone() {
-    //     println!("pos = [{}, {}, {}]", edge[0], edge[1], edge[2]);
-    // }
-
-    (terrain, edges)
+    terrain
 }
 
 pub fn level(
@@ -149,7 +99,7 @@ pub fn level(
     level_assets: &LevelAssets,
 ) {
     let plane = create_plane();
-    let (terrain, edges) = create_terrain(plane, TERRAIN_SEED);
+    let terrain = create_terrain(plane, TERRAIN_SEED);
 
     const LEVEL_OFFSET: f32 = -2.0;
     const EDGE_START: f32 = 140.;
@@ -158,11 +108,12 @@ pub fn level(
     let distribution = UniformMeshSampler::try_new(terrain.triangles().unwrap()).unwrap();
     // Add sample points as children of the sphere:
 
+    const WALL_START: f32 = EDGE_START + 2.;
     let walls = [
-        (EDGE_START, 0.),
-        (-EDGE_START, 0.),
-        (0., EDGE_START),
-        (0., -EDGE_START),
+        (WALL_START, 0.),
+        (-WALL_START, 0.),
+        (0., WALL_START),
+        (0., -WALL_START),
     ];
 
     for (x, z) in walls {
@@ -199,10 +150,6 @@ pub fn level(
         ..default()
     };
 
-    let ground = Ground {
-        edges: edges.clone(),
-    };
-
     commands.spawn((
         ColliderConstructor::TrimeshFromMesh,
         Mesh3d(meshes.add(terrain)),
@@ -211,7 +158,7 @@ pub fn level(
         Transform::from_xyz(0., LEVEL_OFFSET, 0.),
         RigidBody::Static,
         Friction::new(1.0),
-        ground,
+        Ground,
         Name::new("Ground"),
     ));
 }

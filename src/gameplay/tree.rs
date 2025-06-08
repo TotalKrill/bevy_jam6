@@ -152,7 +152,7 @@ fn spawn_tree(
     mut commands: Commands,
     tree_assets: Res<TreeAssets>,
     mut raycast: MeshRayCast,
-    ground: Single<Entity, With<Ground>>,
+    ground: Query<Entity, With<Ground>>,
 ) {
     for event in events.read() {
         // Calculate a ray pointing from the camera into the world based on the cursor's position.
@@ -161,9 +161,12 @@ fn spawn_tree(
 
         let ray = Ray3d::new(ray_start, Dir3::NEG_Y);
 
-        let hits = raycast.cast_ray(ray, &MeshRayCastSettings::default());
+        let hits = raycast.cast_ray(
+            ray,
+            &MeshRayCastSettings::default().with_filter(&|e| ground.contains(e)),
+        );
 
-        if let Some((_, hit)) = hits.into_iter().find(|(entity, _)| *entity == *ground) {
+        if let Some((_, hit)) = hits.first() {
             commands
                 .spawn((
                     Name::new("Tree"),
