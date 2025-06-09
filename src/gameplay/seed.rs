@@ -1,6 +1,7 @@
 use crate::{
     PausableSystems, ReplaceOnHotreload,
     gameplay::{health::Health, level::Ground, tree::TreeSpawnEvent},
+    screens::Screen,
 };
 
 use super::*;
@@ -12,7 +13,7 @@ const SEED_RADIUS: f32 = 0.1;
 const SEED_DESPAWN_TIME_SEC: u64 = 5;
 const SEED_SPAWN_TREE_PROBABILITY: f32 = 0.1;
 
-#[derive(Resource)]
+#[derive(Resource, Asset, Clone, Reflect)]
 pub struct SeedAssets {
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
@@ -49,7 +50,12 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<SeedSpawnEvent>();
     app.init_resource::<SeedAssets>();
 
-    app.add_systems(Update, (spawn_seed, plant_seed).in_set(PausableSystems));
+    app.add_systems(
+        Update,
+        (spawn_seed, plant_seed)
+            .run_if(in_state(Screen::InGame))
+            .in_set(PausableSystems),
+    );
 }
 
 fn spawn_seed(

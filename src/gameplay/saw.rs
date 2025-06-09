@@ -19,7 +19,7 @@ impl Default for Sawable {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Asset, Clone, Reflect)]
 struct SawAssets {
     damage_sound: Handle<AudioSource>,
 }
@@ -112,7 +112,7 @@ fn check_sawable_timers(mut sawables: Query<&mut Sawable>, time: Res<Time>) {
 }
 
 pub fn plugin(app: &mut App) {
-    app.init_resource::<SawAssets>();
+    app.load_resource::<SawAssets>();
     app.add_systems(
         Update,
         (

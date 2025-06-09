@@ -1,4 +1,5 @@
 use super::*;
+use crate::screens::Screen;
 use crate::theme::palette::{BUTTON_TEXT, LABEL_TEXT};
 use crate::{
     PausableSystems, ReplaceOnHotreload,
@@ -18,7 +19,6 @@ use bevy::{color::palettes::tailwind::*, ecs::system::IntoObserverSystem, input:
 use bevy_tweening::*;
 use bevy_tweening::{Animator, Tween, lens::TransformPositionLens};
 use core::fmt;
-use crate::screens::Screen;
 
 const HUD_WIDTH_ELEMENT: f32 = 82.0;
 
@@ -51,7 +51,8 @@ pub fn hud_plugin(app: &mut App) {
             update_apple_counter,
             update_tree_counter,
             update_upgrade_counter,
-        ),
+        )
+            .run_if(in_state(Screen::InGame)),
     );
     app.add_systems(Update, (keybind_updates).in_set(PausableSystems));
 
@@ -103,7 +104,6 @@ fn update_healthbar(
 }
 
 pub fn spawn_hud(commands: &mut Commands) {
-
     let width = 100.;
 
     commands.spawn((
@@ -177,20 +177,17 @@ fn update_hud() -> impl Bundle {
             ..Default::default()
         },
         children![
-
             create_upgrade_hud::<TurretUpdateEvent, TurretUpdateCounter>("Turret dmg", "Press 1"),
-             (Node {
+            (Node {
                 height: Px(10.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()
             },),
             create_upgrade_hud::<SawUpdateEvent, SawUpdateCounter>("Saw dmg", "Press 2"),
-
             // upgrades_counter(),
             // update_button::<TurretUpdateEvent, TurretUpdateCounter>("Turret", "Press 1"),
             // update_button::<SawUpdateEvent, SawUpdateCounter>("Saw", "Press 2"),
-
         ],
     )
 }
@@ -309,7 +306,8 @@ fn stat_tracker() -> impl Bundle {
 //     C: Component + Default,
 
 fn create_score_hud<C>(text: impl Into<String>) -> impl Bundle
-    where C: Component + Default,
+where
+    C: Component + Default,
 {
     let width = 100.;
 
@@ -323,7 +321,7 @@ fn create_score_hud<C>(text: impl Into<String>) -> impl Bundle
         children![
             (
                 Node {
-                    width: Px(width * 2. * 0.95 *2.),
+                    width: Px(width * 2. * 0.95 * 2.),
                     padding: UiRect::all(Val::Px(4.)),
                     flex_direction: FlexDirection::Row,
                     ..Default::default()
@@ -355,24 +353,20 @@ fn create_score_hud<C>(text: impl Into<String>) -> impl Bundle
                 BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
                 BorderRadius::all(Val::Px(4.)),
                 Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-
-                children![
-                    (Text::new("0"),
+                children![(
+                    Text::new("0"),
                     C::default(),
                     TextColor(BUTTON_TEXT),
                     TextFont::from_font_size(20.0),
-
                     Node {
                         justify_self: JustifySelf::End,
                         ..default()
-                    },)
-                ]
+                    },
+                )]
             ),
         ],
     )
 }
-
-
 
 fn value_counter(key: impl fmt::Display, size: f32, marker: impl Component) -> impl Bundle {
     (
@@ -422,14 +416,12 @@ fn healthbar() -> impl Bundle {
             width: Val::Percent(30.),
             height: Val::Percent(2.),
             position_type: PositionType::Absolute,
-            ..Default::default()
-
-            // bottom: Val::Percent(3.0),
-            // justify_self: JustifySelf::Center,
-            // width: Val::Percent(70.),
-            // height: Val::Percent(2.),
-            // position_type: PositionType::Absolute,
-            // ..Default::default()
+            ..Default::default() // bottom: Val::Percent(3.0),
+                                 // justify_self: JustifySelf::Center,
+                                 // width: Val::Percent(70.),
+                                 // height: Val::Percent(2.),
+                                 // position_type: PositionType::Absolute,
+                                 // ..Default::default()
         },
         BoxShadow::new(
             BLACK.into(),
@@ -544,7 +536,6 @@ where
     E: Event + Default,
     C: Component + Default,
 {
-
     (
         ReplaceOnHotreload,
         Node {
@@ -587,29 +578,23 @@ where
                 BackgroundColor(WHITE_SMOKE.with_alpha(0.1).into()),
                 BorderRadius::all(Val::Px(4.)),
                 Outline::new(Val::Px(2.), Val::Px(0.), WHITE.into()),
-
-                children![
-                    (
-                        Text::new("0"),
-                        C::default(),
-                        TextColor(BUTTON_TEXT),
-                        TextFont::from_font_size(20.0),
-                        Node {
-                            justify_self: JustifySelf::End,
-                            ..default()
-                        },
-                    )
-                ]
+                children![(
+                    Text::new("0"),
+                    C::default(),
+                    TextColor(BUTTON_TEXT),
+                    TextFont::from_font_size(20.0),
+                    Node {
+                        justify_self: JustifySelf::End,
+                        ..default()
+                    },
+                )]
             ),
-
-
             (Node {
                 width: Px(10.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()
             },),
-
             // pop up when update:
             (
                 Node {
@@ -630,15 +615,12 @@ where
                     TextColor(LABEL_TEXT),
                 )]
             ),
-
-
             (Node {
                 width: Px(10.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()
             },),
-
             (
                 TurretUpdateIndicator,
                 Node {
@@ -653,10 +635,8 @@ where
                     TextColor(BUTTON_TEXT),
                 ),]
             ),
-
-        ]
+        ],
     )
-
 }
 
 fn trigg_event<E>(_t: Trigger<Pointer<Click>>, mut evtw: EventWriter<E>)
